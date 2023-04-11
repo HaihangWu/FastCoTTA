@@ -47,8 +47,8 @@ class SegLanguage(EncoderDecoder):
     """
 
     def __init__(self,
-                 text_encoder,
                  class_names,
+                 text_encoder=None,
                  ft_backbone=False,
                  load_text_embedding=None,
                  #  init_cfg=None,
@@ -59,17 +59,18 @@ class SegLanguage(EncoderDecoder):
         #         'both text encoder and segmentor set pretrained weight'
         #     text_encoder.pretrained = pretrained_text
 
-        self.text_encoder = builder.build_backbone(text_encoder)
-        self.load_text_embedding = load_text_embedding
-        self.class_names = class_names
+        if  text_encoder:
+            self.text_encoder = builder.build_backbone(text_encoder)
+            self.load_text_embedding = load_text_embedding
+            self.class_names = class_names
 
-        if not self.load_text_embedding:
-            # if not self.multi_prompts:
-                self.texts = torch.cat([tokenize(f"a photo of a {c}") for c in self.class_names])
-                #self.texts = torch.cat([tokenize(f"{c}") for c in class_description])
-                #print(self.texts[0][:10],self.texts[1][:10],self.texts[2][:10])
-            # else:
-            #     self.texts = self._get_multi_prompts(self.class_names)
+            if not self.load_text_embedding:
+                # if not self.multi_prompts:
+                    self.texts = torch.cat([tokenize(f"a photo of a {c}") for c in self.class_names])
+                    #self.texts = torch.cat([tokenize(f"{c}") for c in class_description])
+                    #print(self.texts[0][:10],self.texts[1][:10],self.texts[2][:10])
+                # else:
+                #     self.texts = self._get_multi_prompts(self.class_names)
 
 
         # if self.training:
