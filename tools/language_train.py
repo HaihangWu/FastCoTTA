@@ -196,6 +196,8 @@ def main():
     meta['seed'] = seed
     meta['exp_name'] = osp.basename(args.config)
 
+    datasets = [build_dataset(cfg.data.train)]
+    cfg.model.class_names = datasets[0].CLASSES
     model = build_segmentor(
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
@@ -228,7 +230,7 @@ def main():
 
     logger.info(model)
 
-    datasets = [build_dataset(cfg.data.train)]
+
     if len(cfg.workflow) == 2:
         val_dataset = copy.deepcopy(cfg.data.val)
         val_dataset.pipeline = cfg.data.train.pipeline
