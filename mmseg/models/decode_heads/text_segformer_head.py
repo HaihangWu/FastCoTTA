@@ -59,6 +59,13 @@ class TextSegFormerHead(BaseDecodeHead):
             norm_cfg=dict(type='SyncBN', requires_grad=True)
         )
 
+        for m in self.modules():
+            if isinstance(m, (nn.Conv2d,nn.Linear)):
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
         self.linear_pred = nn.Conv2d(embedding_dim, self.num_classes, kernel_size=1)
 
 

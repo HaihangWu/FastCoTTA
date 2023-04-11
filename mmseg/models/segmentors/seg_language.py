@@ -84,30 +84,27 @@ class SegLanguage(EncoderDecoder):
         return text_embeddings
 
 
-    # def forward_train(self, img, img_metas, gt_semantic_seg):
-    #     visual_feat = self.extract_feat(img)
-    #     if self.load_text_embedding:
-    #         text_feat = np.load(self.load_text_embedding)
-    #         text_feat = torch.from_numpy(text_feat).to(img.device)
-    #     else:
-    #         if not self.multi_prompts:
-    #             text_feat = self.text_embedding(self.texts, img)
-    #         else:
-    #             assert AttributeError("preparing the multi embeddings")
-    #
-    #     if not self.self_training:
-    #         text_feat = text_feat[self.base_class, :]
-    #
-    #     feat = []
-    #     feat.append(visual_feat)
-    #     feat.append(text_feat)
-    #
-    #     losses = dict()
-    #     loss_decode = self._decode_head_forward_train(feat, img_metas, gt_semantic_seg)
-    #     losses.update(loss_decode)
-    #
-    #     return losses
-    #
+    def forward_train(self, img, img_metas, gt_semantic_seg):
+        visual_feat = self.extract_feat(img)
+
+        if self.text_feat is None:
+            if self.load_text_embedding:
+                text_feat = np.load(self.load_text_embedding)
+                self.text_feat = torch.from_numpy(text_feat).to(img.device)
+            else:
+                self.text_feat = self.text_embedding(self.texts, img)
+
+
+        # feat = []
+        # feat.append(visual_feat)
+        # feat.append(text_feat)
+
+        losses = dict()
+        loss_decode = self._decode_head_forward_train(visual_feat, img_metas, gt_semantic_seg)
+        losses.update(loss_decode)
+
+        return losses
+
     def encode_decode(self, img, img_metas):
         #print("image info:", type(img), img.size(), img_metas,img)
         visual_feat = self.extract_feat(img)
@@ -117,18 +114,9 @@ class SegLanguage(EncoderDecoder):
                 text_feat = np.load(self.load_text_embedding)
                 self.text_feat = torch.from_numpy(text_feat).to(img.device)
             else:
-                # if not self.multi_prompts:
-                    self.text_feat = self.text_embedding(self.texts, img)
+                self.text_feat = self.text_embedding(self.texts, img)
             self.text_decode_head.init_predictor(self.text_feat)
-            # else:
-            #     num_cls, num_prompts, _ = self.texts.size()
-            #     text_feat = self.text_embedding(self.texts.reshape(num_cls * num_prompts, -1), img)
-            #     text_feat = text_feat.reshape(num_cls, num_prompts, -1).mean(dim=1)
-            #     text_feat /= text_feat.norm(dim=-1).unsqueeze(1)
 
-        # feat = []
-        # feat.append(visual_feat)
-        # feat.append(text_feat)
 
         out = self._decode_head_forward_test(visual_feat, img_metas)
         out = resize(
@@ -138,6 +126,18 @@ class SegLanguage(EncoderDecoder):
             mode='bilinear',
             align_corners=self.align_corners)
         return out
+
+    def _decode_head_forward_train(self, x, img_metas, gt_semantic_seg):
+        """Run forward function and calculate loss for decode head in
+        training."""
+        losses = dict()
+        seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
+        seg_logits_text = self.text_decode_head.forward_test(x, img_metas, self.test_cfg)
+
+        loss_decode = self.decode_head.losses(seg_logits_visual + seg_logits_text, gt_semantic_seg)
+
+        losses.update(add_prefix(loss_decode, 'decode'))
+        return losses
 
     def _decode_head_forward_test(self, x, img_metas):
         """Run forward function and calculate loss for decode head in
