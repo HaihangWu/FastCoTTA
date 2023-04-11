@@ -49,18 +49,4 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 
-#bash ./tools/dist_base.sh local_configs/segformer/B0/segformer.b0.1024x1024.kitti.160k.py segformer.b0.1024x1024.city.160k.pth 1 | tee kitti-test.log
-
-bash ./tools/dist_base.sh local_configs/Language/segformer.b5.1024x1024.city.160k.py ../mmsegmentation/segformer.b5.1024x1024.city.160k.pth 1 | tee cityB5-test.log
-
-#bash ./tools/dist_base.sh local_configs/segformer/B5/segformer.b5.1024x1024.kitti.160k.py segformer.b5.1024x1024.city.160k.pth 1 | tee T2-SG-BN.log
-
-#bash ./tools/dist_base.sh local_configs/segformer/B0/segformer.b0.1024x1024.acdc.160k.py segformer.b0.1024x1024.city.160k.pth 1 | tee T2-SGb0-BN.log
-
-#bash ./tools/dist_base.sh configs/setr/setr_vit-large_pup_8x1_768x768_80k_acdc.py setr_pup_vit-large_8x1_768x768_80k_cityscapes.pth 1 | tee T1-SETR-BN.log
-
-#bash ./tools/dist_base.sh configs/setr/setr_vit-large_pup_8x1_768x768_80k_kitti_step.py setr_pup_vit-large_8x1_768x768_80k_cityscapes.pth 1 | tee T2-SETR-BN.log
-
-#bash ./tools/dist_base.sh configs/setr/setr_vit-base_naive_8x1_768x768_80k_cityscapes.py SETR_Naive_Base_cityscapes_b8_80k-transformed.pth 1 | tee naive-test.log
-
-#bash ./tools/dist_test.sh configs/setr/setr_vit-base_naive_8x1_768x768_80k_cityscapes.py SETR_Naive_Base_cityscapes_b8_80k.pth 1
+bash ./tools/dist_base.sh local_configs/segformer/B5/segformer.b5.1024x1024.city.160k.py ../mmsegmentation/segformer.b5.1024x1024.city.160k.pth 1 | tee cityB5-test.log
