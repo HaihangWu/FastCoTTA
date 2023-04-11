@@ -129,7 +129,7 @@ class SegLanguage(EncoderDecoder):
         feat.append(visual_feat)
         feat.append(text_feat)
 
-        out = self._decode_head_forward_test(feat, img_metas, self.self_training)
+        out = self._decode_head_forward_test(feat, img_metas)
         out = resize(
             input=out,
             #input=out["pred_masks"],
