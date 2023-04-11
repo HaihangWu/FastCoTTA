@@ -115,10 +115,10 @@ class SegLanguage(EncoderDecoder):
         if not self.text_feat:
             if self.load_text_embedding:
                 text_feat = np.load(self.load_text_embedding)
-                text_feat = torch.from_numpy(text_feat).to(img.device)
+                self.text_feat = torch.from_numpy(text_feat).to(img.device)
             else:
                 # if not self.multi_prompts:
-                    text_feat = self.text_embedding(self.texts, img)
+                    self.text_feat = self.text_embedding(self.texts, img)
             self.text_decode_head.init_predictor(text_feat)
             # else:
             #     num_cls, num_prompts, _ = self.texts.size()
