@@ -134,7 +134,9 @@ class SegLanguage(EncoderDecoder):
         seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
         seg_logits_text = self.text_decode_head.forward_test(x, img_metas, self.test_cfg)
         gt_semantic_seg = gt_semantic_seg[:,:,:,:,-1]
-        print("size",seg_logits_text.size(),gt_semantic_seg.size(),gt_semantic_seg)
+        if seg_logits_text.dim!=gt_semantic_seg.dim:
+            print("dimension is different:",seg_logits_text.size(),gt_semantic_seg.size())
+            exit()
 
         loss_decode = self.decode_head.losses(seg_logits_visual + seg_logits_text, gt_semantic_seg)
 
