@@ -60,17 +60,20 @@ class TextSegFormerHead(BaseDecodeHead):
         )
 
         self.linear_pred = nn.Conv2d(embedding_dim, self.num_classes, kernel_size=1)
+
+
+    def init_predictor(self,text_feat):
         torch.nn.init.zeros_(self.linear_pred.weight)
         torch.nn.init.zeros_(self.linear_pred.bias)
-
-    def forward(self, inputs):
-        x = self._transform_inputs(inputs[0])  # len=4, 1/4,1/8,1/16,1/32
-        c1, c2, c3, c4 = x
-        text_feat=inputs[1]
         text_token_size=list(text_feat.size())
         text_token=text_feat.view(text_token_size[0], text_token_size[1],1,1)
         self.linear_pred.weight.data = self.linear_pred.weight.data + text_token
-        print('text',text_feat,'copied',self.linear_pred.weight.data)
+        print('text', text_feat)
+
+    def forward(self, inputs):
+        x = self._transform_inputs(inputs)  # len=4, 1/4,1/8,1/16,1/32
+        c1, c2, c3, c4 = x
+        print('copied',self.linear_pred.weight.data)
 
         ############## MLP decoder on C1-C4 ###########
         n, _, h, w = c4.shape
