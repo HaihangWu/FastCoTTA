@@ -10,7 +10,7 @@ from timm.models.layers import drop, drop_path, trunc_normal_
 from mmseg.models.builder import BACKBONES
 
 from mmseg.models.backbones import ResNet
-from mmseg.models.backbones import VisionTransformer as MMVisionTransformer
+#from mmseg.models.backbones import VisionTransformer as MMVisionTransformer
 
 from timm.models.resnet import ResNet as TimmResNet
 from timm.models.resnet import Bottleneck as TimmBottleneck
