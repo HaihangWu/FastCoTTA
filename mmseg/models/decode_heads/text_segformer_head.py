@@ -68,12 +68,12 @@ class TextSegFormerHead(BaseDecodeHead):
         text_token_size=list(text_feat.size())
         text_token=text_feat.view(text_token_size[0], text_token_size[1],1,1)
         self.linear_pred.weight.data = self.linear_pred.weight.data + text_token
-        print('text', text_feat)
+        # print('text', text_feat)
 
     def forward(self, inputs):
         x = self._transform_inputs(inputs)  # len=4, 1/4,1/8,1/16,1/32
         c1, c2, c3, c4 = x
-        print('copied',self.linear_pred.weight.data)
+        # print('copied',self.linear_pred.weight.data)
 
         ############## MLP decoder on C1-C4 ###########
         n, _, h, w = c4.shape
