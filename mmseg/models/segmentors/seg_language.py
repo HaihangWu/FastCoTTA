@@ -143,7 +143,7 @@ class SegLanguage(EncoderDecoder):
         """Run forward function and calculate loss for decode head in
         inference."""
         seg_logits_visual = self.decode_head.forward_test(x[0], img_metas, self.test_cfg)
-        seg_logits_text = self.text_decode_head.forward_test(x, img_metas, self.test_cfg)
+        seg_logits_text = self.text_decode_head.forward_test(x[0], img_metas, self.test_cfg)
         return seg_logits_visual
         #return seg_logits
 
