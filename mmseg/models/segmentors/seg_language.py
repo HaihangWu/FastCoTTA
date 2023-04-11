@@ -119,7 +119,7 @@ class SegLanguage(EncoderDecoder):
             else:
                 # if not self.multi_prompts:
                     self.text_feat = self.text_embedding(self.texts, img)
-            self.text_decode_head.init_predictor(text_feat)
+            self.text_decode_head.init_predictor(self.text_feat)
             # else:
             #     num_cls, num_prompts, _ = self.texts.size()
             #     text_feat = self.text_embedding(self.texts.reshape(num_cls * num_prompts, -1), img)
