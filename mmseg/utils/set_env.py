@@ -5,7 +5,7 @@ import platform
 import cv2
 import torch.multiprocessing as mp
 
-from mmseg.utils.utils import get_root_logger
+from ..utils import get_root_logger
 
 
 def setup_multi_processes(cfg):
