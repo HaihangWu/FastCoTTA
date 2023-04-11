@@ -139,7 +139,7 @@ def main():
     # model.PALETTE = checkpoint['meta']['PALETTE']
     pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
     #print(pretrained_dict['state_dict'].keys())
-    model.load_state_dict(pretrained_dict['state_dict'],strict=False)
+    model.load_state_dict(pretrained_dict['state_dict'])
     if hasattr(model, 'text_encoder'):
         model.text_encoder.init_weights()
     model.CLASSES = datasets[0].CLASSES
