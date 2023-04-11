@@ -51,4 +51,4 @@ echo "r$SLURM_NODEID Launching python script"
 
 #bash ./tools/dist_base.sh local_configs/segformer/B0/segformer.b0.1024x1024.kitti.160k.py segformer.b0.1024x1024.city.160k.pth 1 | tee kitti-test.log
 
-bash ./tools/dist_language.sh local_configs/Language/Lsegformer.b3.1024x1024.city.160k.py  1 | tee LSeg-train-b3.log
+bash ./tools/dist_language.sh local_configs/Language/Lsegformer.b3.1024x1024.city.160k.py  1 | tee LSeg-b5-notext.log
