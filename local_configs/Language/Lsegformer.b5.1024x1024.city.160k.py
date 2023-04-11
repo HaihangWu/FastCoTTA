@@ -9,7 +9,7 @@ _base_ = [
 norm_cfg = dict(type='SyncBN', requires_grad=True)
 find_unused_parameters = True
 model = dict(
-    type='EncoderDecoder',
+    type='SegLanguage',
     pretrained='../mmsegmentation/segformer.b5.1024x1024.city.160k.pth',
     backbone=dict(
         type='mit_b5',
