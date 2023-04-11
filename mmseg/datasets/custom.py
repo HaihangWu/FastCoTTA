@@ -12,6 +12,7 @@ from mmseg.core import eval_metrics
 from mmseg.utils import get_root_logger
 from .builder import DATASETS
 from .pipelines import Compose
+import cv2
 
 
 @DATASETS.register_module()
@@ -235,8 +236,9 @@ class CustomDataset(Dataset):
             if efficient_test:
                 gt_seg_map = seg_map
             else:
-                gt_seg_map = mmcv.imread(
-                    seg_map, flag='unchanged', backend='pillow')
+                # gt_seg_map = mmcv.imread(
+                #     seg_map, flag='unchanged', backend='pillow')
+                gt_seg_map = cv2.imread(seg_map)[:,:,-1]   #added by wuhh
             gt_seg_maps.append(gt_seg_map)
         return gt_seg_maps
 
