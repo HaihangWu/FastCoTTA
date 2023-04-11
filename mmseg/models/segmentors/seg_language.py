@@ -126,11 +126,11 @@ class SegLanguage(EncoderDecoder):
             #     text_feat = text_feat.reshape(num_cls, num_prompts, -1).mean(dim=1)
             #     text_feat /= text_feat.norm(dim=-1).unsqueeze(1)
 
-        feat = []
-        feat.append(visual_feat)
-        feat.append(text_feat)
+        # feat = []
+        # feat.append(visual_feat)
+        # feat.append(text_feat)
 
-        out = self._decode_head_forward_test(feat, img_metas)
+        out = self._decode_head_forward_test(visual_feat, img_metas)
         out = resize(
             input=out,
             #input=out["pred_masks"],
@@ -142,8 +142,8 @@ class SegLanguage(EncoderDecoder):
     def _decode_head_forward_test(self, x, img_metas):
         """Run forward function and calculate loss for decode head in
         inference."""
-        seg_logits_visual = self.decode_head.forward_test(x[0], img_metas, self.test_cfg)
-        seg_logits_text = self.text_decode_head.forward_test(x[0], img_metas, self.test_cfg)
+        seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
+        seg_logits_text = self.text_decode_head.forward_test(x, img_metas, self.test_cfg)
         return seg_logits_visual
         #return seg_logits
 
