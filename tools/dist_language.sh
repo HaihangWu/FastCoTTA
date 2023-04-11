@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 CONFIG=$1
-#CHECKPOINT=$2
+CHECKPOINT='160k.pth'
 GPUS=$2
 #PORT=${PORT:-29505}
 PORT=$(expr 20000 + $(echo -n $SLURM_JOBID | tail -c 4)) #wuhh

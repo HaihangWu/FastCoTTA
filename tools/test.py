@@ -134,7 +134,7 @@ def main():
     # model.CLASSES = checkpoint['meta']['CLASSES']
     # model.PALETTE = checkpoint['meta']['PALETTE']
 
-    pretrained_dict = torch.load(args.checkpoint,map_location='cpu')
+    pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
     model.load_state_dict(pretrained_dict['state_dict'])
     model.CLASSES = dataset.CLASSES
     model.PALETTE = dataset.PALETTE
