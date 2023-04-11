@@ -112,7 +112,7 @@ class SegLanguage(EncoderDecoder):
         #print("image info:", type(img), img.size(), img_metas,img)
         visual_feat = self.extract_feat(img)
 
-        if not self.text_feat:
+        if self.text_feat is None:
             if self.load_text_embedding:
                 text_feat = np.load(self.load_text_embedding)
                 self.text_feat = torch.from_numpy(text_feat).to(img.device)
