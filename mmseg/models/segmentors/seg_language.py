@@ -133,7 +133,7 @@ class SegLanguage(EncoderDecoder):
         losses = dict()
         seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
         seg_logits_text = self.text_decode_head.forward_test(x, img_metas, self.test_cfg)
-
+        print("size",seg_logits_text.size(),gt_semantic_seg.size())
         loss_decode = self.decode_head.losses(seg_logits_visual + seg_logits_text, gt_semantic_seg)
 
         losses.update(add_prefix(loss_decode, 'decode'))

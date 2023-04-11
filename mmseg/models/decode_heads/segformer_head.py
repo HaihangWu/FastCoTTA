@@ -69,7 +69,6 @@ class SegFormerHead(BaseDecodeHead):
         n, _, h, w = c4.shape
 
         _c4 = self.linear_c4(c4).permute(0,2,1).reshape(n, -1, c4.shape[2], c4.shape[3])
-        print("sizes", _c4.size(),c1.size())
         _c4 = resize(_c4, size=c1.size()[2:],mode='bilinear',align_corners=False)
 
         _c3 = self.linear_c3(c3).permute(0,2,1).reshape(n, -1, c3.shape[2], c3.shape[3])
