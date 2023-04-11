@@ -65,6 +65,7 @@ class TextSegFormerHead(BaseDecodeHead):
         x = self._transform_inputs(inputs[0])  # len=4, 1/4,1/8,1/16,1/32
         c1, c2, c3, c4 = x
         text_feat=inputs[1]
+        print(text_feat)
 
         ############## MLP decoder on C1-C4 ###########
         n, _, h, w = c4.shape
