@@ -122,7 +122,7 @@ def main():
     # build the dataloader
     # TODO: support multiple images per gpu (only minor changes are needed)
     #print(cfg)
-    datasets = [ build_dataset(cfg.data.test.test_cases[i])for i in range(len(cfg.data.test.test_cases))]
+    datasets = [ build_dataset(cfg.data.test)]
     data_loaders = [build_dataloader(
         dataset,
         samples_per_gpu=1,
