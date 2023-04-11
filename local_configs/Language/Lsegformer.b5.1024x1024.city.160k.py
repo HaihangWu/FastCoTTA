@@ -35,6 +35,18 @@ model = dict(
         transformer_heads=8,
         transformer_layers=12,
         style='pytorch'),
+    text_decoder=dict(
+        type='TextSegFormerHead',
+        in_channels=[64, 128, 320, 512],
+        in_index=[0, 1, 2, 3],
+        feature_strides=[4, 8, 16, 32],
+        channels=128,
+        dropout_ratio=0.1,
+        num_classes=19,
+        norm_cfg=norm_cfg,
+        align_corners=False,
+        decoder_params=dict(embed_dim=512),
+        loss_decode=dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
     # model training and testing settings
     train_cfg=dict(),
     # test_cfg=dict(mode='whole'))

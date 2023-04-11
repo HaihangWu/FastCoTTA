@@ -49,6 +49,7 @@ class SegLanguage(EncoderDecoder):
     def __init__(self,
                  class_names,
                  text_encoder=None,
+                 text_decoder=None,
                  ft_backbone=False,
                  load_text_embedding=None,
                  #  init_cfg=None,
@@ -73,16 +74,15 @@ class SegLanguage(EncoderDecoder):
                 # else:
                 #     self.texts = self._get_multi_prompts(self.class_names)
 
+        if text_decoder:
+            self.text_decode_head = builder.build_head(text_decoder)
+
 
     def text_embedding(self, texts, img):
         text_embeddings = self.text_encoder(texts.to(img.device))
         text_embeddings = text_embeddings / text_embeddings.norm(dim=-1, keepdim=True)
         return text_embeddings
 
-    # def extract_feat(self, img):
-    #     """Extract features from images."""
-    #     visual_feat = self.backbone(img)
-    #     return visual_feat
 
     # def forward_train(self, img, img_metas, gt_semantic_seg):
     #     visual_feat = self.extract_feat(img)
@@ -142,7 +142,7 @@ class SegLanguage(EncoderDecoder):
         """Run forward function and calculate loss for decode head in
         inference."""
         seg_logits_visual = self.decode_head.forward_test(x[0], img_metas, self.test_cfg)
-        #seg_logits_text = self.decode_head.forward_test(x[0], img_metas, self.test_cfg)
+        seg_logits_text = self.text_decode_head.forward_test(x, img_metas, self.test_cfg)
         return seg_logits_visual
         #return seg_logits
 
