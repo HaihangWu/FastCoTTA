@@ -14,15 +14,6 @@ model = dict(
     backbone=dict(
         type='mit_b5',
         style='pytorch'),
-    text_encoder=dict(
-        type='CLIPTextEncoder',
-        pretrained='pretrained/ViT-B-16.pt',
-        context_length=77,
-        embed_dim=512,
-        transformer_width=512,
-        transformer_heads=8,
-        transformer_layers=12,
-        style='pytorch'),
     decode_head=dict(
         type='SegFormerHead',
         in_channels=[64, 128, 320, 512],
@@ -35,6 +26,15 @@ model = dict(
         align_corners=False,
         decoder_params=dict(embed_dim=768),
         loss_decode=dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
+    text_encoder=dict(
+        type='CLIPTextEncoder',
+        pretrained='pretrained/ViT-B-16.pt',
+        context_length=77,
+        embed_dim=512,
+        transformer_width=512,
+        transformer_heads=8,
+        transformer_layers=12,
+        style='pytorch'),
     # model training and testing settings
     train_cfg=dict(),
     # test_cfg=dict(mode='whole'))

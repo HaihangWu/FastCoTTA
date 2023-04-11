@@ -60,6 +60,7 @@ class SegLanguage(EncoderDecoder):
         #     text_encoder.pretrained = pretrained_text
 
         if  text_encoder:
+            self.text_feat=None
             self.text_encoder = builder.build_backbone(text_encoder)
             self.load_text_embedding = load_text_embedding
             self.class_names = class_names
@@ -73,47 +74,15 @@ class SegLanguage(EncoderDecoder):
                 #     self.texts = self._get_multi_prompts(self.class_names)
 
 
-        # if self.training:
-        #     self._freeze_stages(self.text_encoder)
-        #     if ft_backbone is False:
-        #         self._freeze_stages(self.backbone, exclude_key=exclude_key)
-        #
-        # else:
-        #     self.text_encoder.eval()
-        #     self.backbone.eval()
-
-    # def _freeze_stages(self, model, exclude_key=None):
-    #     """Freeze stages param and norm stats."""
-    #     for n, m in model.named_parameters():
-    #         if exclude_key:
-    #             if isinstance(exclude_key, str):
-    #                 if not exclude_key in n:
-    #                     m.requires_grad = False
-    #             elif isinstance(exclude_key, list):
-    #                 count = 0
-    #                 for i in range(len(exclude_key)):
-    #                     i_layer = str(exclude_key[i])
-    #                     if i_layer in n:
-    #                         count += 1
-    #                 if count == 0:
-    #                     m.requires_grad = False
-    #                 elif count > 0:
-    #                     print('Finetune layer in backbone:', n)
-    #             else:
-    #                 assert AttributeError("Dont support the type of exclude_key!")
-    #         else:
-    #             m.requires_grad = False
-
-
     def text_embedding(self, texts, img):
         text_embeddings = self.text_encoder(texts.to(img.device))
         text_embeddings = text_embeddings / text_embeddings.norm(dim=-1, keepdim=True)
         return text_embeddings
 
-    def extract_feat(self, img):
-        """Extract features from images."""
-        visual_feat = self.backbone(img)
-        return visual_feat
+    # def extract_feat(self, img):
+    #     """Extract features from images."""
+    #     visual_feat = self.backbone(img)
+    #     return visual_feat
 
     # def forward_train(self, img, img_metas, gt_semantic_seg):
     #     visual_feat = self.extract_feat(img)
@@ -139,42 +108,45 @@ class SegLanguage(EncoderDecoder):
     #
     #     return losses
     #
-    # def encode_decode(self, img, img_metas):
-    #     #print("image info:", type(img), img.size(), img_metas,img)
-    #     visual_feat = self.extract_feat(img)
-    #
-    #     if self.load_text_embedding:
-    #         text_feat = np.load(self.load_text_embedding)
-    #         text_feat = torch.from_numpy(text_feat).to(img.device)
-    #     else:
-    #         if not self.multi_prompts:
-    #             text_feat = self.text_embedding(self.texts, img)
-    #         else:
-    #             num_cls, num_prompts, _ = self.texts.size()
-    #             text_feat = self.text_embedding(self.texts.reshape(num_cls * num_prompts, -1), img)
-    #             text_feat = text_feat.reshape(num_cls, num_prompts, -1).mean(dim=1)
-    #             text_feat /= text_feat.norm(dim=-1).unsqueeze(1)
-    #
-    #     feat = []
-    #     feat.append(visual_feat)
-    #     feat.append(text_feat)
-    #
-    #     out = self._decode_head_forward_test(feat, img_metas, self.self_training)
-    #     out = resize(
-    #         #input=out,
-    #         input=out["pred_masks"],
-    #         size=img.shape[2:],
-    #         mode='bilinear',
-    #         align_corners=self.align_corners)
-    #     return out
+    def encode_decode(self, img, img_metas):
+        #print("image info:", type(img), img.size(), img_metas,img)
+        visual_feat = self.extract_feat(img)
 
-    # def _decode_head_forward_test(self, x, img_metas, self_training):
-    #     """Run forward function and calculate loss for decode head in
-    #     inference."""
-    #     seg_logits = self.decode_head.forward_test(x, img_metas, self.test_cfg, self_training)
-    #     return seg_logits
-    #
-    # # TODO refactor
+        if not self.text_feat:
+            if self.load_text_embedding:
+                text_feat = np.load(self.load_text_embedding)
+                text_feat = torch.from_numpy(text_feat).to(img.device)
+            else:
+                # if not self.multi_prompts:
+                    text_feat = self.text_embedding(self.texts, img)
+            # else:
+            #     num_cls, num_prompts, _ = self.texts.size()
+            #     text_feat = self.text_embedding(self.texts.reshape(num_cls * num_prompts, -1), img)
+            #     text_feat = text_feat.reshape(num_cls, num_prompts, -1).mean(dim=1)
+            #     text_feat /= text_feat.norm(dim=-1).unsqueeze(1)
+
+        feat = []
+        feat.append(visual_feat)
+        feat.append(text_feat)
+
+        out = self._decode_head_forward_test(feat, img_metas, self.self_training)
+        out = resize(
+            input=out,
+            #input=out["pred_masks"],
+            size=img.shape[2:],
+            mode='bilinear',
+            align_corners=self.align_corners)
+        return out
+
+    def _decode_head_forward_test(self, x, img_metas):
+        """Run forward function and calculate loss for decode head in
+        inference."""
+        seg_logits_visual = self.decode_head.forward_test(x[0], img_metas, self.test_cfg)
+        #seg_logits_text = self.decode_head.forward_test(x[0], img_metas, self.test_cfg)
+        return seg_logits_visual
+        #return seg_logits
+
+    # TODO refactor
     # def slide_inference(self, img, img_meta, rescale):
     #     """Inference by sliding-window with overlap.
     #     If h_crop > h_img or w_crop > w_img, the small patch will be used to
