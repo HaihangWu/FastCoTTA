@@ -50,7 +50,8 @@ class SegLanguage(EncoderDecoder):
                  class_names,
                  text_encoder=None,
                  text_decoder=None,
-                 ft_backbone=False,
+                 ft_model=False,
+                 include_key=None,
                  load_text_embedding=None,
                  #  init_cfg=None,
                  **args):
@@ -76,6 +77,22 @@ class SegLanguage(EncoderDecoder):
 
         if text_decoder:
             self.text_decode_head = builder.build_head(text_decoder)
+
+        self._freeze_stages(self.text_encoder)
+        self._freeze_stages(self.text_decode_head, include_key=include_key)
+        if ft_model is False:
+            self._freeze_stages(self.backbone)
+            self._freeze_stages(self.decode_head)
+
+    def _freeze_stages(self, model, include_key=None):
+        """Freeze stages param and norm stats."""
+        for n, m in model.named_parameters():
+            if include_key is not None and isinstance(include_key, str):
+                if include_key in n:
+                    m.requires_grad = False
+            else:
+                m.requires_grad = False
+
 
 
     def text_embedding(self, texts, img):
