@@ -51,7 +51,7 @@ model = dict(
     train_cfg=dict(),
     # test_cfg=dict(mode='whole'))
     test_cfg=dict(mode='slide', crop_size=(1024,1024), stride=(768,768)),
-    ft_model=True,
+    ft_model=False,
     include_key='linear_pred',
     # load_text_embedding='configs/_base_/datasets/text_embedding/voc12_single.npy'
 )
