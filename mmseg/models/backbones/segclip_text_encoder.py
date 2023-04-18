@@ -70,7 +70,7 @@ class CLIPTextEncoder(nn.Module):
                         checkpoint[k] = checkpoint[k][:self.context_length]
                         print('positional_embedding is tuncated from 77 to', self.context_length)
                     state_dict[k] = checkpoint[k]
-
+            print("I'm printing the model",self.state_dict().keys())
             u, w = self.load_state_dict(state_dict)
             print(u, w, 'are misaligned params in text encoder')
 
