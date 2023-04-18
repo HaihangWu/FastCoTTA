@@ -139,7 +139,7 @@ def main():
     # model.PALETTE = checkpoint['meta']['PALETTE']
     pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
     #print(pretrained_dict['state_dict'].keys())
-    model.load_state_dict(pretrained_dict['state_dict'],strict=False)
+    #model.load_state_dict(pretrained_dict['state_dict'],strict=False)
     if hasattr(model, 'text_encoder'):
         model.text_encoder.init_weights()
     model.CLASSES = datasets[0].CLASSES
@@ -150,7 +150,7 @@ def main():
         efficient_test = args.eval_options.get('efficient_test', False)
 
     model = MMDataParallel(model, device_ids=[0])
-    for i in range(10):
+    for i in range(1):
         print("revisit times:",i)
         for dataset, data_loader in zip(datasets, data_loaders):
             outputs = single_gpu_test(model, data_loader, args.show, args.show_dir,
