@@ -48,5 +48,5 @@ export MASTER_ADDR=$master_addr
 echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
-bash ./tools/dist_language.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee LacdcST12000-b5.log
+bash ./tools/dist_language.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee Lacdctext-b5.log
 #bash ./tools/dist_language.sh local_configs/Language/Lsegformer.b5.1024x1024.city.160kST.py  1 | tee Lcitytext12000-b5-test.log
