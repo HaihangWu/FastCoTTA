@@ -127,13 +127,13 @@ class SegLanguage(EncoderDecoder):
         #print("image info:", type(img), img.size(), img_metas,img)
         visual_feat = self.extract_feat(img)
 
-        if self.text_feat is None:
-            if self.load_text_embedding:
-                text_feat = np.load(self.load_text_embedding)
-                self.text_feat = torch.from_numpy(text_feat).to(img.device)
-            else:
-                self.text_feat = self.text_embedding(self.texts, img)
-            self.text_decoder.init_predictor(self.text_feat)
+        # if self.text_feat is None:
+        #     if self.load_text_embedding:
+        #         text_feat = np.load(self.load_text_embedding)
+        #         self.text_feat = torch.from_numpy(text_feat).to(img.device)
+        #     else:
+        #         self.text_feat = self.text_embedding(self.texts, img)
+        #     self.text_decoder.init_predictor(self.text_feat)
 
 
         out = self._decode_head_forward_test(visual_feat, img_metas)
