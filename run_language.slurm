@@ -16,7 +16,7 @@
 
 # Request different amount of resources for different nodes
 # --constraint=[dlg1|dlg2|dlg3]
-#SBATCH --constraint=[dlg4|dlg5]
+# --constraint=[dlg4|dlg5]
 #SBATCH --nodes=1                # node count
 #SBATCH --ntasks-per-node=1      # total number of tasks per node
 #SBATCH --gres=gpu:1             # number of gpus per node
@@ -52,4 +52,4 @@ echo "r$SLURM_NODEID Launching python script"
 #bash ./tools/dist_base.sh local_configs/segformer/B0/segformer.b0.1024x1024.kitti.160k.py segformer.b0.1024x1024.city.160k.pth 1 | tee kitti-test.log
 
 #bash ./tools/dist_language.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee Lacdc-b5.log
-bash ./tools/dist_language.sh local_configs/Language/Lsegformer.b5.1024x1024.city.160kFTSeparateTextdecoder.py  1 | tee LcityOnlytext-b5.log
+bash ./tools/dist_language.sh local_configs/Language/Lsegformer.b5.1024x1024.city.160kFTSeparateTextdecoder.py  1 | tee LcityOnlytext-b5-1.log
