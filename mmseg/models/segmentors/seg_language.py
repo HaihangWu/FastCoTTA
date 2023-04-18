@@ -110,6 +110,7 @@ class SegLanguage(EncoderDecoder):
                 self.text_feat = torch.from_numpy(text_feat).to(img.device)
             else:
                 self.text_feat = self.text_embedding(self.texts, img)
+            self.text_decoder.init_predictor(self.text_feat)
 
 
         # feat = []
