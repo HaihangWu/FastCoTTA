@@ -167,7 +167,7 @@ class SegLanguage(EncoderDecoder):
         inference."""
         seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
         seg_logits_text = self.text_decoder.forward_test(x, img_metas, self.test_cfg)
-        return seg_logits_visual
+        return seg_logits_visual+seg_logits_text
         #return seg_logits
 
     # TODO refactor
