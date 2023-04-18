@@ -156,8 +156,8 @@ class SegLanguage(EncoderDecoder):
             print("dimension is different:",seg_logits_text.dim(),gt_semantic_seg.dim(),seg_logits_text.size(),gt_semantic_seg.size())
             exit()
 
-        #loss_decode = self.text_decoder.losses( , gt_semantic_seg)
-        loss_decode = self.decode_head.losses(seg_logits_text+seg_logits_visual, gt_semantic_seg)
+        loss_decode = self.text_decoder.losses(seg_logits_text, gt_semantic_seg)
+        #loss_decode = self.decode_head.losses(seg_logits_text+seg_logits_visual, gt_semantic_seg)
 
         losses.update(add_prefix(loss_decode, 'decode'))
         return losses
@@ -167,7 +167,7 @@ class SegLanguage(EncoderDecoder):
         inference."""
         seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
         seg_logits_text = self.text_decoder.forward_test(x, img_metas, self.test_cfg)
-        return seg_logits_visual+seg_logits_text
+        return seg_logits_text
         #return seg_logits
 
     # TODO refactor
