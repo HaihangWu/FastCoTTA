@@ -133,17 +133,16 @@ def main():
     # build the model and load checkpoint
     cfg.model.train_cfg = None
     cfg.model.class_names=datasets[0].CLASSES
-    print("before build the model")
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
     #checkpoint = load_checkpoint(model, cfg.model.pretrained, map_location='cpu')
     # model.CLASSES = checkpoint['meta']['CLASSES']
     # model.PALETTE = checkpoint['meta']['PALETTE']
     pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
     #print(pretrained_dict['state_dict'].keys())
-    print("I'm printing the model",model.state_dict().keys())
-    #model.load_state_dict(pretrained_dict['state_dict'],strict=False)
-    if hasattr(model, 'text_encoder'):
-        model.text_encoder.init_weights()
+    #print("I'm printing the model",model.state_dict().keys())
+    model.load_state_dict(pretrained_dict['state_dict'],strict=False)
+    # if hasattr(model, 'text_encoder'):
+    #     model.text_encoder.init_weights()
     model.CLASSES = datasets[0].CLASSES
     model.PALETTE = datasets[0].PALETTE
 

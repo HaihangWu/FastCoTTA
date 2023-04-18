@@ -53,7 +53,7 @@ class CLIPTextEncoder(nn.Module):
 
     def init_weights(self, pretrained=None):
         pretrained = pretrained or self.pretrained
-        print(pretrained)
+        #print(pretrained)
         if isinstance(pretrained, str):
             checkpoint = torch.jit.load(pretrained, map_location='cpu').float().state_dict()
 
