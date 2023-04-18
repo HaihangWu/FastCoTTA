@@ -76,10 +76,10 @@ class SegLanguage(EncoderDecoder):
                 #     self.texts = self._get_multi_prompts(self.class_names)
 
         if text_decoder:
-            self.text_decode_head = builder.build_head(text_decoder)
+            self.text_decoder = builder.build_head(text_decoder)
 
         self._freeze_stages(self.text_encoder)
-        self._freeze_stages(self.text_decode_head, include_key=include_key)
+        self._freeze_stages(self.text_decoder, include_key=include_key)
         if ft_model is False:
             self._freeze_stages(self.backbone)
             self._freeze_stages(self.decode_head)
@@ -132,7 +132,7 @@ class SegLanguage(EncoderDecoder):
                 self.text_feat = torch.from_numpy(text_feat).to(img.device)
             else:
                 self.text_feat = self.text_embedding(self.texts, img)
-            self.text_decode_head.init_predictor(self.text_feat)
+            self.text_decoder.init_predictor(self.text_feat)
 
 
         out = self._decode_head_forward_test(visual_feat, img_metas)
@@ -149,13 +149,13 @@ class SegLanguage(EncoderDecoder):
         training."""
         losses = dict()
         seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
-        seg_logits_text = self.text_decode_head.forward_test(x, img_metas, self.test_cfg)
+        seg_logits_text = self.text_decoder.forward_test(x, img_metas, self.test_cfg)
         gt_semantic_seg = gt_semantic_seg[:,:,:,:,-1]
         if seg_logits_text.dim()!=gt_semantic_seg.dim():
             print("dimension is different:",seg_logits_text.dim(),gt_semantic_seg.dim(),seg_logits_text.size(),gt_semantic_seg.size())
             exit()
 
-        loss_decode = self.decode_head.losses( seg_logits_text, gt_semantic_seg)
+        loss_decode = self.text_decoder.losses( seg_logits_text, gt_semantic_seg)
         #loss_decode = self.decode_head.losses(seg_logits_text, gt_semantic_seg)
 
         losses.update(add_prefix(loss_decode, 'decode'))
@@ -165,8 +165,8 @@ class SegLanguage(EncoderDecoder):
         """Run forward function and calculate loss for decode head in
         inference."""
         seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
-        seg_logits_text = self.text_decode_head.forward_test(x, img_metas, self.test_cfg)
-        return seg_logits_visual
+        seg_logits_text = self.text_decoder.forward_test(x, img_metas, self.test_cfg)
+        return seg_logits_text
         #return seg_logits
 
     # TODO refactor
