@@ -10,8 +10,8 @@ norm_cfg = dict(type='SyncBN', requires_grad=True)
 find_unused_parameters = True
 model = dict(
     type='SegLanguage',
-    pretrained='../mmsegmentation/segformer.b5.1024x1024.city.160k.pth',
-    #pretrained='work_dirs/Lsegformer.b5.1024x1024.city.160kFTSeparateTextdecoder/iter_160000.pth',
+    #pretrained='../mmsegmentation/segformer.b5.1024x1024.city.160k.pth',
+    pretrained='work_dirs/Lsegformer.b5.1024x1024.city.160kFTSeparateTextdecoder/iter_4000.pth',
     backbone=dict(
         type='mit_b5',
         style='pytorch'),
