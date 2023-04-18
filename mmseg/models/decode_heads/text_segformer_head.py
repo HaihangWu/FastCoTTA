@@ -70,6 +70,7 @@ class TextSegFormerHead(BaseDecodeHead):
 
 
     def init_predictor(self,text_feat):
+        print("initialize text decoder classifier")
         torch.nn.init.zeros_(self.linear_pred.weight)
         torch.nn.init.zeros_(self.linear_pred.bias)
         text_token_size=list(text_feat.size())
