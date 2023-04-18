@@ -142,8 +142,8 @@ def main():
     #print(pretrained_dict['state_dict'].keys())
     #print("I'm printing the model",model.state_dict().keys())
     model.load_state_dict(pretrained_dict['state_dict'],strict=False)
-    if hasattr(model, 'text_encoder'):
-        model.text_encoder.init_weights()
+    # if hasattr(model, 'text_encoder'):
+    #     model.text_encoder.init_weights()
     model.CLASSES = datasets[0].CLASSES
     model.PALETTE = datasets[0].PALETTE
 
