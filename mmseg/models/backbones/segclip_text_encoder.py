@@ -53,13 +53,14 @@ class CLIPTextEncoder(nn.Module):
 
     def init_weights(self, pretrained=None):
         pretrained = pretrained or self.pretrained
-        #print(pretrained)
+        print("reload pretrained weight of text encoder")
         if isinstance(pretrained, str):
             checkpoint = torch.jit.load(pretrained, map_location='cpu').float().state_dict()
 
             state_dict = {}
 
             for k in checkpoint.keys():
+                print(k)
                 if k.startswith('transformer.'):
                     state_dict[k] = checkpoint[k]
 
@@ -70,7 +71,7 @@ class CLIPTextEncoder(nn.Module):
                         print('positional_embedding is tuncated from 77 to', self.context_length)
                     state_dict[k] = checkpoint[k]
 
-            u, w = self.load_state_dict(state_dict, False)
+            u, w = self.load_state_dict(state_dict)
             print(u, w, 'are misaligned params in text encoder')
 
     def build_attention_mask(self):
