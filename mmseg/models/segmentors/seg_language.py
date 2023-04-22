@@ -79,7 +79,8 @@ class SegLanguage(EncoderDecoder):
             self.text_decoder = builder.build_head(text_decoder)
 
         self._freeze_stages(self.text_encoder)
-        self._freeze_stages(self.text_decoder, include_key=include_key)
+        #self._freeze_stages(self.text_decoder, include_key=include_key)
+        self._freeze_stages(self.text_decoder)
         if ft_model is False:
             self._freeze_stages(self.backbone)
             self._freeze_stages(self.decode_head)
@@ -167,7 +168,7 @@ class SegLanguage(EncoderDecoder):
         inference."""
         seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
         seg_logits_text = self.text_decoder.forward_test(x, img_metas, self.test_cfg)
-        return seg_logits_text
+        return seg_logits_visual
         #return seg_logits
 
     # TODO refactor
