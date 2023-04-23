@@ -13,6 +13,7 @@ from IPython import embed
 from mmseg.ops import resize
 import time
 import random
+from copy import deepcopy
 
 def update_ema_variables(ema_model, model, alpha_teacher, iteration=None):
     # Use the "true" average until the exponential average is more correct
@@ -223,6 +224,7 @@ def single_gpu_language_cotta(model,
 
             #stochastic restoration
             for nm, m  in model.named_modules():
+            #for nm, m in ema_model.named_modules():
                 if 'decode_head' in nm or 'backbone' in nm:
                     for npp, p in m.named_parameters():
                         if npp in ['weight', 'bias'] and p.requires_grad:
