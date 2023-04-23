@@ -170,7 +170,7 @@ def single_gpu_language_cotta(model,
             # result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
             # mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
             result, probs, preds = ema_model(return_loss=False, **data)
-
+            print(preds[img_id][0].size())
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
             result = [preds[img_id][0].astype(np.int64)]
 
@@ -200,15 +200,15 @@ def single_gpu_language_cotta(model,
         #             show=show,
         #             out_file=out_file)
         #if (frame_passed%400-100)<0:
-        if random.random()<0.25:
+        #if random.random()<0.25:
+        if True:
+            model = deepcopy(ema_model)
             if isinstance(result, list):
                 if len(data['img'])==14:
                     img_id = 4 #The default size without flip
                 else:
                     img_id = 0
-                #student_begin = time.time()
                 loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
-                #student_pred = time.time() - student_begin
                 if efficient_test:
                     result = [np2tmp(_) for _ in result]
                 results.extend(result)
