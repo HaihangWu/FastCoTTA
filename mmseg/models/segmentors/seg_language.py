@@ -172,44 +172,100 @@ class SegLanguage(EncoderDecoder):
         #return seg_logits
 
     # TODO refactor
-    # def slide_inference(self, img, img_meta, rescale):
-    #     """Inference by sliding-window with overlap.
-    #     If h_crop > h_img or w_crop > w_img, the small patch will be used to
-    #     decode without padding.
-    #     """
-    #     h_stride, w_stride = self.test_cfg.stride
-    #     h_crop, w_crop = self.test_cfg.crop_size
-    #     batch_size, _, h_img, w_img = img.size()
-    #     num_classes = len(self.both_class)
-    #     h_grids = max(h_img - h_crop + h_stride - 1, 0) // h_stride + 1
-    #     w_grids = max(w_img - w_crop + w_stride - 1, 0) // w_stride + 1
-    #     preds = img.new_zeros((batch_size, num_classes, h_img, w_img))
-    #     count_mat = img.new_zeros((batch_size, 1, h_img, w_img))
-    #     for h_idx in range(h_grids):
-    #         for w_idx in range(w_grids):
-    #             y1 = h_idx * h_stride
-    #             x1 = w_idx * w_stride
-    #             y2 = min(y1 + h_crop, h_img)
-    #             x2 = min(x1 + w_crop, w_img)
-    #             y1 = max(y2 - h_crop, 0)
-    #             x1 = max(x2 - w_crop, 0)
-    #             crop_img = img[:, :, y1:y2, x1:x2]
-    #             crop_seg_logit = self.encode_decode(crop_img, img_meta)
-    #             preds += F.pad(crop_seg_logit,
-    #                            (int(x1), int(preds.shape[3] - x2), int(y1),
-    #                             int(preds.shape[2] - y2)))
-    #
-    #             count_mat[:, :, y1:y2, x1:x2] += 1
-    #     assert (count_mat == 0).sum() == 0
-    #     if torch.onnx.is_in_onnx_export():
-    #         count_mat = torch.from_numpy(
-    #             count_mat.cpu().detach().numpy()).to(device=img.device)
-    #     preds = preds / count_mat
-    #     if rescale:
-    #         preds = resize(
-    #             preds,
-    #             size=img_meta[0]['ori_shape'][:2],
-    #             mode='bilinear',
-    #             align_corners=self.align_corners,
-    #             warning=False)
-    #     return preds
+    def slide_inference(self, img, img_meta, rescale):
+        """Inference by sliding-window with overlap.
+        If h_crop > h_img or w_crop > w_img, the small patch will be used to
+        decode without padding.
+        """
+
+        h_stride, w_stride = self.test_cfg.stride
+        h_crop, w_crop = self.test_cfg.crop_size
+        batch_size, _, h_img, w_img = img.size()
+        num_classes = self.num_classes
+        h_grids = max(h_img - h_crop + h_stride - 1, 0) // h_stride + 1
+        w_grids = max(w_img - w_crop + w_stride - 1, 0) // w_stride + 1
+        preds = img.new_zeros((batch_size, num_classes, h_img, w_img))
+        count_mat = img.new_zeros((batch_size, 1, h_img, w_img))
+        for h_idx in range(h_grids):
+            for w_idx in range(w_grids):
+                y1 = h_idx * h_stride
+                x1 = w_idx * w_stride
+                y2 = min(y1 + h_crop, h_img)
+                x2 = min(x1 + w_crop, w_img)
+                y1 = max(y2 - h_crop, 0)
+                x1 = max(x2 - w_crop, 0)
+                crop_img = img[:, :, y1:y2, x1:x2]
+                crop_seg_logit = self.encode_decode(crop_img, img_meta)
+                preds += F.pad(crop_seg_logit,
+                               (int(x1), int(preds.shape[3] - x2), int(y1),
+                                int(preds.shape[2] - y2)))
+
+                count_mat[:, :, y1:y2, x1:x2] += 1
+        assert (count_mat == 0).sum() == 0
+        if torch.onnx.is_in_onnx_export():
+            # cast count_mat to constant while exporting to ONNX
+            count_mat = torch.from_numpy(
+                count_mat.cpu().detach().numpy()).to(device=img.device)
+        preds = preds / count_mat
+        if rescale:
+            # remove padding area
+            resize_shape = img_meta[0]['img_shape'][:2]  #????
+            print(resize_shape,preds.size())
+            preds = preds[:, :, :resize_shape[0], :resize_shape[1]]  #????
+
+            preds = resize(
+                preds,
+                size=img_meta[0]['ori_shape'][:2],
+                mode='bilinear',
+                align_corners=self.align_corners,
+                warning=False)
+        return preds
+
+    def simple_test(self, img, img_meta, rescale=True):
+        """Simple test with single image."""
+        seg_logit = self.inference(img, img_meta, rescale)
+        # if self.out_channels == 1:
+        #     seg_pred = (seg_logit >
+        #                 self.decode_head.threshold).to(seg_logit).squeeze(1)
+        # else:
+        seg_pred = seg_logit.argmax(dim=1)
+        if torch.onnx.is_in_onnx_export():
+            # our inference backend only support 4D output
+            seg_pred = seg_pred.unsqueeze(0)
+            return seg_pred
+        seg_pred = seg_pred.cpu().numpy()
+        preds = [seg_pred]
+        # unravel batch dim
+        seg_pred = list(seg_pred)
+        return seg_pred,seg_logit,preds
+
+    def aug_test(self, imgs, img_metas, rescale=True):
+        """Test with augmentations.
+        Only rescale=True is supported.
+        """
+        # aug_test rescale all imgs back to ori_shape for now
+        assert rescale
+        # to save memory, we get augmented seg logit inplace
+        seg_logit = self.inference(imgs[0], img_metas[0], rescale)
+        prob, pred = seg_logit.max(dim=1)
+        preds = [pred.cpu().numpy()]
+        probs = [prob.cpu().numpy()]
+        for i in range(1, len(imgs)):
+            cur_seg_logit = self.inference(imgs[i], img_metas[i], rescale)
+            seg_logit += cur_seg_logit
+            prob, pred = cur_seg_logit.max(dim=1)
+            preds.append(pred.cpu().numpy())
+            probs.append(prob.cpu().numpy())
+        seg_logit /= len(imgs)
+        # if self.out_channels == 1:
+        #     seg_pred = (seg_logit >
+        #                 self.decode_head.threshold).to(seg_logit).squeeze(1)
+        # else:
+        seg_pred = seg_logit.argmax(dim=1)
+        prob, pred = seg_logit.max(dim=1)
+        probs.append(prob.cpu().numpy())
+        preds.append(pred.cpu().numpy())
+        seg_pred = seg_pred.cpu().numpy()
+        # unravel batch dim
+        seg_pred = list(seg_pred)
+        return seg_pred, probs, preds
