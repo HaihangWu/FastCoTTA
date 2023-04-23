@@ -152,7 +152,6 @@ class SegLanguage(EncoderDecoder):
         losses = dict()
         seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
         seg_logits_text = self.text_decoder.forward_test(x, img_metas, self.test_cfg)
-        print(gt_semantic_seg.dim())
         if gt_semantic_seg.dim()>4:
             gt_semantic_seg = gt_semantic_seg[:,:,:,:,-1]
         if seg_logits_text.dim()!=gt_semantic_seg.dim():

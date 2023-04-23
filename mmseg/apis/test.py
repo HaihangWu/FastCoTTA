@@ -219,7 +219,7 @@ def single_gpu_language_cotta(model,
             if efficient_test:
                 result = np2tmp(result)
             results.append(result)
-
+        print(loss.keys())
         torch.mean(weight*loss["decode.loss_ce"]).backward()
         optimizer.step()
         optimizer.zero_grad()
