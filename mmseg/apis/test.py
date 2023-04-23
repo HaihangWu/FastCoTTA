@@ -222,12 +222,12 @@ def single_gpu_language_cotta(model,
 
         #stochastic restoration
         for nm, m  in model.named_modules():
-            print(nm)
-            for npp, p in m.named_parameters():
-                if npp in ['weight', 'bias'] and p.requires_grad:
-                    mask = (torch.rand(p.shape)<0.01).float().cuda()
-                    with torch.no_grad():
-                        p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
+            if nm in ['decode_head','backbone']:
+                for npp, p in m.named_parameters():
+                    if npp in ['weight', 'bias'] and p.requires_grad:
+                        mask = (torch.rand(p.shape)<0.01).float().cuda()
+                        with torch.no_grad():
+                            p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
 
 
         pred_time += time.time() - pred_begin
