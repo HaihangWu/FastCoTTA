@@ -172,7 +172,7 @@ def single_gpu_language_cotta(model,
             result, probs, preds = ema_model(return_loss=False, **data)
 
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
-            result = preds[img_id][0].astype(np.int64)
+            result = [preds[img_id][0].astype(np.int64)]
 
 
             weight = 1.
