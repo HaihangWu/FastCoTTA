@@ -12,7 +12,7 @@ from mmcv.runner import get_dist_info
 from IPython import embed
 from mmseg.ops import resize
 import time
-
+import random
 
 def update_ema_variables(ema_model, model, alpha_teacher, iteration=None):
     # Use the "true" average until the exponential average is more correct
@@ -199,7 +199,8 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        if (frame_passed%400-100)<0:
+        #if (frame_passed%400-100)<0:
+        if random.random()<0.25:
             if isinstance(result, list):
                 if len(data['img'])==14:
                     img_id = 4 #The default size without flip
