@@ -152,6 +152,7 @@ class SegLanguage(EncoderDecoder):
         losses = dict()
         seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
         seg_logits_text = self.text_decoder.forward_test(x, img_metas, self.test_cfg)
+        print(gt_semantic_seg.size())
         gt_semantic_seg = gt_semantic_seg[:,:,:,:,-1]
         if seg_logits_text.dim()!=gt_semantic_seg.dim():
             print("dimension is different:",seg_logits_text.dim(),gt_semantic_seg.dim(),seg_logits_text.size(),gt_semantic_seg.size())
@@ -209,9 +210,8 @@ class SegLanguage(EncoderDecoder):
         preds = preds / count_mat
         if rescale:
             # remove padding area
-            resize_shape = img_meta[0]['img_shape'][:2]  #????
-            print(resize_shape,preds.size())
-            preds = preds[:, :, :resize_shape[0], :resize_shape[1]]  #????
+            resize_shape = img_meta[0]['img_shape'][:2]
+            preds = preds[:, :, :resize_shape[0], :resize_shape[1]]
 
             preds = resize(
                 preds,
