@@ -199,35 +199,36 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        if isinstance(result, list):
-            if len(data['img'])==14:
-                img_id = 4 #The default size without flip
+        if (frame_passed%400-200)<0:
+            if isinstance(result, list):
+                if len(data['img'])==14:
+                    img_id = 4 #The default size without flip
+                else:
+                    img_id = 0
+                #student_begin = time.time()
+                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
+                #student_pred = time.time() - student_begin
+                if efficient_test:
+                    result = [np2tmp(_) for _ in result]
+                results.extend(result)
             else:
-                img_id = 0
-            #student_begin = time.time()
-            loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
-            #student_pred = time.time() - student_begin
-            if efficient_test:
-                result = [np2tmp(_) for _ in result]
-            results.extend(result)
-        else:
-            if efficient_test:
-                result = np2tmp(result)
-            results.append(result)
-        torch.mean(weight*loss["decode.loss_seg"]).backward()
-        optimizer.step()
-        optimizer.zero_grad()
+                if efficient_test:
+                    result = np2tmp(result)
+                results.append(result)
+            torch.mean(weight*loss["decode.loss_seg"]).backward()
+            optimizer.step()
+            optimizer.zero_grad()
 
-        ema_model = update_ema_variables(ema_model = ema_model, model = model, alpha_teacher=0.999) #teacher model
+            ema_model = update_ema_variables(ema_model = ema_model, model = model, alpha_teacher=0.999) #teacher model
 
-        #stochastic restoration
-        for nm, m  in model.named_modules():
-            if 'decode_head' in nm or 'backbone' in nm:
-                for npp, p in m.named_parameters():
-                    if npp in ['weight', 'bias'] and p.requires_grad:
-                        mask = (torch.rand(p.shape)<0.01).float().cuda()
-                        with torch.no_grad():
-                            p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
+            #stochastic restoration
+            for nm, m  in model.named_modules():
+                if 'decode_head' in nm or 'backbone' in nm:
+                    for npp, p in m.named_parameters():
+                        if npp in ['weight', 'bias'] and p.requires_grad:
+                            mask = (torch.rand(p.shape)<0.01).float().cuda()
+                            with torch.no_grad():
+                                p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
 
 
         pred_time += time.time() - pred_begin
