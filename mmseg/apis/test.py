@@ -165,6 +165,7 @@ def single_gpu_language_cotta(model,
         frame_passed=frame_passed +1
         with torch.no_grad():
             img_id = 0
+            print("images",len(data['img']))
             if len(data['img']) == 14:
                 img_id = 4  # The default size without flip
             result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
