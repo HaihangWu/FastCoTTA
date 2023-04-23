@@ -202,7 +202,11 @@ def single_gpu_language_cotta(model,
         #if (frame_passed%400-100)<0:
         #if random.random()<0.25:
         if True:
-            model = deepcopy(ema_model)
+            #model = deepcopy(ema_model)
+            for ema_param, param in zip(ema_model.parameters(), model.parameters()):
+                # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
+                param.data[:] = ema_param[:].data[:]
+
             if isinstance(result, list):
                 if len(data['img'])==14:
                     img_id = 4 #The default size without flip
