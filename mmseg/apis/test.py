@@ -229,6 +229,10 @@ def single_gpu_language_cotta(model,
                             mask = (torch.rand(p.shape)<0.01).float().cuda()
                             with torch.no_grad():
                                 p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
+        else:
+            if efficient_test:
+                result = [np2tmp(_) for _ in result]
+            results.extend(result)
 
 
         pred_time += time.time() - pred_begin
