@@ -183,7 +183,7 @@ def main():
     anchor_model = deepcopy(model) #?
     ema_model = create_ema_model(model) #?
     frame_passed=0
-    for i in range(1):
+    for i in range(10):
         print("revisit times:",i)
         for dataset, data_loader in zip(datasets, data_loaders):
             outputs,frame_passed = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,

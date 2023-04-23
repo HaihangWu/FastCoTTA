@@ -165,21 +165,15 @@ def single_gpu_language_cotta(model,
         frame_passed=frame_passed +1
         with torch.no_grad():
             img_id = 0
-            print("images",len(data['img']))
             if len(data['img']) == 14:
                 img_id = 4  # The default size without flip
-            result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
-            mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
+            # result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
+            # mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
             result, probs, preds = ema_model(return_loss=False, **data)
 
-            result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
+            # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
+            result = preds[img_id][0].astype(np.int64)
 
-            #result = [(mask * preds[0][0] + (1. - mask) * preds[1][0]).astype(np.int64)]
-            # result_H, probs_H, preds_H = anchor_model(return_loss=False, img=[data['img'][1]],
-            #                                       img_metas=[data['img_metas'][1].data[0]])
-            # result_L, probs_L, preds_L = anchor_model(return_loss=False, img=[data['img'][img_id]],
-            #                                       img_metas=[data['img_metas'][img_id].data[0]])
-            # result = [(mask * result_L[0] + (1. - mask) * result_H[0]).astype(np.int64)]
 
             weight = 1.
         # if (show or out_dir) and (round ==0 or round==4 or round==9):
@@ -228,6 +222,7 @@ def single_gpu_language_cotta(model,
 
         #stochastic restoration
         for nm, m  in model.named_modules():
+            print(nm)
             for npp, p in m.named_parameters():
                 if npp in ['weight', 'bias'] and p.requires_grad:
                     mask = (torch.rand(p.shape)<0.01).float().cuda()
