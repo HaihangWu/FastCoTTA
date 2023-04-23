@@ -199,7 +199,7 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        if (frame_passed%400-200)<0:
+        if (frame_passed%400-100)<0:
             if isinstance(result, list):
                 if len(data['img'])==14:
                     img_id = 4 #The default size without flip
