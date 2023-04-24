@@ -170,7 +170,10 @@ def single_gpu_language_cotta(model,
                 img_id = 4  # The default size without flip
             # result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
             # mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
-            result, probs, preds = ema_model(return_loss=False, **data)
+            if (frame_passed) < 3200:
+                result, probs, preds = ema_model(return_loss=False, **data)
+            else:
+                result, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
             result = [preds[img_id][0].astype(np.int64)]
 
