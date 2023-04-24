@@ -175,10 +175,8 @@ def single_gpu_language_cotta(model,
             else:
                 result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
-            result = [preds[img_id][0].astype(np.int64)]
-            result_ = result
-            if (frame_passed) < 3200:
-                result_=[result_ori[0].astype(np.int64)]
+            #result = [preds[img_id][0].astype(np.int64)]
+            result=[result_ori[0].astype(np.int64)]
 
 
 
@@ -218,7 +216,7 @@ def single_gpu_language_cotta(model,
                     img_id = 4 #The default size without flip
                 else:
                     img_id = 0
-                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result_[0]).cuda().unsqueeze(0).unsqueeze(0))
+                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
                 if efficient_test:
                     result = [np2tmp(_) for _ in result]
                 results.extend(result)
