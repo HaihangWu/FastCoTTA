@@ -172,7 +172,7 @@ def single_gpu_language_cotta(model,
             # mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
             result_ori, probs, preds = ema_model(return_loss=False, **data)
             print(type(result_ori),type(probs),type(preds))
-            print(probs)
+            print(probs.size())
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
             #result = [preds[img_id][0].astype(np.int64)]
             result=[result_ori[0].astype(np.int64)]
