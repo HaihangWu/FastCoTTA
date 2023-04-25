@@ -184,11 +184,17 @@ def main():
     anchor_model = deepcopy(model) #?
     ema_model = create_ema_model(model) #?
     frame_passed=0
+    domains_detections={}
+    domains_detections["detection"]=True
+    domains_detections["adaptation"] = True
+    #domains_detections["shift"]=False
+    domains_detections["storage"] = []
+    #domains_detections["current_DM"] = None # currrent domain
     for i in range(10):
         print("revisit times:",i)
         for dataset, data_loader in zip(datasets, data_loaders):
-            outputs,frame_passed = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
-                                      efficient_test,anchor, ema_model, anchor_model,frame_passed, i)
+            outputs,frame_passed,domains_detections = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
+                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections, i)
 
             rank, _ = get_dist_info()
             if rank == 0:

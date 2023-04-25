@@ -49,5 +49,5 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 #bash ./tools/dist_language_test.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee Lacdctext-b5.log
-bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee Lacdc-xiao-test.log
+bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee Lacdc-xiao-domain-adapt.log
 #bash ./tools/dist_language.sh local_configs/Language/Lsegformer.b5.1024x1024.city.160kST.py  1 | tee Lcitytext16000-b5-test.log
