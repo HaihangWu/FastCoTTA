@@ -195,7 +195,7 @@ def single_gpu_language_cotta(model,
                if which_domain is not None:
                    if int(which_domain[-1])<max(domain_order):
                         domains_detections["adaptation"] = False
-                        print([[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for s in domain_keys], which_domain,frame_passed)
+                        print([[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for s in domain_keys], False, which_domain,frame_passed)
                    if domain_gap < 0.5:
                        if len(domains_detections[which_domain])>=domain_storage_length:
                                domains_detections[which_domain]=domains_detections[which_domain][storage_temp_length:domain_storage_length]+domains_detections["storage"]
@@ -206,7 +206,7 @@ def single_gpu_language_cotta(model,
                    if len(domain_order)>0.5:
                        new_domain_name='domain'+str(max(domain_order)+1)
                    domains_detections["adaptation"] = True
-                   print([[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for s in domain_keys], which_domain, frame_passed)
+                   print([[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for s in domain_keys], True, which_domain, frame_passed)
                    domains_detections[new_domain_name]=domains_detections["storage"]
                domains_detections["storage"]=[]
                domains_detections["detection"]=False
