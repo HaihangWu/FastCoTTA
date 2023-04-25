@@ -176,7 +176,7 @@ def single_gpu_language_cotta(model,
 
             if domains_detections["detection"]:
                 result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
-                domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+                domains_detections["storage"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
 
             if len(domains_detections["storage"])>=storage_temp_length:
                domain_keys=[s for s in domains_detections.keys() if "domain" in s]
