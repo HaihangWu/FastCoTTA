@@ -203,8 +203,8 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        #if (frame_passed)<3200:
-        if True:
+        if (frame_passed)<3200:
+        #if True:
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
@@ -223,7 +223,7 @@ def single_gpu_language_cotta(model,
                 if efficient_test:
                     result = np2tmp(result)
                 results.append(result)
-            torch.mean(loss["decode.loss_seg"]+2*loss["text_decode.loss_seg"]).backward()
+            torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
 
