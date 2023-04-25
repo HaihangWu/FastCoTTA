@@ -171,7 +171,8 @@ def single_gpu_language_cotta(model,
             # result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
             # mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
             result_ori, probs, preds = ema_model(return_loss=False, **data)
-
+            print(type(result_ori),type(probs),type(preds))
+            print(probs)
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
             #result = [preds[img_id][0].astype(np.int64)]
             result=[result_ori[0].astype(np.int64)]
@@ -230,14 +231,14 @@ def single_gpu_language_cotta(model,
             ema_model = update_ema_variables(ema_model = ema_model, model = model, alpha_teacher=0.999) #teacher model
 
             #stochastic restoration
-            for nm, m  in model.named_modules():
-            #for nm, m in ema_model.named_modules():
-                if 'decode_head' in nm or 'backbone' in nm:
-                    for npp, p in m.named_parameters():
-                        if npp in ['weight', 'bias'] and p.requires_grad:
-                            mask = (torch.rand(p.shape)<0.01).float().cuda()
-                            with torch.no_grad():
-                                p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
+            # for nm, m  in model.named_modules():
+            # #for nm, m in ema_model.named_modules():
+            #     if 'decode_head' in nm or 'backbone' in nm:
+            #         for npp, p in m.named_parameters():
+            #             if npp in ['weight', 'bias'] and p.requires_grad:
+            #                 mask = (torch.rand(p.shape)<0.01).float().cuda()
+            #                 with torch.no_grad():
+            #                     p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
         else:
             if efficient_test:
                 result = [np2tmp(_) for _ in result]
