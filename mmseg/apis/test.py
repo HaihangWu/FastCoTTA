@@ -185,8 +185,8 @@ def single_gpu_language_cotta(model,
                which_domain = None
                storage_mean = np.mean(domains_detections["storage"])
                for domain in domain_keys:
-                   domain_mean=np.mean(domains_detections["domain"])
-                   domain_std = np.std(domains_detections["domain"])
+                   domain_mean=np.mean(domains_detections[domain])
+                   domain_std = np.std(domains_detections[domain])
                    cur_gap=abs((domain_mean-storage_mean)/domain_std)
                    if cur_gap<2:
                        if cur_gap<domain_gap:
