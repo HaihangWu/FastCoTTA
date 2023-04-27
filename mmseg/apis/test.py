@@ -249,7 +249,7 @@ def single_gpu_language_cotta(model,
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
             #     param.data[:] = ema_param[:].data[:]
-
+            domains_detections["adapted_frame"] = domains_detections["adapted_frame"] +1
             if isinstance(result, list):
                 if len(data['img'])==14:
                     img_id = 4 #The default size without flip

@@ -189,6 +189,7 @@ def main():
     domains_detections["adaptation"] = True
     #domains_detections["shift"]=False
     domains_detections["storage"] = []
+    domains_detections["adapted_frame"] = 0
     #domains_detections["current_DM"] = None # currrent domain
     for i in range(10):
         print("revisit times:",i)
