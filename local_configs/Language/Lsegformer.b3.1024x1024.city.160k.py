@@ -7,25 +7,13 @@ _base_ = [
 
 # model settings
 norm_cfg = dict(type='SyncBN', requires_grad=True)
-prompt_config=dict(NUM_TOKENS = 5,LOCATION = "prepend", INITIATION = "random" , CLSEMB_FOLDER = "", CLSEMB_PATH = "",
-                   PROJECT = -1 , DEEP = False, NUM_DEEP_LAYERS = None, DEEP_SHARED = False,FORWARD_DEEP_NOEXPAND = False ,
-                   VIT_POOL_TYPE = "original", DROPOUT = 0.0, SAVE_FOR_EACH_EPOCH = False, Shallow=False)
 find_unused_parameters = True
 model = dict(
     type='SegLanguage',
     pretrained='../mmsegmentation/segformer.b3.1024x1024.city.160k.pth',
+    #pretrained='work_dirs/Lsegformer.b3.1024x1024.city.160k/iter_16000.pth',
     backbone=dict(
         type='mit_b3',
-        prompt_config=prompt_config,
-        style='pytorch'),
-    text_encoder=dict(
-        type='CLIPTextEncoder',
-        pretrained='pretrained/ViT-B-16.pt',
-        context_length=77,
-        embed_dim=512,
-        transformer_width=512,
-        transformer_heads=8,
-        transformer_layers=12,
         style='pytorch'),
     decode_head=dict(
         type='SegFormerHead',
@@ -39,13 +27,35 @@ model = dict(
         align_corners=False,
         decoder_params=dict(embed_dim=768),
         loss_decode=dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
+    text_encoder=dict(
+        type='CLIPTextEncoder',
+        pretrained='pretrained/ViT-B-16.pt',
+        context_length=77,
+        embed_dim=512,
+        transformer_width=512,
+        transformer_heads=8,
+        transformer_layers=12,
+        style='pytorch'),
+    text_decoder=dict(
+        type='TextSegFormerHead',
+        in_channels=[64, 128, 320, 512],
+        in_index=[0, 1, 2, 3],
+        feature_strides=[4, 8, 16, 32],
+        channels=128,
+        dropout_ratio=0.1,
+        num_classes=19,
+        norm_cfg=norm_cfg,
+        align_corners=False,
+        decoder_params=dict(embed_dim=512),
+        loss_decode=dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
     # model training and testing settings
     train_cfg=dict(),
     # test_cfg=dict(mode='whole'))
     test_cfg=dict(mode='slide', crop_size=(1024,1024), stride=(768,768)),
-    ft_backbone=False,
+    ft_model=False,
+    include_key='linear_pred',
     # load_text_embedding='configs/_base_/datasets/text_embedding/voc12_single.npy'
-    )
+)
 
 # data
 data = dict(samples_per_gpu=1)
@@ -63,5 +73,3 @@ lr_config = dict(_delete_=True, policy='poly',
                  warmup_iters=1500,
                  warmup_ratio=1e-6,
                  power=1.0, min_lr=0.0, by_epoch=False)
-
-

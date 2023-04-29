@@ -79,8 +79,8 @@ class SegLanguage(EncoderDecoder):
             self.text_decoder = builder.build_head(text_decoder)
 
         self._freeze_stages(self.text_encoder)
-        #self._freeze_stages(self.text_decoder, include_key=include_key)
-        self._freeze_stages(self.text_decoder)
+        self._freeze_stages(self.text_decoder, include_key=include_key)
+        #self._freeze_stages(self.text_decoder)
         if ft_model is False:
             self._freeze_stages(self.backbone)
             self._freeze_stages(self.decode_head)
@@ -150,7 +150,7 @@ class SegLanguage(EncoderDecoder):
         """Run forward function and calculate loss for decode head in
         training."""
         losses = dict()
-        seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
+        #seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
         seg_logits_text = self.text_decoder.forward_test(x, img_metas, self.test_cfg)
         if gt_semantic_seg.dim()>4:
             gt_semantic_seg = gt_semantic_seg[:,:,:,:,-1]
@@ -158,10 +158,10 @@ class SegLanguage(EncoderDecoder):
             print("dimension is different:",seg_logits_text.dim(),gt_semantic_seg.dim(),seg_logits_text.size(),gt_semantic_seg.size())
             exit()
 
-        loss_decode = self.text_decoder.losses(seg_logits_visual, gt_semantic_seg)
-        text_loss_decode = self.decode_head.losses(seg_logits_text, gt_semantic_seg)
+        #loss_decode = self.decode_head.losses(seg_logits_visual, gt_semantic_seg)
+        text_loss_decode = self.text_decoder.losses(seg_logits_text, gt_semantic_seg)
 
-        losses.update(add_prefix(loss_decode, 'decode'))
+        #losses.update(add_prefix(loss_decode, 'decode'))
         losses.update(add_prefix(text_loss_decode, 'text_decode'))
         return losses
 
