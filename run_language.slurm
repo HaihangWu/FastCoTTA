@@ -30,10 +30,6 @@
 # The maximum running time of the job in days-hours:mins:sec
 #SBATCH --time=02-00:00:0
 
-# Send yourself an email when the job:
-#SBATCH --mail-user=robotic.engineer.dylan.wu@gmail.com
-#SBATCH --mail-type=BEGIN,FAIL,END
-
 module load anaconda3/2021.11
 eval "$(conda shell.bash hook)"
 conda activate Uniformerv2
@@ -50,4 +46,4 @@ echo "r$SLURM_NODEID Launching python script"
 
 #bash ./tools/dist_language_test.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee Lacdctext-b5.log
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee Lacdc-xiaoNorestore-domain-adapt1.0.log
-bash ./tools/dist_language.sh local_configs/Language/Lsegformer.b3.1024x1024.city.160k.py  1 | tee Lcitytext16000-b3-test.log
+bash ./tools/dist_language.sh local_configs/Language/Lsegformer.b5.1024x1024.city.160k.py  1 | tee Lcitytext16000-b5-test.log
