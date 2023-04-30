@@ -186,6 +186,7 @@ def main():
     frame_passed=0
     domains_detections={}
     domains_detections["detection"]=True
+    domains_detections["detection_prob"]=0.1
     domains_detections["adaptation_prob"] = {}
     domains_detections["cur_adaptation_prob"] = 1.0
     domains_detections["cur_dom"]="domain"+str(1)
