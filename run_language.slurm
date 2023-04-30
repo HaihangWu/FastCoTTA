@@ -16,7 +16,7 @@
 
 # Request different amount of resources for different nodes
 # --constraint=[dlg1|dlg2|dlg3]
-#SBATCH --constraint=[dlg4|dlg5]
+# --constraint=[dlg4|dlg5]
 #SBATCH --nodes=1                # node count
 #SBATCH --ntasks-per-node=1      # total number of tasks per node
 #SBATCH --gres=gpu:1             # number of gpus per node
