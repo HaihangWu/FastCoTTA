@@ -6,56 +6,16 @@ _base_ = [
 norm_cfg = dict(type='SyncBN', requires_grad=True)
 crop_size = (768, 768)
 model = dict(
-    pretrained=None,
+    pretrained='../mmsegmentation/setr_pup_vit-large_8x1_768x768_80k_cityscapes.pth',
     backbone=dict(
         drop_rate=0.,
         init_cfg=dict(
             type='Pretrained', checkpoint='pretrain/vit_large_p16.pth')),
-    auxiliary_head=[
-        dict(
-            type='SETRUPHead',
-            in_channels=1024,
-            channels=256,
-            in_index=0,
-            num_classes=19,
-            dropout_ratio=0,
-            norm_cfg=norm_cfg,
-            num_convs=2,
-            up_scale=4,
-            kernel_size=3,
-            align_corners=False,
-            loss_decode=dict(
-                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=0.4)),
-        dict(
-            type='SETRUPHead',
-            in_channels=1024,
-            channels=256,
-            in_index=1,
-            num_classes=19,
-            dropout_ratio=0,
-            norm_cfg=norm_cfg,
-            num_convs=2,
-            up_scale=4,
-            kernel_size=3,
-            align_corners=False,
-            loss_decode=dict(
-                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=0.4)),
-        dict(
-            type='SETRUPHead',
-            in_channels=1024,
-            channels=256,
-            in_index=2,
-            num_classes=19,
-            dropout_ratio=0,
-            norm_cfg=norm_cfg,
-            num_convs=2,
-            up_scale=4,
-            kernel_size=3,
-            align_corners=False,
-            loss_decode=dict(
-                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=0.4))
-    ],
-    test_cfg=dict(mode='slide', crop_size=crop_size, stride=(512, 512)))
+    test_cfg=dict(mode='slide', crop_size=crop_size, stride=(512, 512)),
+    ft_model=False,
+    include_key='linear_pred',
+    # load_text_embedding='configs/_base_/datasets/text_embedding/voc12_single.npy'
+)
 
 optimizer = dict(
     weight_decay=0.0,
