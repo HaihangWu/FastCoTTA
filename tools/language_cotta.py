@@ -186,7 +186,9 @@ def main():
     frame_passed=0
     domains_detections={}
     domains_detections["detection"]=True
-    domains_detections["adaptation"] = True
+    domains_detections["adaptation_prob"] = {}
+    domains_detections["cur_adaptation_prob"] = 1.0
+    domains_detections["cur_dom"]="domain"+str(1)
     #domains_detections["shift"]=False
     domains_detections["storage"] = []
     domains_detections["adapted_frame"] = 0

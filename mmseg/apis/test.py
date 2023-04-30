@@ -174,42 +174,46 @@ def single_gpu_language_cotta(model,
             if len(data['img']) == 14:
                 img_id = 4  # The default size without flip
 
-            # if domains_detections["detection"]:
-            #     result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
-            #     domains_detections["storage"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
-            #
-            # if len(domains_detections["storage"])>=storage_temp_length:
-            #    domain_keys=[s for s in domains_detections.keys() if "domain" in s]
-            #    domain_order=[int(s[-1]) for s in domains_detections.keys() if "domain" in s]
-            #    domain_gap = 1000
-            #    which_domain = None
-            #    storage_mean = np.mean(domains_detections["storage"])
-            #    for domain in domain_keys:
-            #        domain_mean=np.mean(domains_detections[domain])
-            #        domain_std = np.std(domains_detections[domain])
-            #        cur_gap=abs((domain_mean-storage_mean)/domain_std)
-            #        if cur_gap<2.0:
-            #            if cur_gap<domain_gap:
-            #                which_domain=domain
-            #                domain_gap=cur_gap
-            #    if which_domain is not None:
-            #        if int(which_domain[-1])<max(domain_order):
-            #             domains_detections["adaptation"] = False
-            #             print([[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for s in domain_keys], False, which_domain,frame_passed)
-            #        if domain_gap < 1.0:
-            #            if len(domains_detections[which_domain])>=domain_storage_length:
-            #                    domains_detections[which_domain]=domains_detections[which_domain][storage_temp_length:domain_storage_length]+domains_detections["storage"]
-            #            else:
-            #                domains_detections[which_domain] = domains_detections[which_domain]+ domains_detections["storage"]
-            #    else:
-            #        new_domain_name="domain"+str(1)
-            #        if len(domain_order)>0.5:
-            #            new_domain_name='domain'+str(max(domain_order)+1)
-            #        domains_detections["adaptation"] = True
-            #        print([[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for s in domain_keys], True, which_domain, frame_passed)
-            #        domains_detections[new_domain_name]=domains_detections["storage"]
-            #    domains_detections["storage"]=[]
-            #    domains_detections["detection"]=False
+            if domains_detections["detection"]:
+                result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
+                domains_detections["storage"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
+
+            if len(domains_detections["storage"])>=storage_temp_length:
+               domain_keys=[s for s in domains_detections.keys() if "domain" in s]
+               domain_order=[int(s[-1]) for s in domains_detections.keys() if "domain" in s]
+               domain_gap = 1000
+               which_domain = None
+               storage_mean = np.mean(domains_detections["storage"])
+               for domain in domain_keys:
+                   domain_mean=np.mean(domains_detections[domain])
+                   domain_std = np.std(domains_detections[domain])
+                   cur_gap=abs((domain_mean-storage_mean)/domain_std)
+                   if cur_gap<2.0:
+                       if cur_gap<domain_gap:
+                           which_domain=domain
+                           domain_gap=cur_gap
+               if which_domain is not None:
+                   if domains_detections["cur_dom"]!=which_domain:
+                        domains_detections["adaptation_prob"][which_domain] = domains_detections["adaptation_prob"][which_domain]*0.5
+                        domains_detections["cur_adaptation_prob"]=domains_detections["adaptation_prob"][which_domain]
+                        print([[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for s in domain_keys],which_domain, domains_detections["adaptation_prob"][which_domain],frame_passed)
+                   if domain_gap < 1.0:
+                       if len(domains_detections[which_domain])>=domain_storage_length:
+                               domains_detections[which_domain]=domains_detections[which_domain][storage_temp_length:domain_storage_length]+domains_detections["storage"]
+                       else:
+                           domains_detections[which_domain] = domains_detections[which_domain]+ domains_detections["storage"]
+                   domains_detections["cur_dom"]=which_domain
+               else:
+                   new_domain_name="domain"+str(1)
+                   if len(domain_order)>0.5:
+                       new_domain_name='domain'+str(max(domain_order)+1)
+                   domains_detections["adaptation_prob"][new_domain_name] = 1.0
+                   domains_detections["cur_adaptation_prob"]=1.0
+                   domains_detections["cur_dom"]=new_domain_name
+                   print([[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for s in domain_keys], domains_detections["cur_dom"], 1.0, frame_passed)
+                   domains_detections[new_domain_name]=domains_detections["storage"]
+               domains_detections["storage"]=[]
+               domains_detections["detection"]=False
 
                 #mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
             result_ori, probs, preds = ema_model(return_loss=False, **data)
@@ -244,7 +248,7 @@ def single_gpu_language_cotta(model,
         #             show=show,
         #             out_file=out_file)
         #if (frame_passed)<3200:
-        if domains_detections["adaptation"]:
+        if random.random()<domains_detections["cur_adaptation_prob"]:
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
