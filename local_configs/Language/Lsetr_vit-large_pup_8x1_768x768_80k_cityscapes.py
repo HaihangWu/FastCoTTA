@@ -4,6 +4,7 @@ _base_ = [
 ]
 
 norm_cfg = dict(type='SyncBN', requires_grad=True)
+find_unused_parameters = True
 backbone_norm_cfg = dict(type='LN', eps=1e-6, requires_grad=True)
 crop_size = (768, 768)
 model = dict(
