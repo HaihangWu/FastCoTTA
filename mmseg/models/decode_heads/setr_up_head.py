@@ -30,11 +30,18 @@ class SETRUPHead(BaseDecodeHead):
                  num_convs=1,
                  up_scale=4,
                  kernel_size=3,
+                 init_cfg=[
+                              dict(type='Constant', val=1.0, bias=0, layer='LayerNorm'),
+                              dict(
+                                  type='Normal',
+                                  std=0.01,
+                                  override=dict(name='conv_seg'))
+                          ],
                  **kwargs):
 
         assert kernel_size in [1, 3], 'kernel_size must be 1 or 3.'
 
-        super(SETRUPHead, self).__init__(**kwargs)
+        super(SETRUPHead, self).__init__(init_cfg=init_cfg,**kwargs)
 
         assert isinstance(self.in_channels, int)
 

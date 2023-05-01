@@ -36,14 +36,7 @@ model = dict(
         kernel_size=3,
         align_corners=False,
         loss_decode=dict(
-            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
-        init_cfg=[
-            dict(type='Constant', val=1.0, bias=0, layer='LayerNorm'),
-            dict(
-                type='Normal',
-                std=0.01,
-                override=dict(name='conv_seg'))
-        ]),
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
     text_encoder=dict(
         type='CLIPTextEncoder',
         pretrained='pretrained/ViT-B-16.pt',
@@ -66,14 +59,7 @@ model = dict(
         kernel_size=3,
         align_corners=False,
         loss_decode=dict(
-            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
-        init_cfg=[
-            dict(type='Constant', val=1.0, bias=0, layer='LayerNorm'),
-            dict(
-                type='Normal',
-                std=0.01,
-                override=dict(name='conv_seg'))
-        ]),
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
     train_cfg=dict(),
     test_cfg=dict(mode='whole'),
     ft_model=False,

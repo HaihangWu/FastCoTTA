@@ -1,9 +1,10 @@
+# Copyright (c) OpenMMLab. All rights reserved.
+import warnings
 from abc import ABCMeta, abstractmethod
 
 import torch
 import torch.nn as nn
-from mmcv.cnn import normal_init
-from mmcv.runner import auto_fp16, force_fp32
+from mmcv.runner import BaseModule, auto_fp16, force_fp32
 
 from mmseg.core import build_pixel_sampler
 from mmseg.ops import resize
@@ -11,13 +12,16 @@ from ..builder import build_loss
 from ..losses import accuracy
 
 
-class BaseDecodeHead(nn.Module, metaclass=ABCMeta):
+class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
     """Base class for BaseDecodeHead.
 
     Args:
         in_channels (int|Sequence[int]): Input channels.
         channels (int): Channels after modules, before conv_seg.
         num_classes (int): Number of classes.
+        out_channels (int): Output channels of conv_seg.
+        threshold (float): Threshold for binary segmentation in the case of
+            `out_channels==1`. Default: None.
         dropout_ratio (float): Ratio of dropout layer. Default: 0.1.
         conv_cfg (dict|None): Config of conv layers. Default: None.
         norm_cfg (dict|None): Config of norm layers. Default: None.
@@ -33,14 +37,26 @@ class BaseDecodeHead(nn.Module, metaclass=ABCMeta):
                 a list and passed into decode head.
             None: Only one select feature map is allowed.
             Default: None.
-        loss_decode (dict): Config of decode loss.
+        loss_decode (dict | Sequence[dict]): Config of decode loss.
+            The `loss_name` is property of corresponding loss function which
+            could be shown in training log. If you want this loss
+            item to be included into the backward graph, `loss_` must be the
+            prefix of the name. Defaults to 'loss_ce'.
+             e.g. dict(type='CrossEntropyLoss'),
+             [dict(type='CrossEntropyLoss', loss_name='loss_ce'),
+              dict(type='DiceLoss', loss_name='loss_dice')]
             Default: dict(type='CrossEntropyLoss').
         ignore_index (int | None): The label index to be ignored. When using
-            masked BCE loss, ignore_index should be set to None. Default: 255
+            masked BCE loss, ignore_index should be set to None. Default: 255.
         sampler (dict|None): The config of segmentation map sampler.
             Default: None.
         align_corners (bool): align_corners argument of F.interpolate.
             Default: False.
+        downsample_label_ratio (int): The ratio to downsample seg_label
+            in losses. downsample_label_ratio > 1 will reduce memory usage.
+            Disabled if downsample_label_ratio = 0.
+            Default: 0.
+        init_cfg (dict or list[dict], optional): Initialization config dict.
     """
 
     def __init__(self,
@@ -48,6 +64,8 @@ class BaseDecodeHead(nn.Module, metaclass=ABCMeta):
                  channels,
                  *,
                  num_classes,
+                 out_channels=None,
+                 threshold=None,
                  dropout_ratio=0.1,
                  conv_cfg=None,
                  norm_cfg=None,
@@ -61,8 +79,11 @@ class BaseDecodeHead(nn.Module, metaclass=ABCMeta):
                  decoder_params=None,
                  ignore_index=255,
                  sampler=None,
-                 align_corners=False):
-        super(BaseDecodeHead, self).__init__()
+                 align_corners=False,
+                 downsample_label_ratio=0,
+                 init_cfg=dict(
+                     type='Normal', std=0.01, override=dict(name='conv_seg'))):
+        super(BaseDecodeHead, self).__init__(init_cfg)
         self._init_inputs(in_channels, in_index, input_transform)
         self.channels = channels
         self.num_classes = num_classes
@@ -74,13 +95,52 @@ class BaseDecodeHead(nn.Module, metaclass=ABCMeta):
         self.loss_decode = build_loss(loss_decode)
         self.ignore_index = ignore_index
         self.align_corners = align_corners
+        self.downsample_label_ratio = downsample_label_ratio
+        if not isinstance(self.downsample_label_ratio, int) or \
+           self.downsample_label_ratio < 0:
+            warnings.warn('downsample_label_ratio should '
+                          'be set as an integer equal or larger than 0.')
+
+        if out_channels is None:
+            if num_classes == 2:
+                warnings.warn('For binary segmentation, we suggest using'
+                              '`out_channels = 1` to define the output'
+                              'channels of segmentor, and use `threshold`'
+                              'to convert seg_logist into a prediction'
+                              'applying a threshold')
+            out_channels = num_classes
+
+        if out_channels != num_classes and out_channels != 1:
+            raise ValueError(
+                'out_channels should be equal to num_classes,'
+                'except binary segmentation set out_channels == 1 and'
+                f'num_classes == 2, but got out_channels={out_channels}'
+                f'and num_classes={num_classes}')
+
+        if out_channels == 1 and threshold is None:
+            threshold = 0.3
+            warnings.warn('threshold is not defined for binary, and defaults'
+                          'to 0.3')
+        self.num_classes = num_classes
+        self.out_channels = out_channels
+        self.threshold = threshold
+
+        if isinstance(loss_decode, dict):
+            self.loss_decode = build_loss(loss_decode)
+        elif isinstance(loss_decode, (list, tuple)):
+            self.loss_decode = nn.ModuleList()
+            for loss in loss_decode:
+                self.loss_decode.append(build_loss(loss))
+        else:
+            raise TypeError(f'loss_decode must be a dict or sequence of dict,\
+                but got {type(loss_decode)}')
 
         if sampler is not None:
             self.sampler = build_pixel_sampler(sampler, context=self)
         else:
             self.sampler = None
 
-        self.conv_seg = nn.Conv2d(channels, num_classes, kernel_size=1)
+        self.conv_seg = nn.Conv2d(channels, self.out_channels, kernel_size=1)
         if dropout_ratio > 0:
             self.dropout = nn.Dropout2d(dropout_ratio)
         else:
@@ -132,10 +192,6 @@ class BaseDecodeHead(nn.Module, metaclass=ABCMeta):
             assert isinstance(in_index, int)
             self.in_channels = in_channels
 
-    def init_weights(self):
-        """Initialize weights of classification layer."""
-        normal_init(self.conv_seg, mean=0, std=0.01)
-
     def _transform_inputs(self, inputs):
         """Transform inputs for decoder.
 
@@ -185,6 +241,7 @@ class BaseDecodeHead(nn.Module, metaclass=ABCMeta):
         Returns:
             dict[str, Tensor]: a dictionary of loss components
         """
+        #seg_logits = self(inputs)
         seg_logits = self.forward(inputs)
         losses = self.losses(seg_logits, gt_semantic_seg)
         return losses
@@ -217,6 +274,13 @@ class BaseDecodeHead(nn.Module, metaclass=ABCMeta):
     def losses(self, seg_logit, seg_label):
         """Compute segmentation loss."""
         loss = dict()
+        if self.downsample_label_ratio > 0:
+            seg_label = seg_label.float()
+            target_size = (seg_label.shape[2] // self.downsample_label_ratio,
+                           seg_label.shape[3] // self.downsample_label_ratio)
+            seg_label = resize(
+                input=seg_label, size=target_size, mode='nearest')
+            seg_label = seg_label.long()
         seg_logit = resize(
             input=seg_logit,
             size=seg_label.shape[2:],
@@ -227,10 +291,25 @@ class BaseDecodeHead(nn.Module, metaclass=ABCMeta):
         else:
             seg_weight = None
         seg_label = seg_label.squeeze(1)
-        loss['loss_seg'] = self.loss_decode(
-            seg_logit,
-            seg_label,
-            weight=seg_weight,
-            ignore_index=self.ignore_index)
-        loss['acc_seg'] = accuracy(seg_logit, seg_label)
+
+        if not isinstance(self.loss_decode, nn.ModuleList):
+            losses_decode = [self.loss_decode]
+        else:
+            losses_decode = self.loss_decode
+        for loss_decode in losses_decode:
+            if loss_decode.loss_name not in loss:
+                loss[loss_decode.loss_name] = loss_decode(
+                    seg_logit,
+                    seg_label,
+                    weight=seg_weight,
+                    ignore_index=self.ignore_index)
+            else:
+                loss[loss_decode.loss_name] += loss_decode(
+                    seg_logit,
+                    seg_label,
+                    weight=seg_weight,
+                    ignore_index=self.ignore_index)
+
+        loss['acc_seg'] = accuracy(
+            seg_logit, seg_label, ignore_index=self.ignore_index)
         return loss
