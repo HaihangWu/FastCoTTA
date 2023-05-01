@@ -167,7 +167,7 @@ def single_gpu_language_cotta(model,
         # if i==0:
         #     ema_model.load_state_dict(anchor)
         #if frame_passed%100==0
-        if random.random()<domains_detections["cur_adaptation_prob"]:
+        if random.random()<domains_detections["detection_prob"]:
             domains_detections["detection"] = True
         frame_passed=frame_passed +1
         with torch.no_grad():
@@ -189,7 +189,7 @@ def single_gpu_language_cotta(model,
                    domain_mean=np.mean(domains_detections[domain])
                    domain_std = np.std(domains_detections[domain])
                    cur_gap=abs((domain_mean-storage_mean)/domain_std)
-                   if cur_gap<1.0:
+                   if cur_gap<2.0:
                        if cur_gap<domain_gap:
                            which_domain=domain
                            domain_gap=cur_gap
