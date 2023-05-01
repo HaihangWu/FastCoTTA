@@ -170,6 +170,8 @@ def single_gpu_language_cotta(model,
         #if frame_passed%100==0
         if random.random()<domains_detections["detection_prob"]:
             domains_detections["detection"] = True
+        else:
+            domains_detections["detection"] = False
         frame_passed=frame_passed +1
         with torch.no_grad():
             img_id = 0
