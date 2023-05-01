@@ -14,6 +14,7 @@ from mmseg.ops import resize
 import time
 import random
 from copy import deepcopy
+from scipy.stats import wasserstein_distance
 
 def update_ema_variables(ema_model, model, alpha_teacher, iteration=None):
     # Use the "true" average until the exponential average is more correct
@@ -188,7 +189,8 @@ def single_gpu_language_cotta(model,
                for domain in domain_keys:
                    domain_mean=np.mean(domains_detections[domain])
                    domain_std = np.std(domains_detections[domain])
-                   cur_gap=abs((domain_mean-storage_mean)/domain_std)
+                   #cur_gap=abs((domain_mean-storage_mean)/domain_std)
+                   cur_gap=wasserstein_distance(domains_detections["storage"],domains_detections[domain])
                    if cur_gap<2.0:
                        if cur_gap<domain_gap:
                            which_domain=domain
