@@ -201,7 +201,7 @@ def single_gpu_language_cotta(model,
                    if domains_detections["cur_dom"]!=which_domain:
                         domains_detections["adaptation_prob"][which_domain] = domains_detections["adaptation_prob"][which_domain]*0.5
                         domains_detections["cur_adaptation_prob"]=domains_detections["adaptation_prob"][which_domain]
-                   if domain_gap < 1.0:
+                   if domain_gap < 0.5:
                        if len(domains_detections[which_domain])>=domain_storage_length:
                                domains_detections[which_domain]=domains_detections[which_domain][storage_temp_length:domain_storage_length]+domains_detections["storage"]
                        else:
