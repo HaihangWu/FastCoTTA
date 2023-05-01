@@ -191,8 +191,8 @@ def single_gpu_language_cotta(model,
                for domain in domain_keys:
                    domain_mean=np.mean(domains_detections[domain])
                    domain_std = np.std(domains_detections[domain])
-                   cur_gap=abs((domain_mean-storage_mean)/domain_std)
-                   #cur_gap=wasserstein_distance(domains_detections["storage"],domains_detections[domain])
+                   #cur_gap=abs((domain_mean-storage_mean)/domain_std)
+                   cur_gap=wasserstein_distance(domains_detections["storage"],domains_detections[domain])
                    if cur_gap<2.0:
                        if cur_gap<domain_gap:
                            which_domain=domain
@@ -201,12 +201,15 @@ def single_gpu_language_cotta(model,
                    if domains_detections["cur_dom"]!=which_domain:
                         domains_detections["adaptation_prob"][which_domain] = domains_detections["adaptation_prob"][which_domain]*0.5
                         domains_detections["cur_adaptation_prob"]=domains_detections["adaptation_prob"][which_domain]
-                        print([[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for s in domain_keys],which_domain, domains_detections["adaptation_prob"][which_domain],frame_passed)
                    if domain_gap < 1.0:
                        if len(domains_detections[which_domain])>=domain_storage_length:
                                domains_detections[which_domain]=domains_detections[which_domain][storage_temp_length:domain_storage_length]+domains_detections["storage"]
                        else:
                            domains_detections[which_domain] = domains_detections[which_domain]+ domains_detections["storage"]
+                   print(
+                       [[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for
+                        s in domain_keys], which_domain, domains_detections["adaptation_prob"][which_domain],
+                       domain_gap, frame_passed)
                    domains_detections["cur_dom"]=which_domain
                else:
                    new_domain_name="domain"+str(1)
