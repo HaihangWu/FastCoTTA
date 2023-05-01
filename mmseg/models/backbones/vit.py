@@ -291,7 +291,7 @@ class VisionTransformer(BaseModule):
     def norm1(self):
         return getattr(self, self.norm1_name)
 
-    def init_weights(self):
+    def init_weights(self, pretrained=None):
         if (isinstance(self.init_cfg, dict)
                 and self.init_cfg.get('type') == 'Pretrained'):
             logger = get_root_logger()
