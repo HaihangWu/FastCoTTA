@@ -193,7 +193,7 @@ def single_gpu_language_cotta(model,
                    domain_std = np.std(domains_detections[domain])
                    cur_gap=abs((domain_mean-storage_mean)/domain_std)
                    #cur_gap=wasserstein_distance(domains_detections["storage"],domains_detections[domain])
-                   if cur_gap<2.0:
+                   if cur_gap<1.0:
                        if cur_gap<domain_gap:
                            which_domain=domain
                            domain_gap=cur_gap
