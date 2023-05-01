@@ -64,7 +64,7 @@ class BaseDecodeHead(nn.Module, metaclass=ABCMeta):
                  init_cfg=dict(
                      type='Normal', std=0.01, override=dict(name='conv_seg'))
                  ):
-        super(BaseDecodeHead, self).__init__(init_cfg)
+        super(BaseDecodeHead, self).__init__()
         self._init_inputs(in_channels, in_index, input_transform)
         self.channels = channels
         self.num_classes = num_classes
