@@ -8,7 +8,7 @@ backbone_norm_cfg = dict(type='LN', eps=1e-6, requires_grad=True)
 crop_size = (768, 768)
 model = dict(
     type='SETRLanguage',
-    pretrained='pretrain/jx_vit_large_p16_384-b3be5167.pth',
+    pretrained='../mmsegmentation/setr_pup_vit-large_8x1_768x768_80k_cityscapes.pth',
     backbone=dict(
         type='VisionTransformer',
         img_size=(768, 768),

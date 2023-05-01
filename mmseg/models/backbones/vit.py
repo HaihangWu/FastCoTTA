@@ -174,7 +174,7 @@ class VisionTransformer(BaseModule):
     """
 
     def __init__(self,
-                 prompt_config=None,
+                 prompt_config,
                  img_size=224,
                  patch_size=16,
                  in_channels=3,
