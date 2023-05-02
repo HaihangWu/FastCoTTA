@@ -158,7 +158,7 @@ def single_gpu_language_cotta(model,
         else:
             param.requires_grad=False
     #optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
-    optimizer = torch.optim.SGD(param_list, lr=1)  # for SETR
+    optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
     pred_time=0
     for i, data in enumerate(data_loader):
         model.eval() # student model
@@ -281,7 +281,7 @@ def single_gpu_language_cotta(model,
             optimizer.step()
             optimizer.zero_grad()
 
-            ema_model = update_ema_variables(ema_model = ema_model, model = model, alpha_teacher=0.999) #teacher model
+            ema_model = update_ema_variables(ema_model = ema_model, model = model, alpha_teacher=0.99) #teacher model
 
             #stochastic restoration
             # for nm, m  in model.named_modules():
