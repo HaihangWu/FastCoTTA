@@ -256,7 +256,7 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        if False:
+        if True:
         #if random.random()<domains_detections["cur_adaptation_prob"]:
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
