@@ -114,8 +114,8 @@ def main():
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
-    if args.aug_test:
-    # if True:
+    #if args.aug_test:
+    if True:
         for i in range(len(cfg.data.test.test_cases)):
             if cfg.data.test.test_cases[i].type in ['CityscapesDataset', 'ACDCDataset','KITTIDataset']:
                 # hard code index
@@ -200,7 +200,7 @@ def main():
         j=0
         for dataset, data_loader in zip(datasets, data_loaders):
             j=j+1
-            if j==1:
+            if j>0:
                 outputs,frame_passed,domains_detections,total_predict_time = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
                                           efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections,total_predict_time, i*4+j)
 
