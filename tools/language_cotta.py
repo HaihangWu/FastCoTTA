@@ -197,9 +197,11 @@ def main():
     #domains_detections["current_DM"] = None # currrent domain
     for i in range(10):
         print("revisit times:",i)
+        j=0
         for dataset, data_loader in zip(datasets, data_loaders):
+            j=j+1
             outputs,frame_passed,domains_detections,total_predict_time = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
-                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections,total_predict_time, i)
+                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections,total_predict_time, i*4+j)
 
             rank, _ = get_dist_info()
             if rank == 0:
