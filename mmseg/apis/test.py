@@ -306,7 +306,7 @@ def single_gpu_language_cotta(model,
         #print("iter %d, teacher_pred: %.3f seconds; student_pred: %.3f; student_train: %.3f;model_update_time: %.3f;restoration_time: %.3f;" % (i,teacher_pred,student_pred,student_train,model_update_time,restoration_time))
     total_predict_time=total_predict_time+pred_time
     print("average pred_time: %.3f seconds;total avg pred time:%.3f seconds; " % (pred_time/(i+1),total_predict_time/((round+1)*(i+1))))
-    return results,frame_passed,domains_detections
+    return results,frame_passed,domains_detections,total_predict_time
 
 
 
