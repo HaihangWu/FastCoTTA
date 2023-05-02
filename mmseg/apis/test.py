@@ -258,7 +258,6 @@ def single_gpu_language_cotta(model,
         #             out_file=out_file)
         #if (frame_passed)<3200:
         if random.random()<domains_detections["cur_adaptation_prob"]:
-            print("I'm adapting the model:",domains_detections["cur_adaptation_prob"])
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
@@ -273,11 +272,13 @@ def single_gpu_language_cotta(model,
                 if efficient_test:
                     result = [np2tmp(_) for _ in result]
                 results.extend(result)
+                print("I'm adapting the model:", domains_detections["cur_adaptation_prob"])
             else:
                 if efficient_test:
                     result = np2tmp(result)
                 results.append(result)
-            torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
+            #torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
+            torch.mean(loss["decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
 
