@@ -160,7 +160,6 @@ def single_gpu_language_cotta(model,
             param.requires_grad=False
     #optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
     optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
-    print("param_list:", param_list)
     pred_time=0
     for i, data in enumerate(data_loader):
         model.eval() # student model
@@ -257,8 +256,8 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        #if (frame_passed)<3200:
-        if random.random()<domains_detections["cur_adaptation_prob"]:
+        if False:
+        #if random.random()<domains_detections["cur_adaptation_prob"]:
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
