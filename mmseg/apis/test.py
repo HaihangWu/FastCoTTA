@@ -160,6 +160,7 @@ def single_gpu_language_cotta(model,
             param.requires_grad=False
     #optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
     optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
+    print("param_list:", param_list)
     pred_time=0
     for i, data in enumerate(data_loader):
         model.eval() # student model
@@ -272,7 +273,6 @@ def single_gpu_language_cotta(model,
                 if efficient_test:
                     result = [np2tmp(_) for _ in result]
                 results.extend(result)
-                print("I'm adapting the model:", domains_detections["cur_adaptation_prob"])
             else:
                 if efficient_test:
                     result = np2tmp(result)
