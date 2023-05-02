@@ -155,7 +155,7 @@ def single_gpu_language_cotta(model,
     for name, param in model.named_parameters():
         if param.requires_grad:
             param_list.append(param)
-            #print(name)
+            print(name)
         else:
             param.requires_grad=False
     #optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
