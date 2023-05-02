@@ -224,7 +224,12 @@ def single_gpu_language_cotta(model,
                domains_detections["detection"]=False
 
                 #mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
-            result_ori, probs, preds = ema_model(return_loss=False, **data)
+            adapt= True if random.random() < domains_detections["cur_adaptation_prob"] else False
+            if not adapt:
+                result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
+                                                      img_metas=[data['img_metas'][img_id].data[0]])
+            else:
+                result_ori, probs, preds = ema_model(return_loss=False, **data)
 
             #print(probs[0])
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
@@ -255,8 +260,8 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        if True:
-        #if random.random()<domains_detections["cur_adaptation_prob"]:
+        #if True:
+        if adapt:
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
