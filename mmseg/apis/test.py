@@ -126,6 +126,7 @@ def single_gpu_language_cotta(model,
                     anchor_model=None,
                      frame_passed =0,
                     domains_detections={},
+                    total_predict_time=0,
                      round=-1):
     """Test with single GPU.
 
@@ -193,7 +194,7 @@ def single_gpu_language_cotta(model,
                    domain_std = np.std(domains_detections[domain])
                    cur_gap=abs((domain_mean-storage_mean)/domain_std)
                    #cur_gap=wasserstein_distance(domains_detections["storage"],domains_detections[domain])
-                   if cur_gap<1.0:
+                   if cur_gap<2.0:
                        if cur_gap<domain_gap:
                            which_domain=domain
                            domain_gap=cur_gap
@@ -303,7 +304,8 @@ def single_gpu_language_cotta(model,
                 prog_bar.update()
         #print("iter %d, teacher_pred: %.3f seconds; anchor_pred: %.3f;" % (i, teacher_pred, anchor_pred))
         #print("iter %d, teacher_pred: %.3f seconds; student_pred: %.3f; student_train: %.3f;model_update_time: %.3f;restoration_time: %.3f;" % (i,teacher_pred,student_pred,student_train,model_update_time,restoration_time))
-    print("pred_time: %.3f seconds;" % (pred_time/(i+1)))
+    total_predict_time=total_predict_time+pred_time
+    print("average pred_time: %.3f seconds;total avg pred time:%.3f seconds; " % (pred_time/(i+1),total_predict_time/((round+1)*(i+1))))
     return results,frame_passed,domains_detections
 
 

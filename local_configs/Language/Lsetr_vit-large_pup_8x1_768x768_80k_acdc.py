@@ -1,5 +1,5 @@
 _base_ = [
-    '../_base_/datasets/cityscapes_768x768.py',
+    '../_base_/datasets/acdc_768x768.py','../_base_/datasets/acdc_768x768.py',
     '../_base_/default_runtime.py', '../_base_/schedules/schedule_80k.py'
 ]
 
@@ -9,7 +9,8 @@ backbone_norm_cfg = dict(type='LN', eps=1e-6, requires_grad=True)
 crop_size = (768, 768)
 model = dict(
     type='SETRLanguage',
-    pretrained='../mmsegmentation/setr_pup_vit-large_8x1_768x768_80k_cityscapes.pth',
+    #pretrained='../mmsegmentation/setr_pup_vit-large_8x1_768x768_80k_cityscapes.pth',
+    pretrained='work_dirs/Lsetr_vit-large_pup_8x1_768x768_80k_cityscapes/iter_80000.pth',
     backbone=dict(
         type='VisionTransformer',
         img_size=(768, 768),
@@ -62,8 +63,8 @@ model = dict(
         loss_decode=dict(
             type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
     train_cfg=dict(),
-    test_cfg=dict(mode='whole'),
-    ft_model=False,
+    test_cfg=dict(mode='slide', crop_size=crop_size, stride=(512, 512)),
+    ft_model=True,
     include_key='linear_pred',
     # load_text_embedding='configs/_base_/datasets/text_embedding/voc12_single.npy'
 )

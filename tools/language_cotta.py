@@ -184,6 +184,7 @@ def main():
     anchor_model = deepcopy(model) #?
     ema_model = create_ema_model(model) #?
     frame_passed=0
+    total_predict_time=0
     domains_detections={}
     domains_detections["detection"]=True
     domains_detections["detection_prob"]=0.1
@@ -197,8 +198,8 @@ def main():
     for i in range(10):
         print("revisit times:",i)
         for dataset, data_loader in zip(datasets, data_loaders):
-            outputs,frame_passed,domains_detections = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
-                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections, i)
+            outputs,frame_passed,domains_detections,total_predict_time = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
+                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections,total_predict_time, i)
 
             rank, _ = get_dist_info()
             if rank == 0:
