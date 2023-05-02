@@ -200,19 +200,20 @@ def main():
         j=0
         for dataset, data_loader in zip(datasets, data_loaders):
             j=j+1
-            outputs,frame_passed,domains_detections,total_predict_time = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
-                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections,total_predict_time, i*4+j)
+            if j==1:
+                outputs,frame_passed,domains_detections,total_predict_time = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
+                                          efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections,total_predict_time, i*4+j)
 
-            rank, _ = get_dist_info()
-            if rank == 0:
-                if args.out:
-                    print(f'\nwriting results to {args.out}')
-                    mmcv.dump(outputs, args.out)
-                kwargs = {} if args.eval_options is None else args.eval_options
-                if args.format_only:
-                    dataset.format_results(outputs, **kwargs)
-                if args.eval:
-                    dataset.evaluate(outputs, args.eval, **kwargs)
+                rank, _ = get_dist_info()
+                if rank == 0:
+                    if args.out:
+                        print(f'\nwriting results to {args.out}')
+                        mmcv.dump(outputs, args.out)
+                    kwargs = {} if args.eval_options is None else args.eval_options
+                    if args.format_only:
+                        dataset.format_results(outputs, **kwargs)
+                    if args.eval:
+                        dataset.evaluate(outputs, args.eval, **kwargs)
 
 
 if __name__ == '__main__':
