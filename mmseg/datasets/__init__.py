@@ -12,9 +12,11 @@ from .stare import STAREDataset
 from .voc import PascalVOCDataset
 from .mapillary import MapillaryDataset
 from .cocostuff import CocoStuff
+from .acdc import ACDCDataset
+from .KITTI_step import KITTIDataset
 
 __all__ = [
-    'CustomDataset', 'build_dataloader', 'ConcatDataset', 'RepeatDataset',
+    'CustomDataset', 'build_dataloader', 'ConcatDataset', 'RepeatDataset','ACDCDataset','KITTIDataset',
     'DATASETS', 'build_dataset', 'PIPELINES', 'CityscapesDataset',
     'PascalVOCDataset', 'ADE20KDataset', 'PascalContextDataset',
     'ChaseDB1Dataset', 'DRIVEDataset', 'HRFDataset', 'STAREDataset', 'MapillaryDataset', 'CocoStuff'
