@@ -15,10 +15,11 @@ from .cocostuff import CocoStuff
 from .acdc import ACDCDataset
 from .KITTI_step import KITTIDataset
 from .DarkZuirch import DarkZuirchDataset
+from .NightCity import NightCityDataset
 
 __all__ = [
     'CustomDataset', 'build_dataloader', 'ConcatDataset', 'RepeatDataset','ACDCDataset','KITTIDataset','DarkZuirchDataset',
-    'DATASETS', 'build_dataset', 'PIPELINES', 'CityscapesDataset',
+    'DATASETS', 'build_dataset', 'PIPELINES', 'CityscapesDataset','NightCityDataset',
     'PascalVOCDataset', 'ADE20KDataset', 'PascalContextDataset',
     'ChaseDB1Dataset', 'DRIVEDataset', 'HRFDataset', 'STAREDataset', 'MapillaryDataset', 'CocoStuff'
 ]
