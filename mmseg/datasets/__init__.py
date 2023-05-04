@@ -14,9 +14,10 @@ from .mapillary import MapillaryDataset
 from .cocostuff import CocoStuff
 from .acdc import ACDCDataset
 from .KITTI_step import KITTIDataset
+from .DarkZuirch import DarkZuirchDataset
 
 __all__ = [
-    'CustomDataset', 'build_dataloader', 'ConcatDataset', 'RepeatDataset','ACDCDataset','KITTIDataset',
+    'CustomDataset', 'build_dataloader', 'ConcatDataset', 'RepeatDataset','ACDCDataset','KITTIDataset','DarkZuirchDataset',
     'DATASETS', 'build_dataset', 'PIPELINES', 'CityscapesDataset',
     'PascalVOCDataset', 'ADE20KDataset', 'PascalContextDataset',
     'ChaseDB1Dataset', 'DRIVEDataset', 'HRFDataset', 'STAREDataset', 'MapillaryDataset', 'CocoStuff'
