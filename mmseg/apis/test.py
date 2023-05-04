@@ -261,7 +261,7 @@ def single_gpu_language_cotta(model,
         #             show=show,
         #             out_file=out_file)
         #if True:
-        if adapt:
+        if adapt and round%2!=0:
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
