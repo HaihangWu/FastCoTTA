@@ -61,7 +61,7 @@ data = dict(
         dict(
         type=dataset_type,
         data_root=data_root,
-        img_dir= 'rgb_anon/val/day/GOPR0356_ref',
+        img_dir= 'rgb_anon/val/day/GOPR0356',
         ann_dir= 'gt/val/day/GOPR0356',
         pipeline=test_pipeline),
           dict(
@@ -86,7 +86,7 @@ data = dict(
         dict(
             type=dataset_type,
             data_root=data_root,
-            img_dir='rgb_anon/val/day/GOPR0356_ref',
+            img_dir='rgb_anon/val/day/GOPR0356',
             ann_dir='gt/val/day/GOPR0356',
             pipeline=test_pipeline),
         dict(
@@ -111,7 +111,7 @@ data = dict(
         dict(
             type=dataset_type,
             data_root=data_root,
-            img_dir='rgb_anon/val/day/GOPR0356_ref',
+            img_dir='rgb_anon/val/day/GOPR0356',
             ann_dir='gt/val/day/GOPR0356',
             pipeline=test_pipeline),
         dict(
