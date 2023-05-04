@@ -53,18 +53,19 @@ data = dict(
     samples_per_gpu=2,
     workers_per_gpu=2,
     test = dict(
-    test_cases=[dict(
-        type=dataset_type_city,
-        data_root=data_root_city,
-        img_dir='leftImg8bit/val',
-        ann_dir='gtFine/val',
-        pipeline=test_pipeline_city),
+    test_cases=[
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
             img_dir='rgb_annon/val',
             ann_dir='gt/val',
-            pipeline=test_pipeline_night)
+            pipeline=test_pipeline_night),
+        dict(
+        type=dataset_type_city,
+        data_root=data_root_city,
+        img_dir='leftImg8bit/val',
+        ann_dir='gtFine/val',
+        pipeline=test_pipeline_city)
     ])
 
 )
