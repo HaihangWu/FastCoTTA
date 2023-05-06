@@ -233,6 +233,7 @@ class CustomDataset(Dataset):
         gt_seg_maps = []
         for img_info in self.img_infos:
             seg_map = osp.join(self.ann_dir, img_info['ann']['seg_map'])
+            print(seg_map)
             if efficient_test:
                 gt_seg_map = seg_map
             else:
