@@ -162,6 +162,7 @@ def single_gpu_language_cotta(model,
     pred_time=0
     print("images number",len(data_loader))
     for i, data in enumerate(data_loader):
+        print(data['img'][0].shape,data['img'][1].shape)
         model.eval() # student model
         ema_model.eval() # teacher model
         anchor_model.eval() # source model
