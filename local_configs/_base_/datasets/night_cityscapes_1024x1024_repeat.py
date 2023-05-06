@@ -38,7 +38,7 @@ test_pipeline_night = [
     dict(type='LoadImageFromFile'),
     dict(
         type='MultiScaleFlipAug',
-        img_scale=(1024//2, 512//2),
+        img_scale=(1024, 512),
         # img_ratios=[0.5, 0.75, 1.0, 1.25, 1.5, 1.75],
         flip=False,
         transforms=[
