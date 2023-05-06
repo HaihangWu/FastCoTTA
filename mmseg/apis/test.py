@@ -160,9 +160,7 @@ def single_gpu_language_cotta(model,
     optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
     #optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
     pred_time=0
-    print("images number",len(data_loader))
     for i, data in enumerate(data_loader):
-        print(data['img'][0].shape,data['img'][1].shape)
         model.eval() # student model
         ema_model.eval() # teacher model
         anchor_model.eval() # source model
@@ -230,6 +228,8 @@ def single_gpu_language_cotta(model,
             if not adapt:
                 result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
                                                       img_metas=[data['img_metas'][img_id].data[0]])
+                print("prediction size", preds[0].shape, preds[1].shape)
+                print("input image size", data['img'][0].shape, data['img'][1].shape)
             else:
                 result_ori, probs, preds = ema_model(return_loss=False, **data)
 
