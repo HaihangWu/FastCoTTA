@@ -32,7 +32,7 @@ class NightCityDataset(CustomDataset):
     def __init__(self, **kwargs):
         super(NightCityDataset, self).__init__(
             img_suffix='.png',
-            seg_map_suffix='.png',
+            seg_map_suffix='_labelIds.png',
             **kwargs)
 
     @staticmethod
