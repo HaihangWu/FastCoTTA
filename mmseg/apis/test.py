@@ -228,10 +228,10 @@ def single_gpu_language_cotta(model,
             if not adapt:
                 result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
                                                       img_metas=[data['img_metas'][img_id].data[0]])
-                print("prediction size", preds[0].shape, preds[1].shape)
-                print("input image size", data['img'][0].shape, data['img'][1].shape)
             else:
                 result_ori, probs, preds = ema_model(return_loss=False, **data)
+                print("prediction size", preds[0].shape, preds[1].shape)
+                print("input image size", data['img'][0].shape, data['img'][1].shape)
 
             #print(probs[0])
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
