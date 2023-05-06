@@ -44,8 +44,8 @@ export MASTER_ADDR=$master_addr
 echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
-bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b0.1024x1024.city_night.160k.py  1 | tee LSegb0-night-city.log
-#bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.kitti.160k.py  1 | tee LSegb5-kitti-daxiao.log
+#bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b0.1024x1024.city_night.160k.py  1 | tee LSegb0-night-city.log
+bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b0.1024x1024.kitti.160k.py  1 | tee LSegb0-kitti-daxiao.log
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_acdc.py  1 | tee LSETR-acdc.log
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_kitti.py  1 | tee LSETR-kitti-daxiao.log
 #bash ./tools/dist_language_train.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_cityscapes-new-dec.py  1 | tee LSETRtext8000-pup-new-dec.log
