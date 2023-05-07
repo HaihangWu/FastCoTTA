@@ -151,18 +151,18 @@ class SegLanguage(EncoderDecoder):
         training."""
         losses = dict()
         seg_logits_visual = self.decode_head.forward_test(x, img_metas, self.test_cfg)
-        seg_logits_text = self.text_decoder.forward_test(x, img_metas, self.test_cfg)
+        #seg_logits_text = self.text_decoder.forward_test(x, img_metas, self.test_cfg)
         if gt_semantic_seg.dim()>4:
             gt_semantic_seg = gt_semantic_seg[:,:,:,:,-1]
-        if seg_logits_text.dim()!=gt_semantic_seg.dim():
-            print("dimension is different:",seg_logits_text.dim(),gt_semantic_seg.dim(),seg_logits_text.size(),gt_semantic_seg.size())
-            exit()
+        # if seg_logits_text.dim()!=gt_semantic_seg.dim():
+        #     print("dimension is different:",seg_logits_text.dim(),gt_semantic_seg.dim(),seg_logits_text.size(),gt_semantic_seg.size())
+        #     exit()
 
         loss_decode = self.decode_head.losses(seg_logits_visual, gt_semantic_seg)
-        text_loss_decode = self.text_decoder.losses(seg_logits_text, gt_semantic_seg)
+        # text_loss_decode = self.text_decoder.losses(seg_logits_text, gt_semantic_seg)
 
         losses.update(add_prefix(loss_decode, 'decode'))
-        losses.update(add_prefix(text_loss_decode, 'text_decode'))
+        # losses.update(add_prefix(text_loss_decode, 'text_decode'))
         return losses
 
     def _decode_head_forward_test(self, x, img_metas):
