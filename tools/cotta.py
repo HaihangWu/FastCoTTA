@@ -204,7 +204,7 @@ def main():
         for dataset, data_loader in zip(datasets, data_loaders):
             j=j+1
             pred_begin = time.time()
-            outputs,frame_passed,domains_detections,total_predict_time = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
+            outputs,frame_passed = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
                                       efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
             total_predict_time = total_predict_time+time.time()-pred_begin
             total_processed_frame=total_processed_frame+len(data_loader)
