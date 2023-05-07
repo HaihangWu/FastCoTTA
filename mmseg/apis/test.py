@@ -260,7 +260,6 @@ def single_gpu_language_cotta(model,
                     anchor_model=None,
                      frame_passed =0,
                     domains_detections={},
-                    total_predict_time=0,
                      round=-1):
     """Test with single GPU.
 
@@ -293,7 +292,7 @@ def single_gpu_language_cotta(model,
             param.requires_grad=False
     optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
     #optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
-    pred_time=0
+    # pred_time=0
     for i, data in enumerate(data_loader):
         model.eval() # student model
         ema_model.eval() # teacher model
@@ -414,9 +413,9 @@ def single_gpu_language_cotta(model,
                 if efficient_test:
                     result = np2tmp(result)
                 results.append(result)
-            #torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
+            torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
 
-            torch.mean(loss["decode.loss_seg"]).backward()
+            #torch.mean(loss["decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
 
@@ -437,16 +436,14 @@ def single_gpu_language_cotta(model,
             results.extend(result)
 
 
-        pred_time += time.time() - pred_begin
-        batch_size = data['img'][0].size(0)
-        if i==399: # whh
-            for _ in range(batch_size):
-                prog_bar.update()
-        #print("iter %d, teacher_pred: %.3f seconds; anchor_pred: %.3f;" % (i, teacher_pred, anchor_pred))
-        #print("iter %d, teacher_pred: %.3f seconds; student_pred: %.3f; student_train: %.3f;model_update_time: %.3f;restoration_time: %.3f;" % (i,teacher_pred,student_pred,student_train,model_update_time,restoration_time))
-    total_predict_time=total_predict_time+pred_time
-    print("average pred_time: %.3f seconds;total avg pred time:%.3f seconds; " % (pred_time/(i+1),total_predict_time/(round*(i+1))))
-    return results,frame_passed,domains_detections,total_predict_time
+    #     pred_time += time.time() - pred_begin
+    #     batch_size = data['img'][0].size(0)
+    #     if i==399: # whh
+    #         for _ in range(batch_size):
+    #             prog_bar.update()
+    # total_predict_time=total_predict_time+pred_time
+    # print("average pred_time: %.3f seconds;total avg pred time:%.3f seconds; " % (pred_time/(i+1),total_predict_time/(round*(i+1))))
+    return results,frame_passed,domains_detections
 
 
 

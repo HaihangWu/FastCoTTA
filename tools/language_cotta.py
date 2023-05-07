@@ -12,7 +12,7 @@ from mmseg.datasets import build_dataloader, build_dataset
 from mmseg.models import build_segmentor
 from IPython import embed
 from copy import deepcopy
-
+import time
 
 def create_ema_model(model):
     ema_model = deepcopy(model)#get_model(args.model)(num_classes=num_classes)
@@ -117,7 +117,7 @@ def main():
     #if args.aug_test:
     if True:
         for i in range(len(cfg.data.test.test_cases)):
-            if cfg.data.test.test_cases[i].type in ['CityscapesDataset', 'ACDCDataset','KITTIDataset']:
+            if cfg.data.test.test_cases[i].type in ['CityscapesDataset', 'ACDCDataset','KITTIDataset','NightCityDataset']:
                 # hard code index
                 cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
                     #0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
@@ -195,15 +195,19 @@ def main():
     domains_detections["storage"] = []
     domains_detections["adapted_frame"] = 0
     #domains_detections["current_DM"] = None # currrent domain
+    total_predict_time=0
+    total_processed_frame=0
     for i in range(1):
         print("revisit times:",i)
         j=0
         for dataset, data_loader in zip(datasets, data_loaders):
             j=j+1
+            pred_begin = time.time()
+            outputs,frame_passed,domains_detections = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
+                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections, i*4+j)
 
-            outputs,frame_passed,domains_detections,total_predict_time = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
-                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections,total_predict_time, i*4+j)
-
+            total_predict_time = total_predict_time+time.time()-pred_begin
+            total_processed_frame=total_processed_frame+len(data_loader)
             rank, _ = get_dist_info()
             if rank == 0:
                 if args.out:
@@ -214,7 +218,7 @@ def main():
                     dataset.format_results(outputs, **kwargs)
                 if args.eval:
                     dataset.evaluate(outputs, args.eval, **kwargs)
-
+    print("total avg pred time:%.3f seconds; " % (total_predict_time / total_processed_frame))
 
 if __name__ == '__main__':
     main()
