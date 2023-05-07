@@ -1,5 +1,5 @@
 _base_ = [
-    '../_base_/datasets/acdc_768x768.py',
+    '../_base_/datasets/night_kitti_step_768x768.py',
     '../_base_/default_runtime.py', '../_base_/schedules/schedule_80k.py'
 ]
 
