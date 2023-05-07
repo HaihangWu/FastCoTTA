@@ -51,7 +51,8 @@ def single_gpu_test(model,
                     data_loader,
                     show=False,
                     out_dir=None,
-                    efficient_test=False):
+                    efficient_test=False
+                    ):
     """Test with single GPU.
 
     Args:
@@ -71,6 +72,7 @@ def single_gpu_test(model,
     results = []
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
+    pred_time=0
     for i, data in enumerate(data_loader):
         with torch.no_grad():
             result = model(return_loss=False, **data)
@@ -108,11 +110,10 @@ def single_gpu_test(model,
             if efficient_test:
                 result = np2tmp(result)
             results.append(result)
-
-        batch_size = data['img'][0].size(0)
-        if i==399: # hide progress
-            for _ in range(batch_size):
-                prog_bar.update()
+        # batch_size = data['img'][0].size(0)
+        # if i==399: # hide progress
+        #     for _ in range(batch_size):
+        #         prog_bar.update()
     return results
 
 

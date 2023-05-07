@@ -11,6 +11,7 @@ from mmseg.apis import multi_gpu_test, single_gpu_test
 from mmseg.datasets import build_dataloader, build_dataset
 from mmseg.models import build_segmentor
 from IPython import embed
+import time
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -152,11 +153,16 @@ def main():
         efficient_test = args.eval_options.get('efficient_test', False)
 
     model = MMDataParallel(model, device_ids=[0])
+    total_predict_time=0
+    total_processed_frame=0
     for i in range(1):
         print("revisit times:",i)
         for dataset, data_loader in zip(datasets, data_loaders):
+            pred_begin = time.time()
             outputs = single_gpu_test(model, data_loader, args.show, args.show_dir,
                                       efficient_test)
+            total_predict_time = total_predict_time+time.time()-pred_begin
+            total_processed_frame=total_processed_frame+len(data_loader)
 
             rank, _ = get_dist_info()
             if rank == 0:
@@ -168,6 +174,8 @@ def main():
                     dataset.format_results(outputs, **kwargs)
                 if args.eval:
                     dataset.evaluate(outputs, args.eval, **kwargs)
+    print("total avg pred time:%.3f seconds; " % (total_predict_time / total_processed_frame))
+
 
 
 if __name__ == '__main__':
