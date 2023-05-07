@@ -147,7 +147,7 @@ def single_gpu_cotta(model,
     anchor_model.eval()
     results = []
     dataset = data_loader.dataset
-    prog_bar = mmcv.ProgressBar(len(dataset))
+    # prog_bar = mmcv.ProgressBar(len(dataset))
     param_list = []
     out_dir = "./Cotta/"+str(frame_passed)
     for name, param in model.named_parameters():
@@ -240,10 +240,10 @@ def single_gpu_cotta(model,
 
 
         #pred_time += time.time() - pred_begin
-        batch_size = data['img'][0].size(0)
-        if i==399: # whh
-            for _ in range(batch_size):
-                prog_bar.update()
+        # batch_size = data['img'][0].size(0)
+        # if i==399: # whh
+        #     for _ in range(batch_size):
+        #         prog_bar.update()
         #print("iter %d, teacher_pred: %.3f seconds; anchor_pred: %.3f;" % (i, teacher_pred, anchor_pred))
         #print("iter %d, teacher_pred: %.3f seconds; student_pred: %.3f; student_train: %.3f;model_update_time: %.3f;restoration_time: %.3f;" % (i,teacher_pred,student_pred,student_train,model_update_time,restoration_time))
     #print("pred_time: %.3f seconds;" % (pred_time/(i+1)))
