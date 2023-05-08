@@ -55,6 +55,36 @@ data = dict(
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
+            img_dir='rgb_annon/train/London',
+            ann_dir='gt/train/London',
+            pipeline=test_pipeline_night),
+        dict(
+            type=dataset_type_night,
+            data_root=data_root_night,
+            img_dir='rgb_annon/train/Youtube',
+            ann_dir='gt/train/Youtube',
+            pipeline=test_pipeline_night),
+        dict(
+            type=dataset_type_night,
+            data_root=data_root_night,
+            img_dir='rgb_annon/train/Toronto',
+            ann_dir='gt/train/Toronto',
+            pipeline=test_pipeline_night),
+        dict(
+            type=dataset_type_night,
+            data_root=data_root_night,
+            img_dir='rgb_annon/train/LA',
+            ann_dir='gt/train/LA',
+            pipeline=test_pipeline_night),
+        dict(
+            type=dataset_type_night,
+            data_root=data_root_night,
+            img_dir='rgb_annon/train/Tokyo',
+            ann_dir='gt/train/Tokyo',
+            pipeline=test_pipeline_night),
+        dict(
+            type=dataset_type_night,
+            data_root=data_root_night,
             img_dir='rgb_annon/train/Melbourne',
             ann_dir='gt/train/Melbourne',
             pipeline=test_pipeline_night),
@@ -88,12 +118,12 @@ data = dict(
             img_dir='rgb_annon/train/Dubai',
             ann_dir='gt/train/Dubai',
             pipeline=test_pipeline_night),
-        dict(
-            type=dataset_type_night,
-            data_root=data_root_night,
-            img_dir='rgb_annon/train/Merged',
-            ann_dir='gt/train/Merged',
-            pipeline=test_pipeline_night),
+        # dict(
+        #     type=dataset_type_night,
+        #     data_root=data_root_night,
+        #     img_dir='rgb_annon/train/Merged',
+        #     ann_dir='gt/train/Merged',
+        #     pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
