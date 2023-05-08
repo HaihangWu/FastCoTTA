@@ -52,42 +52,24 @@ data = dict(
     workers_per_gpu=2,
     test = dict(
     test_cases=[
-        dict(
-            type=dataset_type_night,
-            data_root=data_root_night,
-            img_dir='rgb_annon/train/London',
-            ann_dir='gt/train/London',
-            pipeline=test_pipeline_night),
-        dict(
-            type=dataset_type_night,
-            data_root=data_root_night,
-            img_dir='rgb_annon/train/Youtube',
-            ann_dir='gt/train/Youtube',
-            pipeline=test_pipeline_night),
-        dict(
-            type=dataset_type_night,
-            data_root=data_root_night,
-            img_dir='rgb_annon/train/Toronto',
-            ann_dir='gt/train/Toronto',
-            pipeline=test_pipeline_night),
-        dict(
-            type=dataset_type_night,
-            data_root=data_root_night,
-            img_dir='rgb_annon/train/LA',
-            ann_dir='gt/train/LA',
-            pipeline=test_pipeline_night),
-        dict(
-            type=dataset_type_night,
-            data_root=data_root_night,
-            img_dir='rgb_annon/train/Tokyo',
-            ann_dir='gt/train/Tokyo',
-            pipeline=test_pipeline_night),
-        dict(
-            type=dataset_type_night,
-            data_root=data_root_night,
-            img_dir='rgb_annon/train/Melbourne',
-            ann_dir='gt/train/Melbourne',
-            pipeline=test_pipeline_night),
+        # dict(
+        #     type=dataset_type_night,
+        #     data_root=data_root_night,
+        #     img_dir='rgb_annon/train/London',
+        #     ann_dir='gt/train/London',
+        #     pipeline=test_pipeline_night),
+        # dict(
+        #     type=dataset_type_night,
+        #     data_root=data_root_night,
+        #     img_dir='rgb_annon/train/Youtube',
+        #     ann_dir='gt/train/Youtube',
+        #     pipeline=test_pipeline_night),
+        # dict(
+        #     type=dataset_type_night,
+        #     data_root=data_root_night,
+        #     img_dir='rgb_annon/train/Toronto',
+        #     ann_dir='gt/train/Toronto',
+        #     pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
@@ -97,8 +79,14 @@ data = dict(
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/Seoul',
-            ann_dir='gt/train/Seoul',
+            img_dir='rgb_annon/train/Dubai',
+            ann_dir='gt/train/Dubai',
+            pipeline=test_pipeline_night),
+        dict(
+            type=dataset_type_night,
+            data_root=data_root_night,
+            img_dir='rgb_annon/train/Helsinki',
+            ann_dir='gt/train/Helsinki',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
@@ -109,34 +97,46 @@ data = dict(
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/NYC',
-            ann_dir='gt/train/NYC',
+            img_dir='rgb_annon/train/LA',
+            ann_dir='gt/train/LA',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/Dubai',
-            ann_dir='gt/train/Dubai',
+            img_dir='rgb_annon/train/Melbourne',
+            ann_dir='gt/train/Melbourne',
             pipeline=test_pipeline_night),
-        # dict(
-        #     type=dataset_type_night,
-        #     data_root=data_root_night,
-        #     img_dir='rgb_annon/train/Merged',
-        #     ann_dir='gt/train/Merged',
-        #     pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/Helsinki',
-            ann_dir='gt/train/Helsinki',
+            img_dir='rgb_annon/train/Merged',
+            ann_dir='gt/train/Merged',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
             img_dir='rgb_annon/train/Nagoya',
             ann_dir='gt/train/Nagoya',
-            pipeline=test_pipeline_night)
+            pipeline=test_pipeline_night),
+        dict(
+            type=dataset_type_night,
+            data_root=data_root_night,
+            img_dir='rgb_annon/train/Tokyo',
+            ann_dir='gt/train/Tokyo',
+            pipeline=test_pipeline_night),
+        dict(
+            type=dataset_type_night,
+            data_root=data_root_night,
+            img_dir='rgb_annon/train/NYC',
+            ann_dir='gt/train/NYC',
+            pipeline=test_pipeline_night),
 
+        dict(
+            type=dataset_type_night,
+            data_root=data_root_night,
+            img_dir='rgb_annon/train/Seoul',
+            ann_dir='gt/train/Seoul',
+            pipeline=test_pipeline_night)
     ])
 
 )
