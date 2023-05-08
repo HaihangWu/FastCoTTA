@@ -129,7 +129,7 @@ def single_gpu_cotta(model,
                      frame_passed =0,
                      round=-1):
     """Test with single GPU.
-
+ c
     Args:
         model (nn.Module): Model to be tested.
         data_loader (utils.data.Dataloader): Pytorch data loader.

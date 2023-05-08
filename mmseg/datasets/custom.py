@@ -362,7 +362,7 @@ class CustomDataset(Dataset):
         ret_metrics_mean = [
             np.round(np.nanmean(ret_metric) * 100, 2)
             for ret_metric in ret_metrics
-        ]
+        ]                                                                       #used for summary table
         summary_table_data.append(['global'] + ret_metrics_mean[2:] +
                                   [ret_metrics_mean[1]] +
                                   [ret_metrics_mean[0]])
