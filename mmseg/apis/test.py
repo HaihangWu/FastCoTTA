@@ -155,8 +155,8 @@ def single_gpu_cotta(model,
             #print(name)
         else:
             param.requires_grad=False
-    #optimizer = torch.optim.Adam(param_list, lr=0.00006/8, betas=(0.9, 0.999))# for segformer
-    optimizer = torch.optim.SGD(param_list, lr=0.01 / 8)  # for SETR
+    optimizer = torch.optim.Adam(param_list, lr=0.00006/8, betas=(0.9, 0.999))# for segformer
+    #optimizer = torch.optim.SGD(param_list, lr=0.01 / 8)  # for SETR
     pred_time=0
     for i, data in enumerate(data_loader):
         model.eval() # student model
