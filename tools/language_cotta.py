@@ -197,7 +197,7 @@ def main():
     #domains_detections["current_DM"] = None # currrent domain
     total_predict_time=0
     total_processed_frame=0
-    for i in range(1):
+    for i in range(2):
         print("revisit times:",i)
         j=0
         for dataset, data_loader in zip(datasets, data_loaders):
