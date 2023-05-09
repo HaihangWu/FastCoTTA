@@ -373,9 +373,9 @@ def single_gpu_language_cotta(model,
 
             #print(probs[0])
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
-            #result = [preds[img_id][0].astype(np.int64)]
+            result = [preds[img_id][0].astype(np.int64)]
             result_=[result_ori[0].astype(np.int64)]
-            result=result_
+            #result=result_
 
             weight = 1.
         # if (show or out_dir) and (round ==0 or round==4 or round==9):
@@ -401,7 +401,7 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        if ((new_domain_frame+50)>frame_passed and round%2==1 and round>1) or round==1: #
+        if ((new_domain_frame+50)>frame_passed) or round==1 or round==2: #
         #if adapt and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
