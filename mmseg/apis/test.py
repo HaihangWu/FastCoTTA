@@ -315,16 +315,16 @@ def single_gpu_language_cotta(model,
             #     result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
             #     domains_detections["storage"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
             adapt = True
-            if len(domains_detections["storage"])>storage_temp_length and domains_detections["detection"] is False:
-               print(domains_detections["storage"])
-               cur_distribution=np.array(copy.deepcopy(domains_detections["storage"][:storage_temp_length]))
-               cur_sample=domains_detections["storage"][storage_temp_length]
-               domains_detections["detection"] = False if (cur_sample>np.percentile(cur_distribution, 5) and cur_sample<np.percentile(cur_distribution, 95)) else True
-               if domains_detections["detection"] is False:
-                   domains_detections["storage"] = domains_detections["storage"][1:]
-               else:
-                   print("domain detection triggered", frame_passed)
-            if len(domains_detections["storage"])>=(2*storage_temp_length) and domains_detections["detection"] is True:
+            # if len(domains_detections["storage"])>storage_temp_length and domains_detections["detection"] is False:
+            #    print(domains_detections["storage"])
+            #    cur_distribution=np.array(copy.deepcopy(domains_detections["storage"][:storage_temp_length]))
+            #    cur_sample=domains_detections["storage"][storage_temp_length]
+            #    domains_detections["detection"] = False if (cur_sample>np.percentile(cur_distribution, 5) and cur_sample<np.percentile(cur_distribution, 95)) else True
+            #    if domains_detections["detection"] is False:
+            #        domains_detections["storage"] = domains_detections["storage"][1:]
+            #    else:
+            #        print("domain detection triggered", frame_passed)
+            if len(domains_detections["storage"])>=(2*storage_temp_length): #and domains_detections["detection"] is True:
                 last_distribution = np.array(copy.deepcopy(domains_detections["storage"][:storage_temp_length]))
                 cur_distribution = np.array(copy.deepcopy(domains_detections["storage"][storage_temp_length:]))
                 cur_mean=np.mean(cur_distribution)
@@ -332,11 +332,12 @@ def single_gpu_language_cotta(model,
                 cur_distri_std = np.std(cur_distribution)
                 last_distri_std = np.std(last_distribution)
                 wass_dist=wasserstein_distance(last_distribution,cur_distribution)
-                if wass_dist>(2*last_distri_std) and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
+                if wass_dist>(2*last_distri_std): #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
                     adapt = True
                     print("domain detected",wass_dist,last_distri_std,frame_passed,domains_detections["storage"])
                 domains_detections["storage"] = domains_detections["storage"][storage_temp_length:]
-                domains_detections["detection"] = False
+                domains_detections["storage"] = domains_detections["storage"][1:]
+                #domains_detections["detection"] = False
 
             if not adapt:
                 result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
