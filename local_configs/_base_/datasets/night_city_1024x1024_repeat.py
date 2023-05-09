@@ -57,8 +57,8 @@ data = dict(
         dict(
             type=dataset_type_city,
             data_root=data_root_city,
-            img_dir='leftImg8bit/test/munich',
-            ann_dir='gtFine/test/munich',
+            img_dir='leftImg8bit/val/munster',
+            ann_dir='gtFine/val/munster',
             pipeline=test_pipeline_city),
         dict(
             type=dataset_type_night,
