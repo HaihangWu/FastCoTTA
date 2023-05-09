@@ -15,6 +15,7 @@ import time
 import random
 from copy import deepcopy
 from scipy.stats import wasserstein_distance
+import copy
 
 def update_ema_variables(ema_model, model, alpha_teacher, iteration=None):
     # Use the "true" average until the exponential average is more correct
@@ -289,9 +290,10 @@ def single_gpu_language_cotta(model,
             param_list.append(param)
         else:
             param.requires_grad=False
-    #optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
-    optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
+    optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
+    #optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
     # pred_time=0
+    domains_detections["storage"] = []
     for i, data in enumerate(data_loader):
         model.eval() # student model
         ema_model.eval() # teacher model
@@ -300,10 +302,10 @@ def single_gpu_language_cotta(model,
         # if i==0:
         #     ema_model.load_state_dict(anchor)
         #if frame_passed%100==0
-        if random.random()<domains_detections["detection_prob"]:
-            domains_detections["detection"] = True
-        else:
-            domains_detections["detection"] = False
+        # if random.random()<domains_detections["detection_prob"]:
+        #     domains_detections["detection"] = True
+        # else:
+        #     domains_detections["detection"] = False
         frame_passed=frame_passed +1
         with torch.no_grad():
             img_id = 0
@@ -315,10 +317,15 @@ def single_gpu_language_cotta(model,
             #     domains_detections["storage"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
             adapt = True
             if len(domains_detections["storage"])>storage_temp_length:
+               cur_distribution=np.array(copy.deepcopy(domains_detections["storage"][:storage_temp_length]))
+               cur_sample=domains_detections["storage"][storage_temp_length]
+               domains_detections["detection"] = False if (cur_sample>np.percentile(cur_distribution, 5) and cur_sample<np.percentile(cur_distribution, 95)) else True
+               if domains_detections["detection"] is False:
+                    domains_detections["storage"]=domains_detections["storage"][1:]
+               else:
+                   print("domain shift detected", frame_passed)
+            #if len(domains_detections["storage"])>=(2*storage_temp_length) and domains_detections["detection"] is True:
 
-               domains_detections["storage"]=[]
-
-                #mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
 
             if not adapt:
                 result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
