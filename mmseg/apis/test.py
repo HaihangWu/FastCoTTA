@@ -341,7 +341,7 @@ def single_gpu_language_cotta(model,
                 domains_detections["storage"] = domains_detections["storage"][1:]
                 #domains_detections["detection"] = False
 
-            if frame_passed%30==0:
+            if frame_passed%30==0 and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
                 domains_detections["termination_test"]=True
             if domains_detections["termination_test"] and adapt:
                avg_conf=np.mean(domains_detections["validation_frame"][1])
@@ -398,7 +398,7 @@ def single_gpu_language_cotta(model,
         #             show=show,
         #             out_file=out_file)
         #if True:
-        if adapt and (len(domains_detections["validation_frame"])<domains_detections["num_validation_frame"]):
+        if adapt and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
