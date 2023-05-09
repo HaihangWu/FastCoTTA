@@ -347,6 +347,7 @@ def single_gpu_language_cotta(model,
                avg_conf=np.mean(domains_detections["validation_frame"][1])
                domains_detections["validation_frame"][1]=[]
                for i in range(domains_detections["num_validation_frame"]):
+                   print(domains_detections["num_validation_frame"][0][i])
                    result_ori, probs, preds = ema_model(return_loss=False, **domains_detections["num_validation_frame"][0][i])
                    conf_mean = np.mean(probs[img_id])
                    domains_detections["validation_frame"][1].append(conf_mean)
