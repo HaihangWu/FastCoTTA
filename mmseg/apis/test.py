@@ -294,6 +294,7 @@ def single_gpu_language_cotta(model,
     #optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
     # pred_time=0
     print("new domain begin,",frame_passed)
+    new_domain_frame=frame_passed
     for i, data in enumerate(data_loader):
         model.eval() # student model
         ema_model.eval() # teacher model
@@ -325,36 +326,37 @@ def single_gpu_language_cotta(model,
             #        domains_detections["storage"] = domains_detections["storage"][1:]
             #    else:
             #        print("domain detection triggered", frame_passed)
-            if len(domains_detections["storage"])>=(2*storage_temp_length): #and domains_detections["detection"] is True:
-                last_distribution = np.array(copy.deepcopy(domains_detections["storage"][:storage_temp_length]))
-                cur_distribution = np.array(copy.deepcopy(domains_detections["storage"][storage_temp_length:]))
-                cur_mean=np.mean(cur_distribution)
-                last_mean=np.mean(last_distribution)
-                cur_distri_std = np.std(cur_distribution)
-                last_distri_std = np.std(last_distribution)
-                wass_dist=wasserstein_distance(last_distribution,cur_distribution)
-                if wass_dist>(2*last_distri_std): #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
-                    adapt = True
-                    domains_detections["validation_frame"] = [[],[]]
-                    print("domain detected",wass_dist,last_distri_std,frame_passed,domains_detections["storage"])
-                domains_detections["storage"] = domains_detections["storage"][storage_temp_length:] # detect every storage_temp_length frames
-                domains_detections["storage"] = domains_detections["storage"][1:]
-                #domains_detections["detection"] = False
 
-            if frame_passed%30==0 and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
-                domains_detections["termination_test"]=True
-            if domains_detections["termination_test"] and adapt:
-               avg_conf=np.mean(domains_detections["validation_frame"][1])
-               domains_detections["validation_frame"][1]=[]
-               for i in range(domains_detections["num_validation_frame"]):
-                   print(domains_detections["num_validation_frame"][0][i])
-                   result_ori, probs, preds = ema_model(return_loss=False, **domains_detections["num_validation_frame"][0][i])
-                   conf_mean = np.mean(probs[img_id])
-                   domains_detections["validation_frame"][1].append(conf_mean)
-               new_avg_conf=np.mean(domains_detections["validation_frame"][1])
-               adapt= False if avg_conf>new_avg_conf else True
-               domains_detections["termination_test"]=False
-               print("terminated",avg_conf,new_avg_conf,frame_passed)
+            # if len(domains_detections["storage"])>=(2*storage_temp_length): #and domains_detections["detection"] is True:
+            #     last_distribution = np.array(copy.deepcopy(domains_detections["storage"][:storage_temp_length]))
+            #     cur_distribution = np.array(copy.deepcopy(domains_detections["storage"][storage_temp_length:]))
+            #     cur_mean=np.mean(cur_distribution)
+            #     last_mean=np.mean(last_distribution)
+            #     cur_distri_std = np.std(cur_distribution)
+            #     last_distri_std = np.std(last_distribution)
+            #     wass_dist=wasserstein_distance(last_distribution,cur_distribution)
+            #     if wass_dist>(2*last_distri_std): #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
+            #         adapt = True
+            #         domains_detections["validation_frame"] = [[],[]]
+            #         print("domain detected",wass_dist,last_distri_std,frame_passed,domains_detections["storage"])
+            #     domains_detections["storage"] = domains_detections["storage"][storage_temp_length:] # detect every storage_temp_length frames
+            #     domains_detections["storage"] = domains_detections["storage"][1:]
+            #     #domains_detections["detection"] = False
+            #
+            # if frame_passed%30==0 and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
+            #     domains_detections["termination_test"]=True
+            # if domains_detections["termination_test"] and adapt:
+            #    avg_conf=np.mean(domains_detections["validation_frame"][1])
+            #    domains_detections["validation_frame"][1]=[]
+            #    for i in range(domains_detections["num_validation_frame"]):
+            #        print(domains_detections["num_validation_frame"][0][i])
+            #        result_ori, probs, preds = ema_model(return_loss=False, **domains_detections["num_validation_frame"][0][i])
+            #        conf_mean = np.mean(probs[img_id])
+            #        domains_detections["validation_frame"][1].append(conf_mean)
+            #    new_avg_conf=np.mean(domains_detections["validation_frame"][1])
+            #    adapt= False if avg_conf>new_avg_conf else True
+            #    domains_detections["termination_test"]=False
+            #    print("terminated",avg_conf,new_avg_conf,frame_passed)
 
             if not adapt:
                 result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
@@ -398,8 +400,8 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        #if True:
-        if adapt and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
+        if (new_domain_frame+200)>frame_passed:
+        #if adapt and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
