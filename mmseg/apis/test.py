@@ -293,6 +293,7 @@ def single_gpu_language_cotta(model,
     optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
     #optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
     # pred_time=0
+    print("new domain begin,",frame_passed)
     for i, data in enumerate(data_loader):
         model.eval() # student model
         ema_model.eval() # teacher model
@@ -312,8 +313,8 @@ def single_gpu_language_cotta(model,
                 img_id = 4  # The default size without flip
 
             # if domains_detections["detection"]:
-            #     result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
-            #     domains_detections["storage"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
+            result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
+            domains_detections["storage"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
             adapt = True
             # if len(domains_detections["storage"])>storage_temp_length and domains_detections["detection"] is False:
             #    print(domains_detections["storage"])
@@ -343,10 +344,10 @@ def single_gpu_language_cotta(model,
                 result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
                                                       img_metas=[data['img_metas'][img_id].data[0]])
 
-                domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+                #domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
             else:
                 result_ori, probs, preds = ema_model(return_loss=False, **data)
-                domains_detections["storage"].append(np.mean(probs[img_id]))
+                #domains_detections["storage"].append(np.mean(probs[img_id]))
 
             #print(probs[0])
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
