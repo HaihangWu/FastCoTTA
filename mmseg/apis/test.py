@@ -325,6 +325,7 @@ def single_gpu_language_cotta(model,
                     domains_detections["storage"]=domains_detections["storage"][1:]
                else:
                    print("domain shift detected", frame_passed)
+                   domains_detections["storage"] = domains_detections["storage"][1:]
             #if len(domains_detections["storage"])>=(2*storage_temp_length) and domains_detections["detection"] is True:
 
 
