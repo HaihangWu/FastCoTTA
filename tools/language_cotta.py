@@ -197,14 +197,14 @@ def main():
     #domains_detections["current_DM"] = None # currrent domain
     total_predict_time=0
     total_processed_frame=0
+    j = 0
     for i in range(1):
         print("revisit times:",i)
-        j=0
         for dataset, data_loader in zip(datasets, data_loaders):
             j=j+1
             pred_begin = time.time()
             outputs,frame_passed,domains_detections = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
-                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections, i*4+j)
+                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections, j)
 
             total_predict_time = total_predict_time+time.time()-pred_begin
             total_processed_frame=total_processed_frame+len(data_loader)
