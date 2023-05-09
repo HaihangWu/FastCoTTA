@@ -317,6 +317,7 @@ def single_gpu_language_cotta(model,
             #     domains_detections["storage"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
             adapt = True
             if len(domains_detections["storage"])>storage_temp_length:
+               print(domains_detections["storage"])
                cur_distribution=np.array(copy.deepcopy(domains_detections["storage"][:storage_temp_length]))
                cur_sample=domains_detections["storage"][storage_temp_length]
                domains_detections["detection"] = False if (cur_sample>np.percentile(cur_distribution, 5) and cur_sample<np.percentile(cur_distribution, 95)) else True
@@ -334,8 +335,7 @@ def single_gpu_language_cotta(model,
                 domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
             else:
                 result_ori, probs, preds = ema_model(return_loss=False, **data)
-                print(type(probs),len(probs))
-                domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+                domains_detections["storage"].append(np.mean(probs[img_id]))
 
             #print(probs[0])
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
