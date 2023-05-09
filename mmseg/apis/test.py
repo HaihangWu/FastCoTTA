@@ -334,7 +334,7 @@ def single_gpu_language_cotta(model,
                 domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
             else:
                 result_ori, probs, preds = ema_model(return_loss=False, **data)
-                print(type(probs),probs)
+                print(type(probs),len(probs))
                 domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
             #print(probs[0])
