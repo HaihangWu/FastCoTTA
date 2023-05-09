@@ -1,5 +1,5 @@
 # dataset settings
-dataset_type_kitti = 'KITTIDataset'
+dataset_type_city = 'CityscapesDataset'
 dataset_type_night = 'NightCityDataset'
 data_root_city = '/data/gpfs/projects/punim0512/data/data_cityscapes/'
 data_root_night = '/data/gpfs/projects/punim0512/data/NightCity/'
@@ -55,8 +55,8 @@ data = dict(
     test = dict(
     test_cases=[
         dict(
-            type=dataset_type_kitti,
-            data_root=data_root_kitti,
+            type=dataset_type_city,
+            data_root=data_root_city,
             img_dir='leftImg8bit/test/munich',
             ann_dir='gtFine/test/munich',
             pipeline=test_pipeline_kitti),
@@ -67,8 +67,8 @@ data = dict(
             ann_dir='gt/val/01',
             pipeline=test_pipeline_night),
         dict(
-            type=dataset_type_kitti,
-            data_root=data_root_kitti,
+            type=dataset_type_city,
+            data_root=data_root_city,
             img_dir='leftImg8bit/test/mainz',
             ann_dir='gtFine/test/mainz',
             pipeline=test_pipeline_kitti),
@@ -79,8 +79,8 @@ data = dict(
             ann_dir='gt/val/02',
             pipeline=test_pipeline_night),
         dict(
-            type=dataset_type_kitti,
-            data_root=data_root_kitti,
+            type=dataset_type_city,
+            data_root=data_root_city,
             img_dir='leftImg8bit/test/leverkusen',
             ann_dir='gtFine/test/leverkusen',
             pipeline=test_pipeline_kitti),
@@ -91,8 +91,8 @@ data = dict(
             ann_dir='gt/val/03',
             pipeline=test_pipeline_night),
         dict(
-            type=dataset_type_kitti,
-            data_root=data_root_kitti,
+            type=dataset_type_city,
+            data_root=data_root_city,
             img_dir='leftImg8bit/test/bonn',
             ann_dir='gtFine/test/bonn',
             pipeline=test_pipeline_kitti),
@@ -103,8 +103,8 @@ data = dict(
             ann_dir='gt/val/04',
             pipeline=test_pipeline_night),
         dict(
-            type=dataset_type_kitti,
-            data_root=data_root_kitti,
+            type=dataset_type_city,
+            data_root=data_root_city,
             img_dir='leftImg8bit/test/bielefeld',
             ann_dir='gtFine/test/bielefeld',
             pipeline=test_pipeline_kitti),
@@ -115,8 +115,8 @@ data = dict(
             ann_dir='gt/val/05',
             pipeline=test_pipeline_night),
         dict(
-            type=dataset_type_kitti,
-            data_root=data_root_kitti,
+            type=dataset_type_city,
+            data_root=data_root_city,
             img_dir='leftImg8bit/test/berlin',
             ann_dir='gtFine/test/berlin',
             pipeline=test_pipeline_kitti),
