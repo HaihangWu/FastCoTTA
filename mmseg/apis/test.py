@@ -401,7 +401,7 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        if (new_domain_frame+200)>frame_passed or round%2==1: #
+        if (new_domain_frame+200)>frame_passed and round%2==1: #
         #if adapt and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
