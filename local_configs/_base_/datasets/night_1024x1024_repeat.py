@@ -17,21 +17,6 @@ train_pipeline = [
     dict(type='DefaultFormatBundle'),
     dict(type='Collect', keys=['img', 'gt_semantic_seg']),
 ]
-test_pipeline_kitti = [
-    dict(type='LoadImageFromFile'),
-    dict(
-        type='MultiScaleFlipAug',
-        img_scale=(1242, 375),
-        # img_ratios=[0.5, 0.75, 1.0, 1.25, 1.5, 1.75],
-        flip=False,
-        transforms=[
-            dict(type='Resize', keep_ratio=True),
-            dict(type='RandomFlip'),
-            dict(type='Normalize', **img_norm_cfg),
-            dict(type='ImageToTensor', keys=['img']),
-            dict(type='Collect', keys=['img']),
-        ])
-]
 test_pipeline_night = [
     dict(type='LoadImageFromFile'),
     dict(
@@ -52,90 +37,83 @@ data = dict(
     workers_per_gpu=2,
     test = dict(
     test_cases=[
-        # dict(
-        #     type=dataset_type_night,
-        #     data_root=data_root_night,
-        #     img_dir='rgb_annon/train/London',
-        #     ann_dir='gt/train/London',
-        #     pipeline=test_pipeline_night),
-        # dict(
-        #     type=dataset_type_night,
-        #     data_root=data_root_night,
-        #     img_dir='rgb_annon/train/Youtube',
-        #     ann_dir='gt/train/Youtube',
-        #     pipeline=test_pipeline_night),
-        # dict(
-        #     type=dataset_type_night,
-        #     data_root=data_root_night,
-        #     img_dir='rgb_annon/train/Toronto',
-        #     ann_dir='gt/train/Toronto',
-        #     pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/Chicago',
-            ann_dir='gt/train/Chicago',
+            img_dir='rgb_annon/val/Chicago',
+            ann_dir='gt/val/Chicago',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/Dubai',
-            ann_dir='gt/train/Dubai',
+            img_dir='rgb_annon/val/Dubai',
+            ann_dir='gt/val/Dubai',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/Helsinki',
-            ann_dir='gt/train/Helsinki',
+            img_dir='rgb_annon/val/Helsinki',
+            ann_dir='gt/val/Helsinki',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/HK',
-            ann_dir='gt/train/HK',
+            img_dir='rgb_annon/val/HK',
+            ann_dir='gt/val/HK',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/LA',
-            ann_dir='gt/train/LA',
+            img_dir='rgb_annon/val/LA',
+            ann_dir='gt/val/LA',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/Melbourne',
-            ann_dir='gt/train/Melbourne',
+            img_dir='rgb_annon/val/London',
+            ann_dir='gt/val/London',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/Merged',
-            ann_dir='gt/train/Merged',
+            img_dir='rgb_annon/val/Melbourne',
+            ann_dir='gt/val/Melbourne',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/Nagoya',
-            ann_dir='gt/train/Nagoya',
+            img_dir='rgb_annon/val/Toronto',
+            ann_dir='gt/val/Toronto',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/Tokyo',
-            ann_dir='gt/train/Tokyo',
+            img_dir='rgb_annon/val/Youtube',
+            ann_dir='gt/val/Youtube',
             pipeline=test_pipeline_night),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/NYC',
-            ann_dir='gt/train/NYC',
+            img_dir='rgb_annon/val/Nagoya',
+            ann_dir='gt/val/Nagoya',
             pipeline=test_pipeline_night),
-
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
-            img_dir='rgb_annon/train/Seoul',
-            ann_dir='gt/train/Seoul',
+            img_dir='rgb_annon/val/Tokyo',
+            ann_dir='gt/val/Tokyo',
+            pipeline=test_pipeline_night),
+        dict(
+            type=dataset_type_night,
+            data_root=data_root_night,
+            img_dir='rgb_annon/val/NYC',
+            ann_dir='gt/val/NYC',
+            pipeline=test_pipeline_night),
+        dict(
+            type=dataset_type_night,
+            data_root=data_root_night,
+            img_dir='rgb_annon/val/Seoul',
+            ann_dir='gt/val/Seoul',
             pipeline=test_pipeline_night)
     ])
 
