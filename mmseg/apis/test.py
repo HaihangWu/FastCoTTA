@@ -400,7 +400,7 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        if round%2==1: #(new_domain_frame+200)>frame_passed or
+        if (new_domain_frame+200)>frame_passed or round%2==1: #
         #if adapt and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
@@ -428,14 +428,14 @@ def single_gpu_language_cotta(model,
             ema_model = update_ema_variables(ema_model = ema_model, model = model, alpha_teacher=0.999) #teacher model
 
             #stochastic restoration
-            # for nm, m  in model.named_modules():
-            # #for nm, m in ema_model.named_modules():
-            #     if 'decode_head' in nm or 'backbone' in nm:
-            #         for npp, p in m.named_parameters():
-            #             if npp in ['weight', 'bias'] and p.requires_grad:
-            #                 mask = (torch.rand(p.shape)<0.01).float().cuda()
-            #                 with torch.no_grad():
-            #                     p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
+            for nm, m  in model.named_modules():
+            #for nm, m in ema_model.named_modules():
+                if 'decode_head' in nm or 'backbone' in nm:
+                    for npp, p in m.named_parameters():
+                        if npp in ['weight', 'bias'] and p.requires_grad:
+                            mask = (torch.rand(p.shape)<0.01).float().cuda()
+                            with torch.no_grad():
+                                p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
         else:
             if efficient_test:
                 result = [np2tmp(_) for _ in result]
