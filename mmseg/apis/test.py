@@ -327,7 +327,7 @@ def single_gpu_language_cotta(model,
             if len(domains_detections["storage"])>=(2*storage_temp_length) and domains_detections["detection"] is True:
                 last_distribution = np.array(copy.deepcopy(domains_detections["storage"][:storage_temp_length]))
                 cur_distribution = np.array(copy.deepcopy(domains_detections["storage"][storage_temp_length:]))
-                last_distri_std = np.std(domains_detections[last_distribution])
+                last_distri_std = np.std(last_distribution)
                 wass_dist=wasserstein_distance(last_distribution,cur_distribution)
                 if wass_dist>2*last_distri_std:
                     adapt = True
