@@ -59,7 +59,7 @@ data = dict(
             data_root=data_root_city,
             img_dir='leftImg8bit/test/munich',
             ann_dir='gtFine/test/munich',
-            pipeline=test_pipeline_kitti),
+            pipeline=test_pipeline_city),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
@@ -71,7 +71,7 @@ data = dict(
             data_root=data_root_city,
             img_dir='leftImg8bit/test/mainz',
             ann_dir='gtFine/test/mainz',
-            pipeline=test_pipeline_kitti),
+            pipeline=test_pipeline_city),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
@@ -83,7 +83,7 @@ data = dict(
             data_root=data_root_city,
             img_dir='leftImg8bit/test/leverkusen',
             ann_dir='gtFine/test/leverkusen',
-            pipeline=test_pipeline_kitti),
+            pipeline=test_pipeline_city),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
@@ -95,7 +95,7 @@ data = dict(
             data_root=data_root_city,
             img_dir='leftImg8bit/test/bonn',
             ann_dir='gtFine/test/bonn',
-            pipeline=test_pipeline_kitti),
+            pipeline=test_pipeline_city),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
@@ -107,7 +107,7 @@ data = dict(
             data_root=data_root_city,
             img_dir='leftImg8bit/test/bielefeld',
             ann_dir='gtFine/test/bielefeld',
-            pipeline=test_pipeline_kitti),
+            pipeline=test_pipeline_city),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
@@ -119,7 +119,7 @@ data = dict(
             data_root=data_root_city,
             img_dir='leftImg8bit/test/berlin',
             ann_dir='gtFine/test/berlin',
-            pipeline=test_pipeline_kitti),
+            pipeline=test_pipeline_city),
         dict(
             type=dataset_type_night,
             data_root=data_root_night,
