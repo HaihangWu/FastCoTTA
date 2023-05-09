@@ -187,13 +187,13 @@ def main():
     total_predict_time=0
     domains_detections={}
     domains_detections["detection"]=False
-    domains_detections["detection_prob"]=0.1
     domains_detections["adaptation_prob"] = {}
     domains_detections["cur_adaptation_prob"] = 1.0
     domains_detections["cur_dom"]="domain"+str(1)
-    #domains_detections["shift"]=False
     domains_detections["storage"] = []
-    domains_detections["adapted_frame"] = 0
+    domains_detections["validation_frame"] = [[],[]]
+    domains_detections["num_validation_frame"] = 3
+    domains_detections["termination_test"] = False
     #domains_detections["current_DM"] = None # currrent domain
     total_predict_time=0
     total_processed_frame=0
