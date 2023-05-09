@@ -198,7 +198,7 @@ def main():
     total_predict_time=0
     total_processed_frame=0
     j = 0
-    for i in range(1):
+    for i in range(10):
         print("revisit times:",i)
         for dataset, data_loader in zip(datasets, data_loaders):
             j=j+1
