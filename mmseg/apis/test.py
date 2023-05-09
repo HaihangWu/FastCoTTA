@@ -373,8 +373,9 @@ def single_gpu_language_cotta(model,
 
             #print(probs[0])
             # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
-            result = [preds[img_id][0].astype(np.int64)]
+            #result = [preds[img_id][0].astype(np.int64)]
             result_=[result_ori[0].astype(np.int64)]
+            result=result_
 
             weight = 1.
         # if (show or out_dir) and (round ==0 or round==4 or round==9):
