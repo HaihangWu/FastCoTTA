@@ -337,7 +337,7 @@ def single_gpu_language_cotta(model,
                 wass_dist=wasserstein_distance(last_distribution,cur_distribution)
                 if wass_dist>(2*last_distri_std): #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
                     adapt = True
-                    domains_detections["validation_frame"] = [[],[]]
+                    #domains_detections["validation_frame"] = [[],[]]
                     print("domain detected",wass_dist,last_distri_std,frame_passed,domains_detections["storage"])
                 domains_detections["storage"] = domains_detections["storage"][storage_temp_length:] # detect every storage_temp_length frames
                 domains_detections["storage"] = domains_detections["storage"][1:]
