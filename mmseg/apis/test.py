@@ -339,7 +339,7 @@ def single_gpu_language_cotta(model,
                     domains_detections["adaptation"] = True
                     #domains_detections["validation_frame"] = [[],[]]
                     print("domain adaptation begin",wass_dist,last_distri_std,frame_passed)
-                if wass_dist<(0.5*last_distri_std) and domains_detections["adaptation"]:
+                if wass_dist<(0.1*last_distri_std) and domains_detections["adaptation"]:
                     domains_detections["adaptation"] = False
                     #domains_detections["validation_frame"] = [[],[]]
                     print("domain adaptation termination",wass_dist,last_distri_std,frame_passed)
