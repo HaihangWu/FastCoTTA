@@ -365,10 +365,11 @@ def single_gpu_language_cotta(model,
                 domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
             else:
                 result_ori, probs, preds = ema_model(return_loss=False, **data)
-                print(type(probs[0]),probs[0],probs[0].size())
-                print(torch.mean(probs[0]).item())
-                conf_mean=np.mean(probs[img_id])
-                domains_detections["storage"].append(conf_mean)
+                # print(type(probs[0]),probs[0],probs[0].size())
+                # print(torch.mean(probs[0]).item())
+                # conf_mean=np.mean(probs[img_id])
+                #domains_detections["storage"].append(conf_mean)
+                domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
                 # if len(domains_detections["validation_frame"][0])<domains_detections["num_validation_frame"]:
                 #     domains_detections["validation_frame"][0].append(data)
                 #     domains_detections["validation_frame"][1].append(conf_mean)
