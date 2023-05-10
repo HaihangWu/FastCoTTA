@@ -316,7 +316,7 @@ def single_gpu_language_cotta(model,
             # if domains_detections["detection"]:
             # result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
             # domains_detections["storage"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
-            adapt = True
+
             # if len(domains_detections["storage"])>storage_temp_length and domains_detections["detection"] is False:
             #    print(domains_detections["storage"])
             #    cur_distribution=np.array(copy.deepcopy(domains_detections["storage"][:storage_temp_length]))
@@ -335,12 +335,12 @@ def single_gpu_language_cotta(model,
                 cur_distri_std = np.std(cur_distribution)
                 last_distri_std = np.std(last_distribution)
                 wass_dist=wasserstein_distance(last_distribution,cur_distribution)
-                if wass_dist>(last_distri_std) and not adapt: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
-                    adapt = True
+                if wass_dist>(last_distri_std) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
+                    domains_detections["adaptation"] = True
                     #domains_detections["validation_frame"] = [[],[]]
                     print("domain adaptation begin",wass_dist,last_distri_std,frame_passed)
-                if wass_dist<(0.5*last_distri_std) and adapt:
-                    adapt = False
+                if wass_dist<(0.5*last_distri_std) and domains_detections["adaptation"]:
+                    domains_detections["adaptation"] = False
                     #domains_detections["validation_frame"] = [[],[]]
                     print("domain adaptation termination",wass_dist,last_distri_std,frame_passed)
                 domains_detections["storage"] = domains_detections["storage"][storage_temp_length:] # detect every storage_temp_length frames
@@ -362,7 +362,7 @@ def single_gpu_language_cotta(model,
             #    domains_detections["termination_test"]=False
             #    print("terminated",avg_conf,new_avg_conf,frame_passed)
 
-            if not adapt:
+            if not domains_detections["adaptation"]:
                 result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
                                                       img_metas=[data['img_metas'][img_id].data[0]])
 
@@ -409,7 +409,7 @@ def single_gpu_language_cotta(model,
         #             show=show,
         #             out_file=out_file)
         #if ((new_domain_frame+10)>frame_passed) or round<14: #
-        if adapt: #and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
+        if domains_detections["adaptation"]: #and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
