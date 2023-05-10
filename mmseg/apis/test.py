@@ -335,11 +335,12 @@ def single_gpu_language_cotta(model,
                 cur_distri_std = np.std(cur_distribution)
                 last_distri_std = np.std(last_distribution)
                 wass_dist=wasserstein_distance(last_distribution,cur_distribution)
+                print("domain detection", wass_dist, frame_passed)
                 if wass_dist>(last_distri_std) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
                     domains_detections["adaptation"] = True
                     #domains_detections["validation_frame"] = [[],[]]
                     print("domain adaptation begin",wass_dist,last_distri_std,frame_passed)
-                if wass_dist<(0.1*last_distri_std) and domains_detections["adaptation"]:
+                if wass_dist<(0.5*last_distri_std) and domains_detections["adaptation"]:
                     domains_detections["adaptation"] = False
                     #domains_detections["validation_frame"] = [[],[]]
                     print("domain adaptation termination",wass_dist,last_distri_std,frame_passed)
