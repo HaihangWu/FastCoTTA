@@ -325,7 +325,6 @@ def single_gpu_language_cotta(model,
                     this_domain_mean=np.mean(v[0])
                     this_domain_std=np.std(v[0])
                     z_score_temp = abs(cur_domain_mean - this_domain_mean) / np.sqrt(cur_domain_std ** 2.0 + this_domain_std ** 2.0)
-                    print("domain matching",z_score_temp,cur_domain_mean,this_domain_mean,cur_domain_std,this_domain_std)
                     if z_score_temp<2.5 and z_score>z_score_temp:
                         z_score=z_score_temp
                         domain_index=k
@@ -377,14 +376,14 @@ def single_gpu_language_cotta(model,
                         domains_detections["domain_grad"][domain_info_index[0]][1]=copy.deepcopy(domains_detections["ini_wass_dist"])
                         print("new domain created",domains_detections["domain_grad"])
                     domains_detections["cur_wass_dist"].append(wass_dist)
-                    print("adaptation info", np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
+                    #print("adaptation info", np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
                     #print("length",len(domains_detections["cur_wass_dist"]), domains_detections["wass_dist_length"])
-                    print("domain info",domains_detections["domain_grad"])
+                    #print("domain info",domains_detections["domain_grad"])
                     if len(domains_detections["cur_wass_dist"])>=domains_detections["wass_dist_length"]:
                         if np.mean(domains_detections["cur_wass_dist"])>(0.5*np.mean(domains_detections["ini_wass_dist"])) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
                             domains_detections["adaptation"] = True
                             #domains_detections["validation_frame"] = [[],[]]
-                            print("domain adaptation begin")
+                            print("domain adaptation begin",frame_passed)
                         if np.mean(domains_detections["cur_wass_dist"])<(0.5*np.mean(domains_detections["ini_wass_dist"])) and domains_detections["adaptation"]:
                             domains_detections["adaptation"] = False
                             #domains_detections["validation_frame"] = [[],[]]
