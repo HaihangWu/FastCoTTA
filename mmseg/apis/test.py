@@ -381,11 +381,12 @@ def single_gpu_language_cotta(model,
                     #print("length",len(domains_detections["cur_wass_dist"]), domains_detections["wass_dist_length"])
                     print("domain info",domains_detections["domain_grad"])
                     if len(domains_detections["cur_wass_dist"])>=domains_detections["wass_dist_length"]:
-                        if np.mean(domains_detections["cur_wass_dist"])>(0.8*np.mean(domains_detections["ini_wass_dist"])) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
+                        if np.mean(domains_detections["cur_wass_dist"])>(0.5*np.mean(domains_detections["ini_wass_dist"])) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
                             domains_detections["adaptation"] = True
                             #domains_detections["validation_frame"] = [[],[]]
                             print("domain adaptation begin")
-                        if np.mean(domains_detections["cur_wass_dist"])<(0.2*np.mean(domains_detections["ini_wass_dist"])) and domains_detections["adaptation"]:
+                        # if np.mean(domains_detections["cur_wass_dist"])<(0.2*np.mean(domains_detections["ini_wass_dist"])) and domains_detections["adaptation"]:
+                        else:
                             domains_detections["adaptation"] = False
                             #domains_detections["validation_frame"] = [[],[]]
                             print("domain adaptation termination")
