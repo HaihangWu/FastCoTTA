@@ -335,7 +335,7 @@ def single_gpu_language_cotta(model,
                 cur_distri_std = np.std(cur_distribution)
                 last_distri_std = np.std(last_distribution)
                 wass_dist=wasserstein_distance(last_distribution,cur_distribution)
-                #print("domain detection", last_mean, cur_mean, wass_dist, last_distri_std, cur_distri_std,  frame_passed)
+                print("domain detection", last_mean, cur_mean, wass_dist, last_distri_std, cur_distri_std,  frame_passed)
                 if len(domains_detections["ini_wass_dist"])<domains_detections["wass_dist_length"]:
                     domains_detections["ini_wass_dist"].append(wass_dist)
                 else:
