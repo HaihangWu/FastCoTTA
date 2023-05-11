@@ -356,6 +356,7 @@ def single_gpu_language_cotta(model,
                 cur_distri_std = np.std(cur_distribution)
                 last_distri_std = np.std(last_distribution)
                 z_score=abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0)
+                print("domain shift detecttion",z_score,cur_mean,last_mean,cur_distri_std,last_distri_std)
                 if z_score>=3 and len(domains_detections["ini_wass_dist"])>=domains_detections["wass_dist_length"]:
                     domains_detections["get_new_domain_info"]=True
                     domains_detections["ini_wass_dist"]=[]
