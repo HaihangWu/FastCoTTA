@@ -186,7 +186,7 @@ def main():
     frame_passed=0
     total_predict_time=0
     domains_detections={}
-    domains_detections["detection"]=False
+
     domains_detections["adaptation"] =True
     domains_detections["ini_wass_dist"] = []
     domains_detections["cur_wass_dist"] = []
@@ -194,6 +194,11 @@ def main():
 
     domains_detections["storage"] = []
     domains_detections["storage_length"] = 10
+
+    domains_detections["get_new_domain_info"]=True
+    domains_detections["get_conf_by_source"] = []
+    domains_detections["info_length_by_source"] = 5
+    domains_detections["domain_grad"] = {}
 
     domains_detections["cur_adaptation_prob"] = 1.0
     domains_detections["cur_dom"]="domain"+str(1)

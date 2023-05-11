@@ -313,9 +313,28 @@ def single_gpu_language_cotta(model,
             if len(data['img']) == 14:
                 img_id = 4  # The default size without flip
 
-            # if domains_detections["detection"]:
-            # result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
-            # domains_detections["storage"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
+            if domains_detections["get_new_domain_info"]:
+                result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])
+                domains_detections["get_conf_by_source"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
+            if len(domains_detections["get_conf_by_source"])>=domains_detections["info_length_by_source"]:
+                cur_domain_mean=np.mean(domains_detections["get_conf_by_source"])
+                cur_domain_std = np.std(domains_detections["get_conf_by_source"])
+                z_score = -1
+                domain_index=-1
+                for k,v in domains_detections["domain_grad"].items():
+                    this_domain_mean=np.mean(v[0])
+                    this_domain_std=np.std(v[0])
+                    z_score_temp = abs(cur_domain_mean - this_domain_mean) / sqrt(cur_domain_std ** 2.0 + this_domain_std ** 2.0)
+                    if z_score_temp<3 and z_score<z_score_temp:
+                        z_score=z_score_temp
+                        domain_index=k
+                if domain_index>0.5:
+                    domains_detections["ini_wass_dist"]=domains_detections["domain_grad"][k][1]
+                else:
+                    new_domain_index=max([ k for k in domains_detections["domain_grad"].keys()]+[1])+1
+                    domains_detections["domain_grad"][new_domain_index]=[copy.deepcopy(domains_detections["get_conf_by_source"]),[]]
+                domains_detections["get_new_domain_info"]=False
+                domains_detections["get_conf_by_source"]=[]
 
             # if len(domains_detections["storage"])>storage_temp_length and domains_detections["detection"] is False:
             #    print(domains_detections["storage"])
@@ -334,14 +353,23 @@ def single_gpu_language_cotta(model,
                 last_mean=np.mean(last_distribution)
                 cur_distri_std = np.std(cur_distribution)
                 last_distri_std = np.std(last_distribution)
+                z_score=abs(cur_mean-last_mean)/sqrt(cur_distri_std**2.0+last_distri_std**2.0)
+                if z_score>=3 and len(domains_detections["ini_wass_dist"])>=domains_detections["wass_dist_length"]:
+                    domains_detections["get_new_domain_info"]=True
+                    domains_detections["ini_wass_dist"]=[]
                 wass_dist=wasserstein_distance(last_distribution,cur_distribution)
+
                 #print("domain detection", last_mean, cur_mean, wass_dist,  frame_passed)
                 if len(domains_detections["ini_wass_dist"])<domains_detections["wass_dist_length"]:
                     domains_detections["ini_wass_dist"].append(wass_dist)
                 else:
+                    domain_info_index=[ k for k,v in domains_detections["domain_grad"].items() if len(v[1])<0.5]
+                    if len(domain_info_index)>0.5:
+                        domains_detections["domain_grad"][domain_info_index[0]]=copy.deepcopy(domains_detections["ini_wass_dist"])
                     domains_detections["cur_wass_dist"].append(wass_dist)
-                    print("adaptation detection", np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
-                    print("length",len(domains_detections["cur_wass_dist"]), domains_detections["wass_dist_length"])
+                    #print("adaptation detection", np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
+                    #print("length",len(domains_detections["cur_wass_dist"]), domains_detections["wass_dist_length"])
+                    print("domain info",domains_detections["domain_grad"])
                     if len(domains_detections["cur_wass_dist"])>=domains_detections["wass_dist_length"]:
                         if np.mean(domains_detections["cur_wass_dist"])>(0.8*np.mean(domains_detections["ini_wass_dist"])) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
                             domains_detections["adaptation"] = True
@@ -437,9 +465,9 @@ def single_gpu_language_cotta(model,
                 if efficient_test:
                     result = np2tmp(result)
                 results.append(result)
-            #torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
+            torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
 
-            torch.mean(loss["decode.loss_seg"]).backward()
+            #torch.mean(loss["decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
 
