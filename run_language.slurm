@@ -6,11 +6,11 @@
 #SBATCH --job-name="example.py"
 
 # Partition for the job:
-#SBATCH --partition deeplearn
-#SBATCH --qos gpgpudeeplearn
+# --partition deeplearn
+# --qos gpgpudeeplearn
 
-# --partition=feit-gpu-a100
-# --qos=feit
+#SBATCH --partition=feit-gpu-a100
+#SBATCH --qos=feit
 
 # -p gpu-a100
 
@@ -28,7 +28,7 @@
 # --gpus-per-task=1  # number of gpus per task
 
 # The maximum running time of the job in days-hours:mins:sec
-#SBATCH --time=02-00:00:0
+#SBATCH --time=01-00:00:0
 
 module load anaconda3/2021.11
 eval "$(conda shell.bash hook)"
