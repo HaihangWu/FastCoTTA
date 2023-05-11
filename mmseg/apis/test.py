@@ -324,7 +324,7 @@ def single_gpu_language_cotta(model,
                 for k,v in domains_detections["domain_grad"].items():
                     this_domain_mean=np.mean(v[0])
                     this_domain_std=np.std(v[0])
-                    z_score_temp = abs(cur_domain_mean - this_domain_mean) / sqrt(cur_domain_std ** 2.0 + this_domain_std ** 2.0)
+                    z_score_temp = abs(cur_domain_mean - this_domain_mean) / np.sqrt(cur_domain_std ** 2.0 + this_domain_std ** 2.0)
                     if z_score_temp<3 and z_score<z_score_temp:
                         z_score=z_score_temp
                         domain_index=k
@@ -353,7 +353,7 @@ def single_gpu_language_cotta(model,
                 last_mean=np.mean(last_distribution)
                 cur_distri_std = np.std(cur_distribution)
                 last_distri_std = np.std(last_distribution)
-                z_score=abs(cur_mean-last_mean)/sqrt(cur_distri_std**2.0+last_distri_std**2.0)
+                z_score=abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0)
                 if z_score>=3 and len(domains_detections["ini_wass_dist"])>=domains_detections["wass_dist_length"]:
                     domains_detections["get_new_domain_info"]=True
                     domains_detections["ini_wass_dist"]=[]
