@@ -349,6 +349,7 @@ def single_gpu_language_cotta(model,
                            if domains_detections["outlier_count"] >0.5:
                               domains_detections["outlier_count"]=0
                        if domains_detections["outlier_count"]>=domains_detections["outlier_threshold"]:
+                            print("domain shift detected,",frame_passed)
                             domains_detections["get_new_domain_info"]=True
                             domains_detections["ini_wass_dist"]=[]
 
