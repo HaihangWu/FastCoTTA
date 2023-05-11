@@ -330,6 +330,7 @@ def single_gpu_language_cotta(model,
                         domain_index=k
                 if domain_index>0.5:
                     domains_detections["ini_wass_dist"]=domains_detections["domain_grad"][k][1]
+                    print("revisit domain",domain_index)
                 else:
                     new_domain_index=max([ k for k in domains_detections["domain_grad"].keys()]+[0])+1
                     domains_detections["domain_grad"][new_domain_index] = [[],[]]
@@ -366,7 +367,8 @@ def single_gpu_language_cotta(model,
                 else:
                     domain_info_index=[ k for k,v in domains_detections["domain_grad"].items() if len(v[1])<0.5]
                     if len(domain_info_index)>0.5:
-                        domains_detections["domain_grad"][domain_info_index[0]]=copy.deepcopy(domains_detections["ini_wass_dist"])
+                        domains_detections["domain_grad"][domain_info_index[0]][1]=copy.deepcopy(domains_detections["ini_wass_dist"])
+                        print("new domain created",domains_detections["domain_grad"])
                     domains_detections["cur_wass_dist"].append(wass_dist)
                     #print("adaptation detection", np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
                     #print("length",len(domains_detections["cur_wass_dist"]), domains_detections["wass_dist_length"])
