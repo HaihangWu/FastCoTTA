@@ -325,7 +325,8 @@ def single_gpu_language_cotta(model,
                     this_domain_mean=np.mean(v[0])
                     this_domain_std=np.std(v[0])
                     z_score_temp = abs(cur_domain_mean - this_domain_mean) / np.sqrt(cur_domain_std ** 2.0 + this_domain_std ** 2.0)
-                    if z_score_temp<3 and z_score<z_score_temp:
+                    print("domain matching",z_score_temp,cur_domain_mean,this_domain_mean,cur_domain_std,this_domain_std)
+                    if z_score_temp<2.5 and z_score<z_score_temp:
                         z_score=z_score_temp
                         domain_index=k
                 if domain_index>0.5:
@@ -343,7 +344,7 @@ def single_gpu_language_cotta(model,
                 if len(domain_info_index) < 0.5:
                        cur_distribution=np.array(copy.deepcopy(domains_detections["storage"][:domains_detections["storage_length"]]))
                        cur_sample=domains_detections["storage"][-1]
-                       if (cur_sample > np.percentile(cur_distribution, 5) and cur_sample < np.percentile(cur_distribution, 95)):
+                       if (cur_sample < np.percentile(cur_distribution, 5) or cur_sample > np.percentile(cur_distribution, 95)):
                            domains_detections["outlier_count"] = domains_detections["outlier_count"] + 1
                        else:
                            if domains_detections["outlier_count"] >0.5:
@@ -376,7 +377,7 @@ def single_gpu_language_cotta(model,
                         domains_detections["domain_grad"][domain_info_index[0]][1]=copy.deepcopy(domains_detections["ini_wass_dist"])
                         print("new domain created",domains_detections["domain_grad"])
                     domains_detections["cur_wass_dist"].append(wass_dist)
-                    #print("adaptation detection", np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
+                    print("adaptation info", np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
                     #print("length",len(domains_detections["cur_wass_dist"]), domains_detections["wass_dist_length"])
                     print("domain info",domains_detections["domain_grad"])
                     if len(domains_detections["cur_wass_dist"])>=domains_detections["wass_dist_length"]:
