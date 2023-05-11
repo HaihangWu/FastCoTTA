@@ -338,28 +338,32 @@ def single_gpu_language_cotta(model,
                 domains_detections["get_new_domain_info"]=False
                 domains_detections["get_conf_by_source"]=[]
 
-            # if len(domains_detections["storage"])>storage_temp_length and domains_detections["detection"] is False:
-            #    print(domains_detections["storage"])
-            #    cur_distribution=np.array(copy.deepcopy(domains_detections["storage"][:storage_temp_length]))
-            #    cur_sample=domains_detections["storage"][storage_temp_length]
-            #    domains_detections["detection"] = False if (cur_sample>np.percentile(cur_distribution, 5) and cur_sample<np.percentile(cur_distribution, 95)) else True
-            #    if domains_detections["detection"] is False:
-            #        domains_detections["storage"] = domains_detections["storage"][1:]
-            #    else:
-            #        print("domain detection triggered", frame_passed)
+            if len(domains_detections["storage"])>domains_detections["storage_length"] and not domains_detections["get_new_domain_info"]:
+                domain_info_index = [k for k, v in domains_detections["domain_grad"].items() if len(v[1]) < 0.5]
+                if len(domain_info_index) < 0.5:
+                       cur_distribution=np.array(copy.deepcopy(domains_detections["storage"][:domains_detections["storage_length"]]))
+                       cur_sample=domains_detections["storage"][-1]
+                       if (cur_sample > np.percentile(cur_distribution, 5) and cur_sample < np.percentile(cur_distribution, 95)):
+                           domains_detections["outlier_count"] = domains_detections["outlier_count"] + 1
+                       else:
+                           if domains_detections["outlier_count"] >0.5:
+                              domains_detections["outlier_count"]=0
+                       if domains_detections["outlier_count"]>=domains_detections["outlier_threshold"]:
+                            domains_detections["get_new_domain_info"]=True
+                            domains_detections["ini_wass_dist"]=[]
 
             if len(domains_detections["storage"])>=(2*domains_detections["storage_length"]): #and domains_detections["detection"] is True:
                 last_distribution = np.array(copy.deepcopy(domains_detections["storage"][:domains_detections["storage_length"]]))
                 cur_distribution = np.array(copy.deepcopy(domains_detections["storage"][domains_detections["storage_length"]:]))
-                cur_mean=np.mean(cur_distribution)
-                last_mean=np.mean(last_distribution)
-                cur_distri_std = np.std(cur_distribution)
-                last_distri_std = np.std(last_distribution)
-                z_score=abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0)
-                print("domain shift detecttion",z_score,cur_mean,last_mean,cur_distri_std,last_distri_std)
-                if z_score>=3 and len(domains_detections["ini_wass_dist"])>=domains_detections["wass_dist_length"]:
-                    domains_detections["get_new_domain_info"]=True
-                    domains_detections["ini_wass_dist"]=[]
+                # cur_mean=np.mean(cur_distribution)
+                # last_mean=np.mean(last_distribution)
+                # cur_distri_std = np.std(cur_distribution)
+                # last_distri_std = np.std(last_distribution)
+                # z_score=abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0)
+                # print("domain shift detection",z_score,cur_mean,last_mean,cur_distri_std,last_distri_std)
+                # if z_score>=3 and len(domains_detections["ini_wass_dist"])>=domains_detections["wass_dist_length"]:
+                #     domains_detections["get_new_domain_info"]=True
+                #     domains_detections["ini_wass_dist"]=[]
                 wass_dist=wasserstein_distance(last_distribution,cur_distribution)
 
                 #print("domain detection", last_mean, cur_mean, wass_dist,  frame_passed)

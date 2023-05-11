@@ -199,6 +199,8 @@ def main():
     domains_detections["get_conf_by_source"] = []
     domains_detections["info_length_by_source"] = 5
     domains_detections["domain_grad"] = {}
+    domains_detections["outlier_count"] = 0
+    domains_detections["outlier_threshold"] = 5
 
     domains_detections["cur_adaptation_prob"] = 1.0
     domains_detections["cur_dom"]="domain"+str(1)
