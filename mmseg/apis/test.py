@@ -319,18 +319,18 @@ def single_gpu_language_cotta(model,
             if len(domains_detections["get_conf_by_source"])>=domains_detections["info_length_by_source"]:
                 cur_domain_mean=np.mean(domains_detections["get_conf_by_source"])
                 cur_domain_std = np.std(domains_detections["get_conf_by_source"])
-                z_score = -1
+                z_score = 10000
                 domain_index=-1
                 for k,v in domains_detections["domain_grad"].items():
                     this_domain_mean=np.mean(v[0])
                     this_domain_std=np.std(v[0])
                     z_score_temp = abs(cur_domain_mean - this_domain_mean) / np.sqrt(cur_domain_std ** 2.0 + this_domain_std ** 2.0)
                     print("domain matching",z_score_temp,cur_domain_mean,this_domain_mean,cur_domain_std,this_domain_std)
-                    if z_score_temp<2.5 and z_score<z_score_temp:
+                    if z_score_temp<2.5 and z_score>z_score_temp:
                         z_score=z_score_temp
                         domain_index=k
                 if domain_index>0.5:
-                    domains_detections["ini_wass_dist"]=domains_detections["domain_grad"][k][1]
+                    domains_detections["ini_wass_dist"]=domains_detections["domain_grad"][domain_index][1]
                     print("revisit domain",domain_index)
                 else:
                     new_domain_index=max([ k for k in domains_detections["domain_grad"].keys()]+[0])+1
