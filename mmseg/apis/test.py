@@ -339,11 +339,11 @@ def single_gpu_language_cotta(model,
                 if len(domains_detections["ini_wass_dist"])<domains_detections["wass_dist_length"]:
                     domains_detections["ini_wass_dist"].append(wass_dist)
                 else:
-                    if wass_dist>(0.5*np.mean(domains_detections["ini_wass_dist"])) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
+                    if wass_dist>(0.5*np.mean(domains_detections["ini_wass_dist"])): #and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
                         domains_detections["adaptation"] = True
                         #domains_detections["validation_frame"] = [[],[]]
                         print("domain adaptation begin",wass_dist,last_distri_std,frame_passed)
-                    if wass_dist<(0.1*np.mean(domains_detections["ini_wass_dist"])) and domains_detections["adaptation"]:
+                    if wass_dist<(0.1*np.mean(domains_detections["ini_wass_dist"])): #and domains_detections["adaptation"]:
                         domains_detections["adaptation"] = False
                         #domains_detections["validation_frame"] = [[],[]]
                         print("domain adaptation termination",wass_dist,last_distri_std,frame_passed)
