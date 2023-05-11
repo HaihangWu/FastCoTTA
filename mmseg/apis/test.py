@@ -331,8 +331,9 @@ def single_gpu_language_cotta(model,
                 if domain_index>0.5:
                     domains_detections["ini_wass_dist"]=domains_detections["domain_grad"][k][1]
                 else:
-                    new_domain_index=max([ k for k in domains_detections["domain_grad"].keys()]+[1])+1
-                    domains_detections["domain_grad"][new_domain_index]=[copy.deepcopy(domains_detections["get_conf_by_source"]),[]]
+                    new_domain_index=max([ k for k in domains_detections["domain_grad"].keys()]+[0])+1
+                    domains_detections["domain_grad"][new_domain_index] = [[],[]]
+                    domains_detections["domain_grad"][new_domain_index][0]=copy.deepcopy(domains_detections["get_conf_by_source"])
                 domains_detections["get_new_domain_info"]=False
                 domains_detections["get_conf_by_source"]=[]
 
