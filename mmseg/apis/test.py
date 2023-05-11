@@ -340,15 +340,16 @@ def single_gpu_language_cotta(model,
                     domains_detections["ini_wass_dist"].append(wass_dist)
                 else:
                     domains_detections["cur_wass_dist"].append(wass_dist)
+                    print("adaptation detection", np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
                     if len(domains_detections["cur_wass_dist"])>=domains_detections["wass_dist_length"]:
                         if np.mean(domains_detections["cur_wass_dist"])>(0.7*np.mean(domains_detections["ini_wass_dist"])) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
                             domains_detections["adaptation"] = True
                             #domains_detections["validation_frame"] = [[],[]]
-                            print("domain adaptation begin",np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
+                            print("domain adaptation begin")
                         if np.mean(domains_detections["cur_wass_dist"])<(0.1*np.mean(domains_detections["ini_wass_dist"])) and domains_detections["adaptation"]:
                             domains_detections["adaptation"] = False
                             #domains_detections["validation_frame"] = [[],[]]
-                            print("domain adaptation termination",np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
+                            print("domain adaptation termination")
                     domains_detections["cur_wass_dist"]=domains_detections["cur_wass_dist"][1:]
 
                 domains_detections["storage"] = domains_detections["storage"][domains_detections["storage_length"]:] # detect every storage_temp_length frames
