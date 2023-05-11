@@ -188,9 +188,16 @@ def main():
     domains_detections={}
     domains_detections["detection"]=False
     domains_detections["adaptation"] =True
+    domains_detections["ini_wass_dist"] = []
+    domains_detections["cur_wass_dist"] = []
+    domains_detections["wass_dist_length"] = 5
+
+    domains_detections["storage"] = []
+    domains_detections["storage_length"] = 10
+
     domains_detections["cur_adaptation_prob"] = 1.0
     domains_detections["cur_dom"]="domain"+str(1)
-    domains_detections["storage"] = []
+
     domains_detections["validation_frame"] = [[],[]]
     domains_detections["num_validation_frame"] = 3
     domains_detections["termination_test"] = False
