@@ -351,7 +351,7 @@ def single_gpu_language_cotta(model,
                             domains_detections["adaptation"] = False
                             #domains_detections["validation_frame"] = [[],[]]
                             print("domain adaptation termination")
-                    domains_detections["cur_wass_dist"]=domains_detections["cur_wass_dist"][1:]
+                        domains_detections["cur_wass_dist"]=domains_detections["cur_wass_dist"][1:]
 
                 domains_detections["storage"] = domains_detections["storage"][domains_detections["storage_length"]:] # detect every storage_temp_length frames
                 domains_detections["storage"] = domains_detections["storage"][1:]
