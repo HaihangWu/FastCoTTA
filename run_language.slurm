@@ -28,7 +28,7 @@
 # --gpus-per-task=1  # number of gpus per task
 
 # The maximum running time of the job in days-hours:mins:sec
-#SBATCH --time=05-00:00:0
+#SBATCH --time=04-00:00:0
 
 module load anaconda3/2021.11
 eval "$(conda shell.bash hook)"
@@ -50,5 +50,5 @@ echo "r$SLURM_NODEID Launching python script"
 #bash ./tools/dist_language_test.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-source.log
 #bash ./tools/dist_language_test.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py   1 | tee LSegb5-night-source.log
 
-#bash ./tools/dist_cotta.sh local_configs/Language/Lsegformer.b0.1024x1024.night.160k.py  1 | tee LSegb0-night-cotta-train.log
-bash ./tools/dist_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-cotta-train.log
+bash ./tools/dist_cotta.sh local_configs/Language/Lsegformer.b0.1024x1024.night.160k.py  1 | tee LSegb0-night-cotta-train.log
+#bash ./tools/dist_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-cotta-train.log
