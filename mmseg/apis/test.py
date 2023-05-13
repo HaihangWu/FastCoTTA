@@ -425,11 +425,9 @@ def single_gpu_language_cotta(model,
                 #     domains_detections["validation_frame"][0].append(data)
                 #     domains_detections["validation_frame"][1].append(conf_mean)
 
-            #print(probs[0])
-            # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
-            result = [preds[img_id][0].astype(np.int64)]
-            result_=[result_ori[0].astype(np.int64)]
-            #result=result_
+
+            #result = [preds[img_id][0].astype(np.int64)]
+            result=[result_ori[0].astype(np.int64)]
 
             weight = 1.
         # if (show or out_dir) and (round ==0 or round==4 or round==9):
@@ -466,7 +464,7 @@ def single_gpu_language_cotta(model,
                     img_id = 4 #The default size without flip
                 else:
                     img_id = 0
-                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result_[0]).cuda().unsqueeze(0).unsqueeze(0))
+                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
                 if efficient_test:
                     result = [np2tmp(_) for _ in result]
                 results.extend(result)
