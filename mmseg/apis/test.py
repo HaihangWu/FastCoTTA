@@ -376,7 +376,7 @@ def single_gpu_language_cotta(model,
                 else:
                     if domains_detections["created_new_domain"]:
                         print(domains_detections["domain_grad"] )
-                        domain_info_index=[k for k,v in domains_detections["domain_grad"] if len(v[1])<0.5]
+                        domain_info_index=[k for k,v in domains_detections["domain_grad"].items() if len(v[1])<0.5]
                         domains_detections["domain_grad"][domain_info_index[0]][1]=copy.deepcopy(domains_detections["ini_wass_dist"])
                         domains_detections["created_new_domain"]=False
                         print("new domain created",domains_detections["domain_grad"])
