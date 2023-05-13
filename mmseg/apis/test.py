@@ -290,8 +290,8 @@ def single_gpu_language_cotta(model,
             param_list.append(param)
         else:
             param.requires_grad=False
-    optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
-    #optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
+    #optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
+    optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
     # pred_time=0
     print("new domain starts,",frame_passed)
     new_domain_frame=frame_passed
@@ -330,17 +330,18 @@ def single_gpu_language_cotta(model,
                         domain_index=k
                 if domain_index>0.5:
                     domains_detections["ini_wass_dist"]=domains_detections["domain_grad"][domain_index][1]
-                    print("revisit domain",domain_index)
+                    domains_detections["created_new_domain"] = False
+                    print("revisit domain",z_score, domain_index)
                 else:
                     new_domain_index=max([ k for k in domains_detections["domain_grad"].keys()]+[0])+1
                     domains_detections["domain_grad"][new_domain_index] = [[],[]]
                     domains_detections["domain_grad"][new_domain_index][0]=copy.deepcopy(domains_detections["get_conf_by_source"])
+                    domains_detections["created_new_domain"] = True
                 domains_detections["get_new_domain_info"]=False
                 domains_detections["get_conf_by_source"]=[]
 
             if len(domains_detections["storage"])>domains_detections["storage_length"] and not domains_detections["get_new_domain_info"]:
-                domain_info_index = [k for k, v in domains_detections["domain_grad"].items() if len(v[1]) < 0.5]
-                if len(domain_info_index) < 0.5:
+                if not domains_detections["created_new_domain"]:
                        cur_distribution=np.array(copy.deepcopy(domains_detections["storage"][:domains_detections["storage_length"]]))
                        cur_sample=domains_detections["storage"][-1]
                        if (cur_sample < np.percentile(cur_distribution, 5) or cur_sample > np.percentile(cur_distribution, 95)):
@@ -351,6 +352,7 @@ def single_gpu_language_cotta(model,
                        if domains_detections["outlier_count"]>=domains_detections["outlier_threshold"]:
                             print("domain shift detected,",frame_passed)
                             domains_detections["get_new_domain_info"]=True
+                            domains_detections["domain_shift_detected"] = True
                             domains_detections["ini_wass_dist"]=[]
 
             if len(domains_detections["storage"])>=(2*domains_detections["storage_length"]): #and domains_detections["detection"] is True:
@@ -369,11 +371,13 @@ def single_gpu_language_cotta(model,
 
                 #print("domain detection", last_mean, cur_mean, wass_dist,  frame_passed)
                 if len(domains_detections["ini_wass_dist"])<domains_detections["wass_dist_length"]:
-                    domains_detections["ini_wass_dist"].append(wass_dist)
+                    if domains_detections["created_new_domain"]:
+                        domains_detections["ini_wass_dist"].append(wass_dist)
                 else:
-                    domain_info_index=[ k for k,v in domains_detections["domain_grad"].items() if len(v[1])<0.5]
-                    if len(domain_info_index)>0.5:
+                    if domains_detections["created_new_domain"]:
+                        domain_info_index=[k for k,v in domains_detections["domain_grad"] if len(v)<0.5]
                         domains_detections["domain_grad"][domain_info_index[0]][1]=copy.deepcopy(domains_detections["ini_wass_dist"])
+                        domains_detections["created_new_domain"]=False
                         print("new domain created",domains_detections["domain_grad"])
                     domains_detections["cur_wass_dist"].append(wass_dist)
                     #print("adaptation info", np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
@@ -381,11 +385,13 @@ def single_gpu_language_cotta(model,
                     #print("domain info",domains_detections["domain_grad"])
                     if len(domains_detections["cur_wass_dist"])>=domains_detections["wass_dist_length"]:
                         if np.mean(domains_detections["cur_wass_dist"])>(0.5*np.mean(domains_detections["ini_wass_dist"])) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
-                            domains_detections["adaptation"] = True
-                            #domains_detections["validation_frame"] = [[],[]]
-                            print("domain adaptation begin",frame_passed)
+                            if domains_detections["domain_shift_detected"]:
+                                domains_detections["adaptation"] = True
+                                #domains_detections["validation_frame"] = [[],[]]
+                                print("domain adaptation begin",frame_passed)
                         if np.mean(domains_detections["cur_wass_dist"])<(0.5*np.mean(domains_detections["ini_wass_dist"])) and domains_detections["adaptation"]:
                             domains_detections["adaptation"] = False
+                            domains_detections["domain_shift_detected"] = False
                             #domains_detections["validation_frame"] = [[],[]]
                             print("domain adaptation termination",frame_passed)
                         domains_detections["cur_wass_dist"]=domains_detections["cur_wass_dist"][1:]

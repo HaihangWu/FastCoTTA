@@ -202,6 +202,9 @@ def main():
     domains_detections["outlier_count"] = 0
     domains_detections["outlier_threshold"] = 5
 
+    domains_detections["created_new_domain"] = False
+    domains_detections["domain_shift_detected"] = False
+
     domains_detections["cur_adaptation_prob"] = 1.0
     domains_detections["cur_dom"]="domain"+str(1)
 
