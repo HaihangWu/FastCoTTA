@@ -290,8 +290,8 @@ def single_gpu_language_cotta(model,
             param_list.append(param)
         else:
             param.requires_grad=False
-    #optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
-    optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
+    optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
+    #optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
     # pred_time=0
     print("new domain starts,",frame_passed)
     new_domain_frame=frame_passed
