@@ -7,7 +7,7 @@
 
 # Partition for the job:
 #SBATCH --partition deeplearn
-# --qos gpgpudeeplearn
+#SBATCH --qos gpgpudeeplearn
 
 # --partition=feit-gpu-a100
 # --qos=feit
