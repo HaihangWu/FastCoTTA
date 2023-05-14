@@ -84,6 +84,7 @@ def parse_args():
         default='none',
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
+    parser.add_argument('--outlier_num', type=int, default=5)
     parser.add_argument('--z_score_threshold', type=float, default=2.5)
     parser.add_argument('--lang_rgz', type=float, default=1)
     parser.add_argument('--adp_termination', type=float, default=0.5)
@@ -204,7 +205,7 @@ def main():
     domains_detections["info_length_by_source"] = 5
     domains_detections["domain_grad"] = {}
     domains_detections["outlier_count"] = 0
-    domains_detections["outlier_threshold"] = 5
+    domains_detections["outlier_threshold"] = args.outlier_num
 
     domains_detections["created_new_domain"] = False
     domains_detections["domain_shift_detected"] = False
