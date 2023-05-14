@@ -330,7 +330,7 @@ def single_gpu_language_cotta(model,
                     this_domain_mean=np.mean(v[0])
                     this_domain_std=np.std(v[0])
                     z_score_temp = abs(cur_domain_mean - this_domain_mean) / np.sqrt(cur_domain_std ** 2.0 + this_domain_std ** 2.0)
-                    if z_score_temp<2.5 and z_score>z_score_temp:
+                    if z_score_temp<domains_detections["z_score_threshold"] and z_score>z_score_temp:
                         z_score=z_score_temp
                         domain_index=k
                 if domain_index>0.5:
@@ -453,9 +453,10 @@ def single_gpu_language_cotta(model,
                 if efficient_test:
                     result = np2tmp(result)
                 results.append(result)
-            torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
-
-            #torch.mean(loss["decode.loss_seg"]).backward()
+            if domains_detections["language_regularization"]:
+                torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
+            else:
+                torch.mean(loss["decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
 

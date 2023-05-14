@@ -84,6 +84,10 @@ def parse_args():
         default='none',
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
+    parser.add_argument('--z_score_threshold', type=float, default=2.5)
+    parser.add_argument('--lang_rgz', type=float, default=1)
+    parser.add_argument('--adp_termination', type=float, default=0.5)
+    parser.add_argument('--model_name', type=str, default="setr")
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -204,7 +208,10 @@ def main():
 
     domains_detections["created_new_domain"] = False
     domains_detections["domain_shift_detected"] = False
-    domains_detections["adapt_termination_param"] = 0.5
+    domains_detections["adapt_termination_param"] = args.adp_termination
+
+    domains_detections["z_score_threshold"] = args.z_score_threshold
+    domains_detections["language_regularization"] = True if args.lang_rgz>0.5 else False
 
     domains_detections["cur_adaptation_prob"] = 1.0
     domains_detections["cur_dom"]="domain"+str(1)
@@ -222,7 +229,7 @@ def main():
             j=j+1
             pred_begin = time.time()
             outputs,frame_passed,domains_detections = single_gpu_language_cotta(model, data_loader, args.show, args.show_dir,
-                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections, "setr", j)
+                                      efficient_test,anchor, ema_model, anchor_model,frame_passed,domains_detections, args.model_name, j)
 
             total_predict_time = total_predict_time+time.time()-pred_begin
             total_processed_frame=total_processed_frame+len(data_loader)
