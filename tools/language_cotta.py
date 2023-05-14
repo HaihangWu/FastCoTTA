@@ -97,7 +97,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-
+    print(args.outlier_num,args.z_score_threshold,args.lang_rgz,args.adp_termination,args.model_name)
     assert args.out or args.eval or args.format_only or args.show \
         or args.show_dir, \
         ('Please specify at least one operation (save/eval/format/show the '
@@ -205,7 +205,7 @@ def main():
     domains_detections["info_length_by_source"] = 5
     domains_detections["domain_grad"] = {}
     domains_detections["outlier_count"] = 0
-    domains_detections["outlier_threshold"] = int(args.outlier_num)
+    domains_detections["outlier_threshold"] = int(float(args.outlier_num))
 
     domains_detections["created_new_domain"] = False
     domains_detections["domain_shift_detected"] = False
