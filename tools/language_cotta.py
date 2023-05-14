@@ -97,7 +97,6 @@ def parse_args():
 
 def main():
     args = parse_args()
-    print("outlier_num oo",args.outlier_num)
 
     assert args.out or args.eval or args.format_only or args.show \
         or args.show_dir, \
@@ -206,14 +205,14 @@ def main():
     domains_detections["info_length_by_source"] = 5
     domains_detections["domain_grad"] = {}
     domains_detections["outlier_count"] = 0
-    domains_detections["outlier_threshold"] = args.outlier_num
+    domains_detections["outlier_threshold"] = int(args.outlier_num)
 
     domains_detections["created_new_domain"] = False
     domains_detections["domain_shift_detected"] = False
-    domains_detections["adapt_termination_param"] = args.adp_termination
+    domains_detections["adapt_termination_param"] = float(args.adp_termination)
 
-    domains_detections["z_score_threshold"] = args.z_score_threshold
-    domains_detections["language_regularization"] = True if args.lang_rgz>0.5 else False
+    domains_detections["z_score_threshold"] = float(args.z_score_threshold)
+    domains_detections["language_regularization"] = True if float(args.lang_rgz)>0.5 else False
 
     domains_detections["cur_adaptation_prob"] = 1.0
     domains_detections["cur_dom"]="domain"+str(1)

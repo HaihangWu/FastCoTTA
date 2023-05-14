@@ -8,8 +8,7 @@ z_threshold=$4
 lang_rgz=$5
 adp_termination=$6
 model_name=$7
-echo "outlier_num="$3
-echo "outlier_num="$z_threshold
+
 
 #PORT=${PORT:-29505}
 PORT=$(expr 20000 + $(echo -n $SLURM_JOBID | tail -c 4)) #wuhh
