@@ -6,16 +6,16 @@
 #SBATCH --job-name="example.py"
 
 # Partition for the job:
-#SBATCH --partition deeplearn
-#SBATCH --qos gpgpudeeplearn
+# --partition deeplearn
+# --qos gpgpudeeplearn
 
 # --partition=feit-gpu-a100
 # --qos=feit
 
-# -p gpu-a100
+#SBATCH -p gpu-a100
 
 # Request different amount of resources for different nodes
-#SBATCH --constraint=[dlg1|dlg2|dlg3]
+# --constraint=[dlg1|dlg2|dlg3]
 # --constraint=[dlg4|dlg5]
 #SBATCH --nodes=1                # node count
 #SBATCH --ntasks-per-node=1      # total number of tasks per node
@@ -45,7 +45,7 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 | tee LSegb5-night-Lcotta-HL-DS.log
-bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee LSegb5-acdc-Lcotta-HL-lambda.5.log
+bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee LSegb5-acdc-Lcotta-HL-lambda.7-1.log
 
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-Lcotta-HL-DS.log
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_acdc.py  1 | tee Lsetr-acdc-Lcotta-HL-DS.log

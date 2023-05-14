@@ -204,7 +204,7 @@ def main():
 
     domains_detections["created_new_domain"] = False
     domains_detections["domain_shift_detected"] = False
-    domains_detections["adapt_termination_param"] = 0.5
+    domains_detections["adapt_termination_param"] = 0.7
 
     domains_detections["cur_adaptation_prob"] = 1.0
     domains_detections["cur_dom"]="domain"+str(1)
