@@ -471,7 +471,7 @@ def single_gpu_language_cotta(model,
             results.extend(result)
 
 
-    pred_time += time.time() - pred_begin
+        pred_time += time.time() - pred_begin
     #     batch_size = data['img'][0].size(0)
     #     if i==399: # whh
     #         for _ in range(batch_size):
