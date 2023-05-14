@@ -358,15 +358,6 @@ def single_gpu_language_cotta(model,
             if len(domains_detections["storage"])>=(2*domains_detections["storage_length"]): #and domains_detections["detection"] is True:
                 last_distribution = np.array(copy.deepcopy(domains_detections["storage"][:domains_detections["storage_length"]]))
                 cur_distribution = np.array(copy.deepcopy(domains_detections["storage"][domains_detections["storage_length"]:]))
-                # cur_mean=np.mean(cur_distribution)
-                # last_mean=np.mean(last_distribution)
-                # cur_distri_std = np.std(cur_distribution)
-                # last_distri_std = np.std(last_distribution)
-                # z_score=abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0)
-                # print("domain shift detection",z_score,cur_mean,last_mean,cur_distri_std,last_distri_std)
-                # if z_score>=3 and len(domains_detections["ini_wass_dist"])>=domains_detections["wass_dist_length"]:
-                #     domains_detections["get_new_domain_info"]=True
-                #     domains_detections["ini_wass_dist"]=[]
                 wass_dist=wasserstein_distance(last_distribution,cur_distribution)
 
                 #print("domain detection", last_mean, cur_mean, wass_dist,  frame_passed)
@@ -380,9 +371,6 @@ def single_gpu_language_cotta(model,
                         domains_detections["created_new_domain"]=False
                         print("new domain created",domains_detections["domain_grad"])
                     domains_detections["cur_wass_dist"].append(wass_dist)
-                    #print("adaptation info", np.mean(domains_detections["cur_wass_dist"]),np.mean(domains_detections["ini_wass_dist"]),frame_passed)
-                    #print("length",len(domains_detections["cur_wass_dist"]), domains_detections["wass_dist_length"])
-                    #print("domain info",domains_detections["domain_grad"])
                     if len(domains_detections["cur_wass_dist"])>=domains_detections["wass_dist_length"]:
                         if np.mean(domains_detections["cur_wass_dist"])>(domains_detections["adapt_termination_param"]*np.mean(domains_detections["ini_wass_dist"])) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
                             if domains_detections["domain_shift_detected"]:
@@ -398,22 +386,7 @@ def single_gpu_language_cotta(model,
 
                 domains_detections["storage"] = domains_detections["storage"][domains_detections["storage_length"]:] # detect every storage_temp_length frames
                 domains_detections["storage"] = domains_detections["storage"][1:]
-                #domains_detections["detection"] = False
-            #
-            # if frame_passed%30==0 and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
-            #     domains_detections["termination_test"]=True
-            # if domains_detections["termination_test"] and adapt:
-            #    avg_conf=np.mean(domains_detections["validation_frame"][1])
-            #    domains_detections["validation_frame"][1]=[]
-            #    for i in range(domains_detections["num_validation_frame"]):
-            #        print(domains_detections["num_validation_frame"][0][i])
-            #        result_ori, probs, preds = ema_model(return_loss=False, **domains_detections["num_validation_frame"][0][i])
-            #        conf_mean = np.mean(probs[img_id])
-            #        domains_detections["validation_frame"][1].append(conf_mean)
-            #    new_avg_conf=np.mean(domains_detections["validation_frame"][1])
-            #    adapt= False if avg_conf>new_avg_conf else True
-            #    domains_detections["termination_test"]=False
-            #    print("terminated",avg_conf,new_avg_conf,frame_passed)
+
 
             if not domains_detections["adaptation"]:
                 result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
@@ -427,9 +400,6 @@ def single_gpu_language_cotta(model,
                 conf_mean=np.mean(probs[img_id])
                 domains_detections["storage"].append(conf_mean)
                 #domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
-                # if len(domains_detections["validation_frame"][0])<domains_detections["num_validation_frame"]:
-                #     domains_detections["validation_frame"][0].append(data)
-                #     domains_detections["validation_frame"][1].append(conf_mean)
 
 
             #result = [preds[img_id][0].astype(np.int64)]
