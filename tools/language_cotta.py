@@ -83,11 +83,11 @@ def parse_args():
         choices=['none', 'pytorch', 'slurm', 'mpi'],
         default='none',
         help='job launcher')
-    parser.add_argument('--local_rank', type=int, default=0)
-    parser.add_argument('--outlier_num', type=int, default=5)
-    parser.add_argument('--z_score_threshold', type=float, default=2.5)
-    parser.add_argument('--lang_rgz', type=float, default=1)
-    parser.add_argument('--adp_termination', type=float, default=0.5)
+    parser.add_argument('--local_rank', type=str, default="0")
+    parser.add_argument('--outlier_num', type=str, default="5")
+    parser.add_argument('--z_score_threshold', type=str, default="2.5")
+    parser.add_argument('--lang_rgz', type=str, default="1")
+    parser.add_argument('--adp_termination', type=str, default="0.5")
     parser.add_argument('--model_name', type=str, default="setr")
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
