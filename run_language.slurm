@@ -6,11 +6,11 @@
 #SBATCH --job-name="example.py"
 
 # Partition for the job:
-# --partition deeplearn
-# --qos gpgpudeeplearn
+#SBATCH --partition deeplearn
+#SBATCH --qos gpgpudeeplearn
 
-#SBATCH --partition=feit-gpu-a100
-#SBATCH --qos=feit
+# --partition=feit-gpu-a100
+# --qos=feit
 
 # -p gpu-a100
 
@@ -47,8 +47,8 @@ echo "r$SLURM_NODEID Launching python script"
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb5-night-Lcotta-HL-2.log
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb5-acdc-Lcotta-HL-2.log
 
-#bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 5 2.5 1.0 0.5 "setr" | tee Lsetr-night-Lcotta-HL-2.log
-bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_acdc.py  1 5 2.5 1.0 0.5 "setr" | tee Lsetr-acdc-Lcotta-HL-2.log
+bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 5 2.5 1.0 0.5 "setr" | tee Lsetr-night-Lcotta-HL-2.log
+#bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_acdc.py  1 5 2.5 1.0 0.5 "setr" | tee Lsetr-acdc-Lcotta-HL-2.log
 
 #bash ./tools/dist_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 | tee LSegb5-night-cotta-train.log
 #bash ./tools/dist_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-cotta-train.log
