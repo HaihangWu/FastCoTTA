@@ -45,7 +45,7 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 | tee LSegb5-night-Lcotta-HL-DS.log
-bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee LSegb5-acdc-Lcotta-HL-lambda.3.log
+bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee LSegb5-acdc-Lcotta-HL-lambda.7.log
 
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-Lcotta-HL-DS.log
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_acdc.py  1 | tee Lsetr-acdc-Lcotta-HL-DS.log
