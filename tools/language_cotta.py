@@ -97,6 +97,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    print("outlier_num oo",args.outlier_num)
 
     assert args.out or args.eval or args.format_only or args.show \
         or args.show_dir, \
