@@ -9,10 +9,10 @@
 # --partition deeplearn
 # --qos gpgpudeeplearn
 
-# --partition=feit-gpu-a100
-# --qos=feit
+#SBATCH --partition=feit-gpu-a100
+#SBATCH --qos=feit
 
-#SBATCH -p gpu-a100
+# -p gpu-a100
 
 # Request different amount of resources for different nodes
 # --constraint=[dlg1|dlg2|dlg3]
@@ -47,8 +47,8 @@ echo "r$SLURM_NODEID Launching python script"
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 | tee LSegb5-night-Lcotta-HL-2.log
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 | tee LSegb5-acdc-Lcotta-HL-2.log
 
-#bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-Lcotta-HL-2.log
-bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_acdc.py  1 | tee Lsetr-acdc-Lcotta-HL-2.log
+bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-Lcotta-HL-2.log
+#bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_acdc.py  1 | tee Lsetr-acdc-Lcotta-HL-2.log
 
 #bash ./tools/dist_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 | tee LSegb5-night-cotta-train.log
 #bash ./tools/dist_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-cotta-train.log
