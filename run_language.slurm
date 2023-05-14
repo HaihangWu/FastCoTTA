@@ -56,8 +56,8 @@ bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8
 #bash ./tools/dist_language_test.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py   1 | tee LSegb5-night-source-train.log
 #bash ./tools/dist_language_test.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-source-train.log
 
-#outlier_num
-#z_threshold=$3
-#lang_rgz=$4
-#adp_termination=$5
-#model_name=$6
+#outlier_num 5
+#z_threshold 2.5
+#lang_rgz 1.0
+#adp_termination 0.5
+#model_name setr
