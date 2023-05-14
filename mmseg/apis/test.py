@@ -290,8 +290,8 @@ def single_gpu_language_cotta(model,
             param_list.append(param)
         else:
             param.requires_grad=False
-    optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
-    #optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
+    #optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
+    optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
     pred_time=0
     print("new domain starts,",frame_passed)
     new_domain_frame=frame_passed
@@ -402,8 +402,8 @@ def single_gpu_language_cotta(model,
                 #domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
 
-            #result = [preds[img_id][0].astype(np.int64)]
-            result=[result_ori[0].astype(np.int64)]
+            result = [preds[img_id][0].astype(np.int64)]
+            result_=[result_ori[0].astype(np.int64)]
 
             weight = 1.
         # if (show or out_dir) and (round ==0 or round==4 or round==9):
@@ -440,7 +440,7 @@ def single_gpu_language_cotta(model,
                     img_id = 4 #The default size without flip
                 else:
                     img_id = 0
-                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
+                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result_[0]).cuda().unsqueeze(0).unsqueeze(0))
                 if efficient_test:
                     result = [np2tmp(_) for _ in result]
                 results.extend(result)
