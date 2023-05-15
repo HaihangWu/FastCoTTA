@@ -15,8 +15,8 @@
 # -p gpu-a100
 
 # Request different amount of resources for different nodes
-# --constraint=[dlg1|dlg2|dlg3]
-#SBATCH --constraint=[dlg4|dlg5]
+#SBATCH --constraint=[dlg1|dlg2|dlg3]
+# --constraint=[dlg4|dlg5]
 #SBATCH --nodes=1                # node count
 #SBATCH --ntasks-per-node=1      # total number of tasks per node
 #SBATCH --gres=gpu:1             # number of gpus per node
@@ -45,9 +45,9 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb5-night-Lcotta-lambdadecay.log
-#bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb5-acdc-Lcotta-lambdadecay.log
+bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb5-acdc-Lcotta-lambdadecay.log
 
-bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 5 2.5 1.0 0.5 "setr" | tee Lsetr-night-Lcotta-lambdadecay.log
+#bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 5 2.5 1.0 0.5 "setr" | tee Lsetr-night-Lcotta-lambdadecay.log
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_acdc.py  1 5 2.5 1.0 0.5 "setr" | tee Lsetr-acdc-Lcotta-lambdadecay.log
 
 #bash ./tools/dist_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 | tee LSegb5-night-cotta-train.log
