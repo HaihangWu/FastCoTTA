@@ -6,11 +6,11 @@
 #SBATCH --job-name="example.py"
 
 # Partition for the job:
-#SBATCH --partition deeplearn
-#SBATCH --qos gpgpudeeplearn
+# --partition deeplearn
+# --qos gpgpudeeplearn
 
-# --partition=feit-gpu-a100
-# --qos=feit
+#SBATCH --partition=feit-gpu-a100
+#SBATCH --qos=feit
 
 # -p gpu-a100
 
@@ -53,8 +53,8 @@ echo "r$SLURM_NODEID Launching python script"
 #bash ./tools/dist_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 | tee LSegb5-night-cotta-train.log
 #bash ./tools/dist_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-cotta-train.log
 
-bash ./tools/dist_language_test.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py   1 | tee LSegb5-night-BN.log
-#bash ./tools/dist_language_test.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-BN.log
+#bash ./tools/dist_language_test.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py   1 | tee LSegb5-night-BN.log
+bash ./tools/dist_language_test.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-BN.log
 
 #outlier_num 5
 #z_threshold 2.5
