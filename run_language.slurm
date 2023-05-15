@@ -15,7 +15,7 @@
 #SBATCH -p gpu-a100
 
 # Request different amount of resources for different nodes
-#SBATCH --constraint=[dlg1|dlg2|dlg3]
+# --constraint=[dlg1|dlg2|dlg3]
 # --constraint=[dlg4|dlg5]
 #SBATCH --nodes=1                # node count
 #SBATCH --ntasks-per-node=1      # total number of tasks per node
