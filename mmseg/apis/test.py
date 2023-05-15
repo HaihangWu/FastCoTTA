@@ -74,7 +74,7 @@ def single_gpu_test(model,
     results = []
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
-    pred_time=0
+    pred_begin=time.time()
     for i, data in enumerate(data_loader):
         with torch.no_grad():
             result_ori, probs, preds = model(return_loss=False, **data)
@@ -117,6 +117,8 @@ def single_gpu_test(model,
         # if i==399: # hide progress
         #     for _ in range(batch_size):
         #         prog_bar.update()
+    pred_time = time.time() - pred_begin
+    print("pred_time: %.3f seconds;" % (pred_time / (i + 1)))
     return results
 
 
