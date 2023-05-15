@@ -203,7 +203,8 @@ def main():
     domains_detections["get_new_domain_info"]=True
     domains_detections["get_conf_by_source"] = []
     domains_detections["info_length_by_source"] = 5
-    domains_detections["domain_grad"] = {}
+    domains_detections["domain_info"] = {}
+    domains_detections["cur_dom"] = 0
     domains_detections["outlier_count"] = 0
     domains_detections["outlier_threshold"] = int(float(args.outlier_num))
 
@@ -215,7 +216,7 @@ def main():
     domains_detections["language_regularization"] = True if float(args.lang_rgz)>0.5 else False
 
     domains_detections["cur_adaptation_prob"] = 1.0
-    domains_detections["cur_dom"]="domain"+str(1)
+
 
     domains_detections["validation_frame"] = [[],[]]
     domains_detections["num_validation_frame"] = 3

@@ -15,6 +15,7 @@ import time
 import random
 from copy import deepcopy
 from scipy.stats import wasserstein_distance
+from scipy.special import expit
 import copy
 
 def update_ema_variables(ema_model, model, alpha_teacher, iteration=None):
@@ -329,7 +330,7 @@ def single_gpu_language_cotta(model,
                 cur_domain_std = np.std(domains_detections["get_conf_by_source"])
                 z_score = 10000
                 domain_index=-1
-                for k,v in domains_detections["domain_grad"].items():
+                for k,v in domains_detections["domain_info"].items():
                     this_domain_mean=np.mean(v[0])
                     this_domain_std=np.std(v[0])
                     z_score_temp = abs(cur_domain_mean - this_domain_mean) / np.sqrt(cur_domain_std ** 2.0 + this_domain_std ** 2.0)
@@ -337,14 +338,20 @@ def single_gpu_language_cotta(model,
                         z_score=z_score_temp
                         domain_index=k
                 if domain_index>0.5:
-                    domains_detections["ini_wass_dist"]=domains_detections["domain_grad"][domain_index][1]
+                    domains_detections["ini_wass_dist"]=domains_detections["domain_info"][domain_index][1]
+                    if domains_detections["cur_dom"] != domain_index:
+                        domains_detections["domain_info"][domain_index][2]=domains_detections["domain_info"][domain_index][2]+1
                     domains_detections["created_new_domain"] = False
-                    print("revisit domain",z_score, domain_index)
+                    domains_detections["cur_dom"] = domain_index
+                    domains_detections["adapt_termination_param"]=expit(domains_detections["domain_info"][domain_index][2])
+                    print("revisit domain",z_score, domain_index,domains_detections["adapt_termination_param"])
                 else:
-                    new_domain_index=max([ k for k in domains_detections["domain_grad"].keys()]+[0])+1
-                    domains_detections["domain_grad"][new_domain_index] = [[],[]]
-                    domains_detections["domain_grad"][new_domain_index][0]=copy.deepcopy(domains_detections["get_conf_by_source"])
+                    new_domain_index=max([ k for k in domains_detections["domain_info"].keys()]+[0])+1
+                    domains_detections["domain_info"][new_domain_index] = [[],[],0]
+                    domains_detections["domain_info"][new_domain_index][0]=copy.deepcopy(domains_detections["get_conf_by_source"])
+                    domains_detections["cur_dom"] = new_domain_index
                     domains_detections["created_new_domain"] = True
+                    domains_detections["adapt_termination_param"] = expit(0)
                 domains_detections["get_new_domain_info"]=False
                 domains_detections["get_conf_by_source"]=[]
 
@@ -374,10 +381,10 @@ def single_gpu_language_cotta(model,
                         domains_detections["ini_wass_dist"].append(wass_dist)
                 else:
                     if domains_detections["created_new_domain"]:
-                        domain_info_index=[k for k,v in domains_detections["domain_grad"].items() if len(v[1])<0.5]
-                        domains_detections["domain_grad"][domain_info_index[0]][1]=copy.deepcopy(domains_detections["ini_wass_dist"])
+                        domain_info_index=[k for k,v in domains_detections["domain_info"].items() if len(v[1])<0.5]
+                        domains_detections["domain_info"][domain_info_index[0]][1]=copy.deepcopy(domains_detections["ini_wass_dist"])
                         domains_detections["created_new_domain"]=False
-                        print("new domain created",domains_detections["domain_grad"])
+                        print("new domain created",domains_detections["domain_info"])
                     domains_detections["cur_wass_dist"].append(wass_dist)
                     if len(domains_detections["cur_wass_dist"])>=domains_detections["wass_dist_length"]:
                         if np.mean(domains_detections["cur_wass_dist"])>(domains_detections["adapt_termination_param"]*np.mean(domains_detections["ini_wass_dist"])) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
