@@ -409,7 +409,14 @@ def single_gpu_language_cotta(model,
 
                 domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
             else:
-                result_ori, probs, preds = ema_model(return_loss=False, **data)
+                result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],
+                                                      img_metas=[data['img_metas'][img_id].data[0]])  # **data)
+                mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
+                result, probs, preds = ema_model(return_loss=False, **data)
+
+                result_ori = [(mask * preds[img_id][0] + (1. - mask) * result[0]).astype(np.int64)]
+
+                #result_ori, probs, preds = ema_model(return_loss=False, **data)
                 # print(type(probs[0]),probs[0],probs[0].size())
                 # print(torch.mean(probs[0]).item())
                 conf_mean=np.mean(probs[img_id])

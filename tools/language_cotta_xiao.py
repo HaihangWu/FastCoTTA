@@ -119,16 +119,16 @@ def main():
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
-    if args.aug_test:
-    #if True:
+    #if args.aug_test:
+    if True:
         for i in range(len(cfg.data.test.test_cases)):
             if cfg.data.test.test_cases[i].type in ['CityscapesDataset', 'ACDCDataset','KITTIDataset','NightCityDataset']:
                 # hard code index
                 cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
-                    #0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
-                    1.0, 2.0
+                    0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
+                    #1.0, 2.0
                 ]
-                cfg.data.test.test_cases[i].pipeline[1].flip = False
+                cfg.data.test.test_cases[i].pipeline[1].flip = True
             elif cfg.data.test.test_cases[i].type == 'ADE20KDataset':
                 # hard code index
                 cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
