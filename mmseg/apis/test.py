@@ -646,11 +646,13 @@ def single_gpu_language_cotta_xiao(model,
                 domains_detections["storage"] = domains_detections["storage"][1:]
 
 
+            result=[]
             if not domains_detections["adaptation"]:
                 result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
                                                       img_metas=[data['img_metas'][img_id].data[0]])
 
                 domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+                result = [preds[0][0].astype(np.int64)]
             else:
                 result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],
                                                       img_metas=[data['img_metas'][img_id].data[0]])  # **data)
@@ -658,6 +660,7 @@ def single_gpu_language_cotta_xiao(model,
                 result, probs, preds = ema_model(return_loss=False, **data)
 
                 result_ori = [(mask * preds[img_id][0] + (1. - mask) * result[0]).astype(np.int64)]
+                result = [preds[img_id][0].astype(np.int64)]
                 # print(type(probs[0]),probs[0],probs[0].size())
                 # print(torch.mean(probs[0]).item())
                 conf_mean=np.mean(probs[img_id])
@@ -665,7 +668,7 @@ def single_gpu_language_cotta_xiao(model,
                 #domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
 
-            result = [preds[img_id][0].astype(np.int64)]
+
             result_=[result_ori[0].astype(np.int64)]
 
             weight = 1.
