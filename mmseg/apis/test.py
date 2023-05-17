@@ -656,7 +656,7 @@ def single_gpu_language_cotta_xiao(model,
                                                       img_metas=[data['img_metas'][img_id].data[0]])
                 # print(type(probs[0]),probs[0],probs[0].size())
                 # print(torch.mean(probs[0]).item())
-                conf_mean=np.mean(probs[img_id])
+                #conf_mean=np.mean(probs[img_id])
                 #domains_detections["storage"].append(conf_mean)
                 domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
