@@ -198,7 +198,7 @@ def main():
     domains_detections["wass_dist_length"] = 5
 
     domains_detections["storage"] = []
-    domains_detections["storage_length"] = 5
+    domains_detections["storage_length"] = 20
 
     domains_detections["get_new_domain_info"]=True
     domains_detections["get_conf_by_source"] = []
