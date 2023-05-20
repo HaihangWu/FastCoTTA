@@ -44,8 +44,10 @@ export MASTER_ADDR=$master_addr
 echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
-#bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb5-night-Lcotta-lambdadecay-Nlr.log
+bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b3.1024x1024.night.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb3-night-Lcotta-lambdadecay.log
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb5-acdc-Lcotta-lambdadecay.log
+
+
 #bash ./tools/dist_language_cotta-xiao.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb5-acdc-cotta-lambdadecay-xiao.log
 #bash ./tools/dist_language_cotta-xiao.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_acdc.py  1 5 2.5 1.0 0.5 "setr" | tee SETR-acdc-Lcotta-lambdadecay-xiao.log
 
@@ -56,7 +58,7 @@ echo "r$SLURM_NODEID Launching python script"
 #bash ./tools/dist_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 | tee LSegb5-night-cotta-train.log
 #bash ./tools/dist_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-cotta-train.log
 
-bash ./tools/dist_language_test.sh local_configs/Language/Lsegformer.b0.1024x1024.night.160k.py   1 | tee LSegb0-night.log
+#bash ./tools/dist_language_test.sh local_configs/Language/Lsegformer.b0.1024x1024.night.160k.py   1 | tee LSegb0-night.log
 #bash ./tools/dist_language_test.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_acdc.py  1 | tee Lsetr-acdc-BN.log
 
 #outlier_num 5
