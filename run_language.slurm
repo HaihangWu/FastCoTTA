@@ -44,7 +44,7 @@ export MASTER_ADDR=$master_addr
 echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
-bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b3.1024x1024.night.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb3-night-Lcotta-lambdadecay.log
+bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b0.1024x1024.night.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb0-night-Lcotta-lambdadecay.log
 #bash ./tools/dist_language_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.acdc.160k.py  1 5 2.5 1.0 0.5 "segformer" | tee LSegb5-acdc-Lcotta-lambdadecay.log
 
 
