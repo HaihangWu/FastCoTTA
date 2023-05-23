@@ -240,7 +240,7 @@ def single_gpu_cotta(model,
 
         #pred_time += time.time() - pred_begin
         # batch_size = data['img'][0].size(0)
-        # if i==399: # whh
+        # if i==399:
         #     for _ in range(batch_size):
         #         prog_bar.update()
         #print("iter %d, teacher_pred: %.3f seconds; anchor_pred: %.3f;" % (i, teacher_pred, anchor_pred))
@@ -437,7 +437,7 @@ def single_gpu_language_cotta(model,
 
     #     pred_time += time.time() - pred_begin
     #     batch_size = data['img'][0].size(0)
-    #     if i==399: # whh
+    #     if i==399:
     #         for _ in range(batch_size):
     #             prog_bar.update()
     # total_predict_time=total_predict_time+pred_time

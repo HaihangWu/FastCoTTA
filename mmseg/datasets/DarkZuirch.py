@@ -69,7 +69,6 @@ class DarkZuirchDataset(CustomDataset):
         for idx in range(len(self)):
             result = results[idx]
             if isinstance(result, str):
-                # print("wuhh3",type(result),result)
                 result = np.load(result)
             # if gt_seg_maps is not None and isinstance(gt_seg_map, str):
             #     gt_seg_map = mmcv.imread(gt_seg_map, flag='unchanged', backend='pillow')
