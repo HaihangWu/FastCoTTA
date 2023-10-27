@@ -11,12 +11,13 @@ from mmseg.apis import multi_gpu_test, single_gpu_test
 from mmseg.datasets import build_dataloader, build_dataset
 from mmseg.models import build_segmentor
 from IPython import embed
+import time
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description='mmseg test (and eval) a model')
     parser.add_argument('config', help='test config file path')
-    parser.add_argument('checkpoint', help='checkpoint file')
+    # parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument(
         '--aug-test', action='store_true', help='Use Flip and Multi scale aug')
     parser.add_argument('--out', default='work_dirs/res.pkl', help='output result file in pickle format')
@@ -88,26 +89,28 @@ def main():
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
     if args.aug_test:
-        if cfg.data.test.type == 'CityscapesDataset':
-            # hard code index
-            cfg.data.test.pipeline[1].img_ratios = [
-                0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
-            ]
-            cfg.data.test.pipeline[1].flip = True
-        elif cfg.data.test.type == 'ADE20KDataset':
-            # hard code index
-            cfg.data.test.pipeline[1].img_ratios = [
-                0.75, 0.875, 1.0, 1.125, 1.25
-            ]
-            cfg.data.test.pipeline[1].flip = True
-        else:
-            # hard code index
-            cfg.data.test.pipeline[1].img_ratios = [
-                0.5, 0.75, 1.0, 1.25, 1.5, 1.75
-            ]
-            cfg.data.test.pipeline[1].flip = True
+        for i in range(len(cfg.data.test.test_cases)):
+            if cfg.data.test.test_cases[i].type in ['CityscapesDataset', 'ACDCDataset','KITTIDataset']:
+                # hard code index
+                cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
+                    0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
+                    #1.0, 2.0
+                ]
+                cfg.data.test.test_cases[i].pipeline[1].flip = False
+            elif cfg.data.test.test_cases[i].type == 'ADE20KDataset':
+                # hard code index
+                cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
+                    0.75, 0.875, 1.0, 1.125, 1.25
+                ]
+                cfg.data.test.test_cases[i].pipeline[1].flip = True
+            else:
+                # hard code index
+                cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
+                    0.5, 0.75, 1.0, 1.25, 1.5, 1.75
+                ]
+                cfg.data.test.test_cases[i].pipeline[1].flip = True
 
-    cfg.model.pretrained = None
+    # cfg.model.pretrained = None
     cfg.data.test.test_mode = True
 
     # init distributed env first, since logger depends on the dist info.
@@ -119,53 +122,59 @@ def main():
 
     # build the dataloader
     # TODO: support multiple images per gpu (only minor changes are needed)
-    dataset = build_dataset(cfg.data.test)
-    data_loader = build_dataloader(
+    #print(cfg)
+    #datasets = [ build_dataset(cfg.data.test)]
+    datasets = [ build_dataset(cfg.data.test.test_cases[i])for i in range(len(cfg.data.test.test_cases))]
+    data_loaders = [build_dataloader(
         dataset,
         samples_per_gpu=1,
         workers_per_gpu=cfg.data.workers_per_gpu,
         dist=distributed,
-        shuffle=False)
+        shuffle=False) for dataset in datasets]
 
     # build the model and load checkpoint
     cfg.model.train_cfg = None
+    cfg.model.class_names=datasets[0].CLASSES
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
-    # checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
+    #checkpoint = load_checkpoint(model, cfg.model.pretrained, map_location='cpu')
     # model.CLASSES = checkpoint['meta']['CLASSES']
     # model.PALETTE = checkpoint['meta']['PALETTE']
-
     pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
+    #print(pretrained_dict['state_dict'].keys())
+    #print("I'm printing the model",model.state_dict().keys())
     model.load_state_dict(pretrained_dict['state_dict'])
-    model.CLASSES = dataset.CLASSES
-    model.PALETTE = dataset.PALETTE
+    # if hasattr(model, 'text_encoder'):
+    #     model.text_encoder.init_weights()
+    model.CLASSES = datasets[0].CLASSES
+    model.PALETTE = datasets[0].PALETTE
 
     efficient_test = True #False
     if args.eval_options is not None:
         efficient_test = args.eval_options.get('efficient_test', False)
 
-    if not distributed:
-        model = MMDataParallel(model, device_ids=[0])
-        outputs = single_gpu_test(model, data_loader, args.show, args.show_dir,
-                                  efficient_test)
-    else:
-        model = MMDistributedDataParallel(
-            model.cuda(),
-            device_ids=[torch.cuda.current_device()],
-            broadcast_buffers=False)
-        outputs = multi_gpu_test(model, data_loader, args.tmpdir,
-                                 args.gpu_collect, efficient_test)
+    model = MMDataParallel(model, device_ids=[0])
+    total_predict_time=0
+    total_processed_frame=0
+    for i in range(10):
+        print("revisit times:",i)
+        for dataset, data_loader in zip(datasets, data_loaders):
+            pred_begin = time.time()
+            outputs = single_gpu_test(model, data_loader, args.show, args.show_dir,
+                                      efficient_test)
+            total_predict_time = total_predict_time+time.time()-pred_begin
+            total_processed_frame=total_processed_frame+len(data_loader)
 
-    rank, _ = get_dist_info()
-    if rank == 0:
-        if args.out:
-            print(f'\nwriting results to {args.out}')
-            mmcv.dump(outputs, args.out)
-        kwargs = {} if args.eval_options is None else args.eval_options
-        if args.format_only:
-            dataset.format_results(outputs, **kwargs)
-        if args.eval:
-            dataset.evaluate(outputs, args.eval, **kwargs)
-
+            rank, _ = get_dist_info()
+            if rank == 0:
+                if args.out:
+                    print(f'\nwriting results to {args.out}')
+                    mmcv.dump(outputs, args.out)
+                kwargs = {} if args.eval_options is None else args.eval_options
+                if args.format_only:
+                    dataset.format_results(outputs, **kwargs)
+                if args.eval:
+                    dataset.evaluate(outputs, args.eval, **kwargs)
+    print("total avg pred time:%.3f seconds; " % (total_predict_time / total_processed_frame))
 
 if __name__ == '__main__':
     main()

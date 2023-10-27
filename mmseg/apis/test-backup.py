@@ -259,6 +259,7 @@ def single_gpu_language_cotta(model,
                     anchor_model=None,
                      frame_passed =0,
                     domains_detections={},
+                    model_name="setr",
                      round=-1):
     """Test with single GPU.
 
@@ -279,7 +280,7 @@ def single_gpu_language_cotta(model,
     anchor_model.eval()
     results = []
     domain_storage_length=100
-    storage_temp_length=10
+    #storage_temp_length=10
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     param_list = []
@@ -289,9 +290,15 @@ def single_gpu_language_cotta(model,
             param_list.append(param)
         else:
             param.requires_grad=False
-    optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
-    #optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
-    # pred_time=0
+    if model_name in "setr":
+        optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
+        print("setr model")
+    else:
+        optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
+
+    pred_time=0
+    print("new domain starts,",frame_passed)
+    new_domain_frame=frame_passed
     for i, data in enumerate(data_loader):
         model.eval() # student model
         ema_model.eval() # teacher model
@@ -300,71 +307,111 @@ def single_gpu_language_cotta(model,
         # if i==0:
         #     ema_model.load_state_dict(anchor)
         #if frame_passed%100==0
-        if random.random()<domains_detections["detection_prob"]:
-            domains_detections["detection"] = True
-        else:
-            domains_detections["detection"] = False
+        # if random.random()<domains_detections["detection_prob"]:
+        #     domains_detections["detection"] = True
+        # else:
+        #     domains_detections["detection"] = False
         frame_passed=frame_passed +1
         with torch.no_grad():
             img_id = 0
             if len(data['img']) == 14:
                 img_id = 4  # The default size without flip
 
-            if domains_detections["detection"]:
-                result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
-                domains_detections["storage"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
+            if domains_detections["get_new_domain_info"]:
+                result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])
+                domains_detections["get_conf_by_source"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
+            if len(domains_detections["get_conf_by_source"])>=domains_detections["info_length_by_source"]:
+                cur_domain_mean=np.mean(domains_detections["get_conf_by_source"])
+                cur_domain_std = np.std(domains_detections["get_conf_by_source"])
+                z_score = 10000
+                domain_index=-1
+                for k,v in domains_detections["domain_info"].items():
+                    this_domain_mean=np.mean(v[0])
+                    this_domain_std=np.std(v[0])
+                    z_score_temp = abs(cur_domain_mean - this_domain_mean) / np.sqrt(cur_domain_std ** 2.0 + this_domain_std ** 2.0)
+                    if z_score_temp<domains_detections["z_score_threshold"] and z_score>z_score_temp:
+                        z_score=z_score_temp
+                        domain_index=k
+                if domain_index>0.5:
+                    domains_detections["ini_wass_dist"]=domains_detections["domain_info"][domain_index][1]
+                    if domains_detections["cur_dom"] != domain_index:
+                        domains_detections["domain_info"][domain_index][2]=domains_detections["domain_info"][domain_index][2]+1
+                    domains_detections["created_new_domain"] = False
+                    domains_detections["cur_dom"] = domain_index
+                    domains_detections["adapt_termination_param"]=expit(domains_detections["domain_info"][domain_index][2])
+                    print("revisit domain",z_score, domain_index,domains_detections["adapt_termination_param"])
+                else:
+                    new_domain_index=max([ k for k in domains_detections["domain_info"].keys()]+[0])+1
+                    domains_detections["domain_info"][new_domain_index] = [[],[],0]
+                    domains_detections["domain_info"][new_domain_index][0]=copy.deepcopy(domains_detections["get_conf_by_source"])
+                    domains_detections["cur_dom"] = new_domain_index
+                    domains_detections["created_new_domain"] = True
+                    domains_detections["adapt_termination_param"] = expit(0)
+                domains_detections["get_new_domain_info"]=False
+                domains_detections["get_conf_by_source"]=[]
 
-            if len(domains_detections["storage"])>=storage_temp_length:
-               domain_keys=[s for s in domains_detections.keys() if "domain" in s]
-               domain_order=[int(s[-1]) for s in domains_detections.keys() if "domain" in s]
-               domain_gap = 1000
-               which_domain = None
-               storage_mean = np.mean(domains_detections["storage"])
-               for domain in domain_keys:
-                   domain_mean=np.mean(domains_detections[domain])
-                   domain_std = np.std(domains_detections[domain])
-                   cur_gap=abs((domain_mean-storage_mean)/domain_std)
-                   #cur_gap=wasserstein_distance(domains_detections["storage"],domains_detections[domain])
-                   if cur_gap<2.0:
-                       if cur_gap<domain_gap:
-                           which_domain=domain
-                           domain_gap=cur_gap
-               if which_domain is not None:
-                   if domains_detections["cur_dom"]!=which_domain:
-                        domains_detections["adaptation_prob"][which_domain] = domains_detections["adaptation_prob"][which_domain]*0.5
-                        domains_detections["cur_adaptation_prob"]=domains_detections["adaptation_prob"][which_domain]
-                   if domain_gap < 0.5:
-                       if len(domains_detections[which_domain])>=domain_storage_length:
-                               domains_detections[which_domain]=domains_detections[which_domain][storage_temp_length:domain_storage_length]+domains_detections["storage"]
+            if len(domains_detections["storage"])>domains_detections["storage_length"] and not domains_detections["get_new_domain_info"]:
+                if not domains_detections["created_new_domain"]:
+                       cur_distribution=np.array(copy.deepcopy(domains_detections["storage"][:domains_detections["storage_length"]]))
+                       cur_sample=domains_detections["storage"][-1]
+                       if (cur_sample < np.percentile(cur_distribution, 5) or cur_sample > np.percentile(cur_distribution, 95)):
+                           domains_detections["outlier_count"] = domains_detections["outlier_count"] + 1
                        else:
-                           domains_detections[which_domain] = domains_detections[which_domain]+ domains_detections["storage"]
-                   print(
-                       [[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for
-                        s in domain_keys], which_domain, domains_detections["adaptation_prob"][which_domain],
-                       domain_gap, frame_passed)
-                   domains_detections["cur_dom"]=which_domain
-               else:
-                   new_domain_name="domain"+str(1)
-                   if len(domain_order)>0.5:
-                       new_domain_name='domain'+str(max(domain_order)+1)
-                   domains_detections["adaptation_prob"][new_domain_name] = 1.0
-                   domains_detections["cur_adaptation_prob"]=1.0
-                   domains_detections["cur_dom"]=new_domain_name
-                   domains_detections[new_domain_name]=domains_detections["storage"]
-                   print([[np.mean(domains_detections[s]), np.std(domains_detections[s]), len(domains_detections[s])] for s in domain_keys], domains_detections["cur_dom"], 1.0, frame_passed)
-               domains_detections["storage"]=[]
-               domains_detections["detection"]=False
+                           if domains_detections["outlier_count"] >0.5:
+                              domains_detections["outlier_count"]=0
+                       if domains_detections["outlier_count"]>=domains_detections["outlier_threshold"]:
+                            print("domain shift detected,",frame_passed)
+                            domains_detections["get_new_domain_info"]=True
+                            domains_detections["domain_shift_detected"] = True
+                            domains_detections["ini_wass_dist"]=[]
 
-                #mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
-            adapt= True if random.random() < domains_detections["cur_adaptation_prob"] else False
-            if not adapt:
+            if len(domains_detections["storage"])>=(2*domains_detections["storage_length"]): #and domains_detections["detection"] is True:
+                last_distribution = np.array(copy.deepcopy(domains_detections["storage"][:domains_detections["storage_length"]]))
+                cur_distribution = np.array(copy.deepcopy(domains_detections["storage"][domains_detections["storage_length"]:]))
+                wass_dist=wasserstein_distance(last_distribution,cur_distribution)
+
+                #print("domain detection", last_mean, cur_mean, wass_dist,  frame_passed)
+                if len(domains_detections["ini_wass_dist"])<domains_detections["wass_dist_length"]:
+                    if domains_detections["created_new_domain"]:
+                        domains_detections["ini_wass_dist"].append(wass_dist)
+                else:
+                    if domains_detections["created_new_domain"]:
+                        domain_info_index=[k for k,v in domains_detections["domain_info"].items() if len(v[1])<0.5]
+                        domains_detections["domain_info"][domain_info_index[0]][1]=copy.deepcopy(domains_detections["ini_wass_dist"])
+                        domains_detections["created_new_domain"]=False
+                        print("new domain created",domains_detections["domain_info"])
+                    domains_detections["cur_wass_dist"].append(wass_dist)
+                    if len(domains_detections["cur_wass_dist"])>=domains_detections["wass_dist_length"]:
+                        if np.mean(domains_detections["cur_wass_dist"])>(domains_detections["adapt_termination_param"]*np.mean(domains_detections["ini_wass_dist"])) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
+                            if domains_detections["domain_shift_detected"]:
+                                domains_detections["adaptation"] = True
+                                #domains_detections["validation_frame"] = [[],[]]
+                                print("domain adaptation begin",frame_passed)
+                        if np.mean(domains_detections["cur_wass_dist"])<(domains_detections["adapt_termination_param"]*np.mean(domains_detections["ini_wass_dist"])) and domains_detections["adaptation"]:
+                            domains_detections["adaptation"] = False
+                            domains_detections["domain_shift_detected"] = False
+                            #domains_detections["validation_frame"] = [[],[]]
+                            print("domain adaptation termination",frame_passed)
+                        domains_detections["cur_wass_dist"]=domains_detections["cur_wass_dist"][1:]
+
+                domains_detections["storage"] = domains_detections["storage"][domains_detections["storage_length"]:] # detect every storage_temp_length frames
+                domains_detections["storage"] = domains_detections["storage"][1:]
+
+
+            if not domains_detections["adaptation"]:
                 result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
                                                       img_metas=[data['img_metas'][img_id].data[0]])
+
+                domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
             else:
                 result_ori, probs, preds = ema_model(return_loss=False, **data)
+                # print(type(probs[0]),probs[0],probs[0].size())
+                # print(torch.mean(probs[0]).item())
+                conf_mean=np.mean(probs[img_id])
+                domains_detections["storage"].append(conf_mean)
+                #domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
-            #print(probs[0])
-            # result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
+
             result = [preds[img_id][0].astype(np.int64)]
             result_=[result_ori[0].astype(np.int64)]
 
@@ -392,13 +439,12 @@ def single_gpu_language_cotta(model,
         #             palette=dataset.PALETTE,
         #             show=show,
         #             out_file=out_file)
-        #if True:
-        if adapt:
+        #if ((new_domain_frame+10)>frame_passed) or round<14: #
+        if domains_detections["adaptation"]: #and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
             #model = deepcopy(ema_model)
             # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
             #     param.data[:] = ema_param[:].data[:]
-            domains_detections["adapted_frame"] = domains_detections["adapted_frame"] +1
             if isinstance(result, list):
                 if len(data['img'])==14:
                     img_id = 4 #The default size without flip
@@ -412,9 +458,10 @@ def single_gpu_language_cotta(model,
                 if efficient_test:
                     result = np2tmp(result)
                 results.append(result)
-            torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
-
-            #torch.mean(loss["decode.loss_seg"]).backward()
+            if domains_detections["language_regularization"]:
+                torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
+            else:
+                torch.mean(loss["decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
 
@@ -435,17 +482,244 @@ def single_gpu_language_cotta(model,
             results.extend(result)
 
 
-    #     pred_time += time.time() - pred_begin
+        pred_time += time.time() - pred_begin
     #     batch_size = data['img'][0].size(0)
     #     if i==399:
     #         for _ in range(batch_size):
     #             prog_bar.update()
-    # total_predict_time=total_predict_time+pred_time
-    # print("average pred_time: %.3f seconds;total avg pred time:%.3f seconds; " % (pred_time/(i+1),total_predict_time/(round*(i+1))))
+    #total_predict_time=total_predict_time+pred_time
+    print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
     return results,frame_passed,domains_detections
 
 
 
+def single_gpu_language_cotta_xiao(model,
+                    data_loader,
+                    show=False,
+                    out_dir=None,
+                    efficient_test=False,
+                    anchor=None,
+                    ema_model=None,
+                    anchor_model=None,
+                     frame_passed =0,
+                    domains_detections={},
+                    model_name="setr",
+                     round=-1):
+    """Test with single GPU.
+
+    Args:
+        model (nn.Module): Model to be tested.
+        data_loader (utils.data.Dataloader): Pytorch data loader.
+        show (bool): Whether show results during infernece. Default: False.
+        out_dir (str, optional): If specified, the results will be dumped into
+            the directory to save output results.
+        efficient_test (bool): Whether save the results as local numpy files to
+            save CPU memory during evaluation. Default: False.
+
+    Returns:
+        list: The prediction results.
+    """
+
+    model.eval()
+    anchor_model.eval()
+    results = []
+    domain_storage_length=100
+    #storage_temp_length=10
+    dataset = data_loader.dataset
+    prog_bar = mmcv.ProgressBar(len(dataset))
+    param_list = []
+    out_dir = "./Cotta/"+str(frame_passed)
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            param_list.append(param)
+        else:
+            param.requires_grad=False
+    if model_name in "setr":
+        optimizer = torch.optim.SGD(param_list, lr=0.01)  # for SETR
+        print("setr model")
+    else:
+        optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer
+
+    pred_time=0
+    print("new domain starts,",frame_passed)
+    new_domain_frame=frame_passed
+    for i, data in enumerate(data_loader):
+        model.eval() # student model
+        ema_model.eval() # teacher model
+        anchor_model.eval() # source model
+        pred_begin=time.time()
+        # if i==0:
+        #     ema_model.load_state_dict(anchor)
+        #if frame_passed%100==0
+        # if random.random()<domains_detections["detection_prob"]:
+        #     domains_detections["detection"] = True
+        # else:
+        #     domains_detections["detection"] = False
+        frame_passed=frame_passed +1
+        with torch.no_grad():
+            img_id = 0
+            if len(data['img']) == 14:
+                img_id = 4  # The default size without flip
+
+            if domains_detections["get_new_domain_info"]:
+                result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])
+                domains_detections["get_conf_by_source"].append(np.mean(torch.amax(probs_[0], 0).cpu().numpy()))
+            if len(domains_detections["get_conf_by_source"])>=domains_detections["info_length_by_source"]:
+                cur_domain_mean=np.mean(domains_detections["get_conf_by_source"])
+                cur_domain_std = np.std(domains_detections["get_conf_by_source"])
+                z_score = 10000
+                domain_index=-1
+                for k,v in domains_detections["domain_info"].items():
+                    this_domain_mean=np.mean(v[0])
+                    this_domain_std=np.std(v[0])
+                    z_score_temp = abs(cur_domain_mean - this_domain_mean) / np.sqrt(cur_domain_std ** 2.0 + this_domain_std ** 2.0)
+                    if z_score_temp<domains_detections["z_score_threshold"] and z_score>z_score_temp:
+                        z_score=z_score_temp
+                        domain_index=k
+                if domain_index>0.5:
+                    domains_detections["ini_wass_dist"]=domains_detections["domain_info"][domain_index][1]
+                    if domains_detections["cur_dom"] != domain_index:
+                        domains_detections["domain_info"][domain_index][2]=domains_detections["domain_info"][domain_index][2]+1
+                    domains_detections["created_new_domain"] = False
+                    domains_detections["cur_dom"] = domain_index
+                    domains_detections["adapt_termination_param"]=expit(domains_detections["domain_info"][domain_index][2])
+                    print("revisit domain",z_score, domain_index,domains_detections["adapt_termination_param"])
+                else:
+                    new_domain_index=max([ k for k in domains_detections["domain_info"].keys()]+[0])+1
+                    domains_detections["domain_info"][new_domain_index] = [[],[],0]
+                    domains_detections["domain_info"][new_domain_index][0]=copy.deepcopy(domains_detections["get_conf_by_source"])
+                    domains_detections["cur_dom"] = new_domain_index
+                    domains_detections["created_new_domain"] = True
+                    domains_detections["adapt_termination_param"] = expit(0)
+                domains_detections["get_new_domain_info"]=False
+                domains_detections["get_conf_by_source"]=[]
+
+            if len(domains_detections["storage"])>domains_detections["storage_length"] and not domains_detections["get_new_domain_info"]:
+                if not domains_detections["created_new_domain"]:
+                       cur_distribution=np.array(copy.deepcopy(domains_detections["storage"][:domains_detections["storage_length"]]))
+                       cur_sample=domains_detections["storage"][-1]
+                       if (cur_sample < np.percentile(cur_distribution, 5) or cur_sample > np.percentile(cur_distribution, 95)):
+                           domains_detections["outlier_count"] = domains_detections["outlier_count"] + 1
+                       else:
+                           if domains_detections["outlier_count"] >0.5:
+                              domains_detections["outlier_count"]=0
+                       if domains_detections["outlier_count"]>=domains_detections["outlier_threshold"]:
+                            print("domain shift detected,",frame_passed)
+                            domains_detections["get_new_domain_info"]=True
+                            domains_detections["domain_shift_detected"] = True
+                            domains_detections["ini_wass_dist"]=[]
+
+            if len(domains_detections["storage"])>=(2*domains_detections["storage_length"]): #and domains_detections["detection"] is True:
+                last_distribution = np.array(copy.deepcopy(domains_detections["storage"][:domains_detections["storage_length"]]))
+                cur_distribution = np.array(copy.deepcopy(domains_detections["storage"][domains_detections["storage_length"]:]))
+                wass_dist=wasserstein_distance(last_distribution,cur_distribution)
+
+                #print("domain detection", last_mean, cur_mean, wass_dist,  frame_passed)
+                if len(domains_detections["ini_wass_dist"])<domains_detections["wass_dist_length"]:
+                    if domains_detections["created_new_domain"]:
+                        domains_detections["ini_wass_dist"].append(wass_dist)
+                else:
+                    if domains_detections["created_new_domain"]:
+                        domain_info_index=[k for k,v in domains_detections["domain_info"].items() if len(v[1])<0.5]
+                        domains_detections["domain_info"][domain_info_index[0]][1]=copy.deepcopy(domains_detections["ini_wass_dist"])
+                        domains_detections["created_new_domain"]=False
+                        print("new domain created",domains_detections["domain_info"])
+                    domains_detections["cur_wass_dist"].append(wass_dist)
+                    if len(domains_detections["cur_wass_dist"])>=domains_detections["wass_dist_length"]:
+                        if np.mean(domains_detections["cur_wass_dist"])>(domains_detections["adapt_termination_param"]*np.mean(domains_detections["ini_wass_dist"])) and not domains_detections["adaptation"]: #and (abs(cur_mean-last_mean)/np.sqrt(cur_distri_std**2.0+last_distri_std**2.0))>2.0:
+                            if domains_detections["domain_shift_detected"]:
+                                domains_detections["adaptation"] = True
+                                #domains_detections["validation_frame"] = [[],[]]
+                                print("domain adaptation begin",frame_passed)
+                        if np.mean(domains_detections["cur_wass_dist"])<(domains_detections["adapt_termination_param"]*np.mean(domains_detections["ini_wass_dist"])) and domains_detections["adaptation"]:
+                            domains_detections["adaptation"] = False
+                            domains_detections["domain_shift_detected"] = False
+                            #domains_detections["validation_frame"] = [[],[]]
+                            print("domain adaptation termination",frame_passed)
+                        domains_detections["cur_wass_dist"]=domains_detections["cur_wass_dist"][1:]
+
+                domains_detections["storage"] = domains_detections["storage"][domains_detections["storage_length"]:] # detect every storage_temp_length frames
+                domains_detections["storage"] = domains_detections["storage"][1:]
+
+
+            result=[]
+            if not domains_detections["adaptation"]:
+                result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
+                                                      img_metas=[data['img_metas'][img_id].data[0]])
+
+                domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+                result = [preds[0][0].astype(np.int64)]
+            else:
+                result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],
+                                                      img_metas=[data['img_metas'][img_id].data[0]])  # **data)
+                mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
+                result, probs, preds = ema_model(return_loss=False, **data)
+
+                result_ori = [(mask * preds[img_id][0] + (1. - mask) * result[0]).astype(np.int64)]
+                result = [preds[img_id][0].astype(np.int64)]
+                # print(type(probs[0]),probs[0],probs[0].size())
+                # print(torch.mean(probs[0]).item())
+                conf_mean=np.mean(probs[img_id])
+                domains_detections["storage"].append(conf_mean)
+                #domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+
+
+
+            result_=[result_ori[0].astype(np.int64)]
+
+            weight = 1.
+
+        #if ((new_domain_frame+10)>frame_passed) or round<14: #
+        if domains_detections["adaptation"]: #and (len(domains_detections["validation_frame"][0])==domains_detections["num_validation_frame"]):
+            #model = deepcopy(ema_model)
+            # for ema_param, param in zip(ema_model.parameters(), model.parameters()):
+            #     # ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
+            #     param.data[:] = ema_param[:].data[:]
+            if isinstance(result, list):
+                if len(data['img'])==14:
+                    img_id = 4 #The default size without flip
+                else:
+                    img_id = 0
+                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result_[0]).cuda().unsqueeze(0).unsqueeze(0))
+                if efficient_test:
+                    result = [np2tmp(_) for _ in result]
+                results.extend(result)
+            else:
+                if efficient_test:
+                    result = np2tmp(result)
+                results.append(result)
+            if domains_detections["language_regularization"]:
+                torch.mean(loss["decode.loss_seg"]+loss["text_decode.loss_seg"]).backward()
+            else:
+                torch.mean(loss["decode.loss_seg"]).backward()
+            optimizer.step()
+            optimizer.zero_grad()
+
+            ema_model = update_ema_variables(ema_model = ema_model, model = model, alpha_teacher=0.999) #teacher model
+
+            #stochastic restoration
+            # for nm, m  in model.named_modules():
+            # #for nm, m in ema_model.named_modules():
+            #     if 'decode_head' in nm or 'backbone' in nm:
+            #         for npp, p in m.named_parameters():
+            #             if npp in ['weight', 'bias'] and p.requires_grad:
+            #                 mask = (torch.rand(p.shape)<0.01).float().cuda()
+            #                 with torch.no_grad():
+            #                     p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
+        else:
+            if efficient_test:
+                result = [np2tmp(_) for _ in result]
+            results.extend(result)
+
+
+        pred_time += time.time() - pred_begin
+    #     batch_size = data['img'][0].size(0)
+    #     if i==399:
+    #         for _ in range(batch_size):
+    #             prog_bar.update()
+    #total_predict_time=total_predict_time+pred_time
+    print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
+    return results,frame_passed,domains_detections
 
 def multi_gpu_test(model,
                    data_loader,
