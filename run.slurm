@@ -15,12 +15,12 @@
 # -p gpu-a100
 
 # Request different amount of resources for different nodes
-#SBATCH --constraint=[dlg1|dlg2|dlg3]
+# --constraint=[dlg1|dlg2|dlg3]
 # --constraint=[dlg3|dlg4|dlg5]
 #SBATCH --nodes=1                # node count
 #SBATCH --ntasks-per-node=1      # total number of tasks per node
 #SBATCH --gres=gpu:1             # number of gpus per node
-#SBATCH --cpus-per-task=8        # cpu-cores per task (>1 if multi-threaded tasks)
+#SBATCH --cpus-per-task=16        # cpu-cores per task (>1 if multi-threaded tasks)
 #SBATCH --mem-per-cpu=8G
 
 # Maximum number of tasks/CPU cores used by the job:
@@ -30,7 +30,7 @@
 # The maximum running time of the job in days-hours:mins:sec
 #SBATCH --time=00-15:00:0
 
-module load anaconda3/2021.11
+module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
 conda activate Uniformerv2
 
