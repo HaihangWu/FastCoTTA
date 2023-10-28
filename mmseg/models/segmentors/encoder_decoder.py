@@ -269,9 +269,10 @@ class EncoderDecoder(BaseSegmentor):
             seg_pred = seg_pred.unsqueeze(0)
             return seg_pred
         seg_pred = seg_pred.cpu().numpy()
+        preds = [seg_pred]
         # unravel batch dim
         seg_pred = list(seg_pred)
-        return seg_pred
+        return seg_pred,seg_logit,preds
 
     def aug_test(self, imgs, img_metas, rescale=True):
         """Test with augmentations.
@@ -282,12 +283,21 @@ class EncoderDecoder(BaseSegmentor):
         assert rescale
         # to save memory, we get augmented seg logit inplace
         seg_logit = self.inference(imgs[0], img_metas[0], rescale)
+        prob, pred = seg_logit.max(dim=1)
+        preds = [pred.cpu().numpy()]
+        probs = [prob.cpu().numpy()]
         for i in range(1, len(imgs)):
             cur_seg_logit = self.inference(imgs[i], img_metas[i], rescale)
             seg_logit += cur_seg_logit
+            prob, pred = cur_seg_logit.max(dim=1)
+            preds.append(pred.cpu().numpy())
+            probs.append(prob.cpu().numpy())
         seg_logit /= len(imgs)
         seg_pred = seg_logit.argmax(dim=1)
+        prob, pred = seg_logit.max(dim=1)
+        probs.append(prob.cpu().numpy())
+        preds.append(pred.cpu().numpy())
         seg_pred = seg_pred.cpu().numpy()
         # unravel batch dim
         seg_pred = list(seg_pred)
-        return seg_pred
+        return seg_pred, probs, preds
