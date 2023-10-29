@@ -263,7 +263,7 @@ class EncoderDecoder(BaseSegmentor):
 
     def simple_test(self, img, img_meta, rescale=True):
         """Simple test with single image."""
-        print("simple test")
+        # print("simple test")
         seg_logit = self.inference(img, img_meta, rescale)
         seg_pred = seg_logit.argmax(dim=1)
         if torch.onnx.is_in_onnx_export():
@@ -282,7 +282,7 @@ class EncoderDecoder(BaseSegmentor):
         Only rescale=True is supported.
         """
         # aug_test rescale all imgs back to ori_shape for now
-        print("aug test")
+        # print("aug test")
         assert rescale
         # to save memory, we get augmented seg logit inplace
         seg_logit = self.inference(imgs[0], img_metas[0], rescale)
