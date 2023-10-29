@@ -102,6 +102,7 @@ class BaseSegmentor(nn.Module):
             pad_shapes = [_['pad_shape'] for _ in img_meta]
             assert all(shape == pad_shapes[0] for shape in pad_shapes)
 
+        print(num_augs)
         if num_augs == 1:
             return self.simple_test(imgs[0], img_metas[0], **kwargs)
         else:
