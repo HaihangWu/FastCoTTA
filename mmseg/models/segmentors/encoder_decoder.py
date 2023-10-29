@@ -37,7 +37,7 @@ class EncoderDecoder(BaseSegmentor):
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
 
-        self.init_weights(pretrained=pretrained)
+        #self.init_weights(pretrained=pretrained)
 
         assert self.with_decode_head
 
