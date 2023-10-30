@@ -270,7 +270,7 @@ def Efficient_adaptation(model,
             if len(data['img']) == 14:
                 img_id = 4 # The default size without flip
             result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
-            print(result[0].shape,F.entropy(probs_.view(-1, probs_.shape[-1]), dim=1))
+            print(result[0].shape, torch.mean(F.entropy(probs_.view(-1, probs_.shape[-1]), dim=1)),F.entropy(probs_.view(-1, probs_.shape[-1]), dim=1))
             mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
             result, probs, preds = ema_model(return_loss=False, **data)
 
