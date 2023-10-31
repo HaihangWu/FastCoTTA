@@ -276,18 +276,17 @@ def Efficient_adaptation(model,
             if entropy_pred>E0:
                 print("unreliable sample",i,entropy_pred,E0)
                 continue
-            if current_model_probs is None:
-                current_model_probs=copy.deepcopy(probs_.view(-1, probs_.shape[-1]).mean(0))
-                cosine_similarities = torch.tensor(1.0)
-            else:
-                cosine_similarities = F.cosine_similarity(current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0),0)
-                print("redundant sample", i, cosine_similarities, redundancy_epson,current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0))
-                #current_model_probs=copy.deepcopy(0.9 * current_model_probs + (1 - 0.9) * probs_.view(-1, probs_.shape[-1]).mean(0))
-                current_model_probs = copy.deepcopy(probs_.view(-1, probs_.shape[-1]).mean(0))
-            if torch.abs(cosine_similarities) > redundancy_epson:
-                continue
+            # if current_model_probs is None:
+            #     current_model_probs=copy.deepcopy(probs_.view(-1, probs_.shape[-1]).mean(0))
+            #     cosine_similarities = torch.tensor(1.0)
+            # else:
+            #     cosine_similarities = F.cosine_similarity(current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0),0)
+            #     print("redundant sample", i, cosine_similarities, redundancy_epson,current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0))
+            #     current_model_probs=copy.deepcopy(0.9 * current_model_probs + (1 - 0.9) * probs_.view(-1, probs_.shape[-1]).mean(0))
+            # if torch.abs(cosine_similarities) > redundancy_epson:
+            #     continue
             back_img_count = back_img_count+1
-            print(result[0].shape, entropy_pred, E0,torch.abs(cosine_similarities), redundancy_epson, back_img_count)
+            print(result[0].shape, entropy_pred, E0,back_img_count)
             mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
             result, probs, preds = ema_model(return_loss=False, **data)
 
