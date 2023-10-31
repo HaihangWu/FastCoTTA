@@ -273,9 +273,6 @@ def Efficient_adaptation(model,
                 img_id = 4 # The default size without flip
             result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
             entropy_pred=torch.mean( Categorical(probs = probs_.view(-1, probs_.shape[-1])).entropy())
-            if entropy_pred>E0:
-                print("unreliable sample",i,entropy_pred,E0)
-                continue
             # if current_model_probs is None:
             #     current_model_probs=copy.deepcopy(probs_.view(-1, probs_.shape[-1]).mean(0))
             #     cosine_similarities = torch.tensor(1.0)
@@ -285,8 +282,8 @@ def Efficient_adaptation(model,
             #     current_model_probs=copy.deepcopy(0.9 * current_model_probs + (1 - 0.9) * probs_.view(-1, probs_.shape[-1]).mean(0))
             # if torch.abs(cosine_similarities) > redundancy_epson:
             #     continue
-            back_img_count = back_img_count+1
             print(result[0].shape, entropy_pred, E0,back_img_count)
+
             mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
             result, probs, preds = ema_model(return_loss=False, **data)
 
@@ -306,7 +303,10 @@ def Efficient_adaptation(model,
             else:
                 img_id = 0
             #student_begin = time.time()
-            loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
+            if entropy_pred<E0:
+                back_img_count = back_img_count + 1
+                print("reliable sample",i,entropy_pred,E0)
+                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
             #student_pred = time.time() - student_begin
             if efficient_test:
                 result = [np2tmp(_) for _ in result]
@@ -316,19 +316,20 @@ def Efficient_adaptation(model,
                 result = np2tmp(result)
             results.append(result)
 
-        torch.mean(weight*loss["decode.loss_seg"]).backward()
-        optimizer.step()
-        optimizer.zero_grad()
+        if entropy_pred<E0:
+            torch.mean(weight*loss["decode.loss_seg"]).backward()
+            optimizer.step()
+            optimizer.zero_grad()
 
-        ema_model = update_ema_variables(ema_model = ema_model, model = model, alpha_teacher=0.999) #teacher model
+            ema_model = update_ema_variables(ema_model = ema_model, model = model, alpha_teacher=0.999) #teacher model
 
-        #stochastic restoration
-        for nm, m  in model.named_modules():
-            for npp, p in m.named_parameters():
-                if npp in ['weight', 'bias'] and p.requires_grad:
-                    mask = (torch.rand(p.shape)<0.01).float().cuda()
-                    with torch.no_grad():
-                        p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
+            #stochastic restoration
+            for nm, m  in model.named_modules():
+                for npp, p in m.named_parameters():
+                    if npp in ['weight', 'bias'] and p.requires_grad:
+                        mask = (torch.rand(p.shape)<0.01).float().cuda()
+                        with torch.no_grad():
+                            p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
 
 
         #pred_time += time.time() - pred_begin
