@@ -274,6 +274,7 @@ def Efficient_adaptation(model,
             result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
             entropy_pred=torch.mean( Categorical(probs = probs_.view(-1, probs_.shape[-1])).entropy())
             if entropy_pred>E0:
+                print("unreliable sample",i,entropy_pred,E0)
                 continue
             if current_model_probs is None:
                 current_model_probs=probs_.view(-1, probs_.shape[-1]).mean(0)
@@ -281,6 +282,7 @@ def Efficient_adaptation(model,
             else:
                 cosine_similarities = F.cosine_similarity(current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0),0)
                 current_model_probs=0.9 * current_model_probs + (1 - 0.9) * probs_.view(-1, probs_.shape[-1]).mean(0)
+                print("redundant sample",i, cosine_similarities, redundancy_epson)
             if torch.abs(cosine_similarities) > redundancy_epson:
                 continue
             back_img_count = back_img_count+1
