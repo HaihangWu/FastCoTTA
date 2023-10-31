@@ -247,7 +247,7 @@ def Efficient_adaptation(model,
     # prog_bar = mmcv.ProgressBar(len(dataset))
     param_list = []
     out_dir = "./Cotta/"+str(frame_passed)
-    E0=torch.tensor(4.4*math.log(19.0))
+    E0=torch.tensor(1.8*math.log(19.0))
     redundancy_epson=0.1
     back_img_count=0
     for name, param in model.named_parameters():
@@ -277,7 +277,7 @@ def Efficient_adaptation(model,
                 print("unreliable sample",i,entropy_pred,E0)
                 continue
             if current_model_probs is None:
-                current_model_probs=probs_.view(-1, probs_.shape[-1]).mean(0)
+                current_model_probs=copy.deepcopy(probs_.view(-1, probs_.shape[-1]).mean(0))
                 cosine_similarities = torch.tensor(1.0)
             else:
                 cosine_similarities = F.cosine_similarity(current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0),0)
