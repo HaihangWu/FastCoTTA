@@ -282,7 +282,7 @@ def Efficient_adaptation(model,
             else:
                 cosine_similarities = F.cosine_similarity(current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0),0)
                 print("redundant sample", i, cosine_similarities, redundancy_epson,current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0))
-                current_model_probs=0.9 * current_model_probs + (1 - 0.9) * probs_.view(-1, probs_.shape[-1]).mean(0)
+                current_model_probs=copy.deepcopy(0.9 * current_model_probs + (1 - 0.9) * probs_.view(-1, probs_.shape[-1]).mean(0))
             if torch.abs(cosine_similarities) > redundancy_epson:
                 continue
             back_img_count = back_img_count+1
@@ -340,6 +340,9 @@ def Efficient_adaptation(model,
         #print("iter %d, teacher_pred: %.3f seconds; student_pred: %.3f; student_train: %.3f;model_update_time: %.3f;restoration_time: %.3f;" % (i,teacher_pred,student_pred,student_train,model_update_time,restoration_time))
     #print("pred_time: %.3f seconds;" % (pred_time/(i+1)))
     return results,frame_passed
+
+
+
 
 
 
