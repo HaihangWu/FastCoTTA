@@ -219,8 +219,7 @@ def single_gpu_cotta(model,
 
 def Efficient_adaptation(model,
                     data_loader,
-                    show=False,
-                    out_dir=None,
+                    current_model_probs,
                     efficient_test=False,
                     anchor=None,
                     ema_model=None,
@@ -249,6 +248,7 @@ def Efficient_adaptation(model,
     param_list = []
     out_dir = "./Cotta/"+str(frame_passed)
     E0=torch.tensor(.4*math.log(19.0))
+    redundancy_epson=0.1
     back_img_count=0
     for name, param in model.named_parameters():
         if param.requires_grad:
@@ -273,10 +273,18 @@ def Efficient_adaptation(model,
                 img_id = 4 # The default size without flip
             result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
             entropy_pred=torch.mean( Categorical(probs = probs_.view(-1, probs_.shape[-1])).entropy())
-            print(result[0].shape, entropy_pred, E0,back_img_count)
             if entropy_pred>E0:
                 continue
+            if current_model_probs is None:
+                current_model_probs=probs_.view(-1, probs_.shape[-1]).mean(0)
+                cosine_similarities = torch.tensor(1.0)
+            else:
+                cosine_similarities = F.cosine_similarity(current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0),0)
+                current_model_probs=0.9 * current_model_probs + (1 - 0.9) * probs_.view(-1, probs_.shape[-1]).mean(0)
+            if torch.abs(cosine_similarities) > redundancy_epson:
+                continue
             back_img_count = back_img_count+1
+            print(result[0].shape, entropy_pred, E0,torch.abs(cosine_similarities), redundancy_epson, back_img_count)
             mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
             result, probs, preds = ema_model(return_loss=False, **data)
 

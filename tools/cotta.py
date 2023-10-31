@@ -85,6 +85,8 @@ def parse_args():
         default='none',
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
+    parser.add_argument('--current_model_probs', default='empty', type=str,
+                        help='EATA baseline')
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -198,6 +200,7 @@ def main():
     #domains_detections["current_DM"] = None # currrent domain
     total_predict_time=0
     total_processed_frame=0
+    current_model_probs=None
     for i in range(10):
         print("revisit times:",i)
         j=0
@@ -206,7 +209,7 @@ def main():
             pred_begin = time.time()
             # outputs,frame_passed = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
             #                           efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
-            outputs,frame_passed = Efficient_adaptation(model, data_loader, args.show, args.show_dir,
+            outputs,frame_passed = Efficient_adaptation(model, data_loader, current_model_probs,
                                       efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
             total_predict_time = total_predict_time+time.time()-pred_begin
             total_processed_frame=total_processed_frame+len(data_loader)
