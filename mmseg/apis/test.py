@@ -272,7 +272,7 @@ def Efficient_adaptation(model,
             if len(data['img']) == 14:
                 img_id = 4 # The default size without flip
             result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
-            entropy_pred=torch.mean( Categorical(probs = probs_.view(-1, probs_.shape[-1])).entropy())
+            entropy_pred=torch.mean(Categorical(probs = probs_.view(-1, probs_.shape[-1])).entropy())
             # if current_model_probs is None:
             #     current_model_probs=copy.deepcopy(probs_.view(-1, probs_.shape[-1]).mean(0))
             #     cosine_similarities = torch.tensor(1.0)
@@ -282,7 +282,6 @@ def Efficient_adaptation(model,
             #     current_model_probs=copy.deepcopy(0.9 * current_model_probs + (1 - 0.9) * probs_.view(-1, probs_.shape[-1]).mean(0))
             # if torch.abs(cosine_similarities) > redundancy_epson:
             #     continue
-            print(result[0].shape, entropy_pred, E0,back_img_count)
 
             mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
             result, probs, preds = ema_model(return_loss=False, **data)
@@ -305,7 +304,6 @@ def Efficient_adaptation(model,
             #student_begin = time.time()
             if entropy_pred<E0:
                 back_img_count = back_img_count + 1
-                print("reliable sample",i,entropy_pred,E0)
                 loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
             #student_pred = time.time() - student_begin
             if efficient_test:
@@ -340,6 +338,7 @@ def Efficient_adaptation(model,
         #print("iter %d, teacher_pred: %.3f seconds; anchor_pred: %.3f;" % (i, teacher_pred, anchor_pred))
         #print("iter %d, teacher_pred: %.3f seconds; student_pred: %.3f; student_train: %.3f;model_update_time: %.3f;restoration_time: %.3f;" % (i,teacher_pred,student_pred,student_train,model_update_time,restoration_time))
     #print("pred_time: %.3f seconds;" % (pred_time/(i+1)))
+    print("reliable samples", back_img_count)
     return results,frame_passed
 
 
