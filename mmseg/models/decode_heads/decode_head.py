@@ -275,6 +275,11 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         """Compute segmentation loss."""
         loss = dict()
         print(seg_logit.shape,seg_label.shape)
+        if len(seg_label.size()) > 4.5:
+            print(seg_label[:,:,:,:,0].min(),seg_label[:,:,:,:,0].max())
+            print(seg_label[:, :, :, :, 1].min(), seg_label[:, :, :, :, 1].max())
+            print(seg_label[:, :, :, :, 2].min(), seg_label[:, :, :, :, 2].max())
+            print(torch.equal(seg_label[:,:,:,:,0], seg_label[:,:,:,:,1]),torch.equal(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2]))
         seg_logit = resize(
             input=seg_logit,
             size=seg_label.shape[2:],
