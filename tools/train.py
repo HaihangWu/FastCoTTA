@@ -195,7 +195,7 @@ def main():
     meta['exp_name'] = osp.basename(args.config)
 
     datasets = [build_dataset(cfg.data.train)]
-    cfg.model.class_names = datasets[0].CLASSES
+    #cfg.model.class_names = datasets[0].CLASSES
     model = build_segmentor(
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
