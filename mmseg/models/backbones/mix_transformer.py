@@ -330,7 +330,7 @@ class MixVisionTransformer(nn.Module):
         B = x.shape[0]
         outs = []
         N,C,H,W=x.shape
-        mask = torch.zeros(N*H * W, C)
+        mask = torch.zeros(N*H * W, C).cuda()
         indices_to_replace_DSP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
         indices_to_replace_DAP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
         # Create a list of tensors based on the conditions
