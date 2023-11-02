@@ -337,9 +337,9 @@ class MixVisionTransformer(nn.Module):
         result_tensor_DSP = [self.DSP[indices_to_replace_DSP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DSP else mask[index, :]  for index in range(N * H * W)]
         result_tensor_DAP = [self.DAP[indices_to_replace_DAP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DAP else mask[index, :]  for index in range(N * H * W)]
         # Reshape the result tensor if needed
-        result_tensor_DSP = torch.stack(result_tensor_DSP)
+        result_tensor_DSP = torch.stack(result_tensor_DSP).cuda()
         result_tensor_DSP = result_tensor_DSP.view(N,H,W,C).permute(0, 3, 1, 2)
-        result_tensor_DAP = torch.stack(result_tensor_DAP)
+        result_tensor_DAP = torch.stack(result_tensor_DAP).cuda()
         result_tensor_DAP = result_tensor_DAP.view(N,H,W,C).permute(0, 3, 1, 2)
         x=x+result_tensor_DSP+result_tensor_DAP
         print("DAP,DSP",N,C,H,W)
