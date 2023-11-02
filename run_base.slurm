@@ -30,11 +30,8 @@
 # The maximum running time of the job in days-hours:mins:sec
 #SBATCH --time=00-12:00:0
 
-# Send yourself an email when the job:
-#SBATCH --mail-user=robotic.engineer.dylan.wu@gmail.com
-#SBATCH --mail-type=BEGIN,FAIL,END
 
-module load anaconda3/2021.11
+module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
 conda activate Uniformerv2
 
