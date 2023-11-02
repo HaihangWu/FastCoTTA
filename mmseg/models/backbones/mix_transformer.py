@@ -341,8 +341,8 @@ class MixVisionTransformer(nn.Module):
         result_tensor_DSP = result_tensor_DSP.view(N,H,W,C).permute(0, 3, 1, 2)
         result_tensor_DAP = torch.stack(result_tensor_DAP).cuda()
         result_tensor_DAP = result_tensor_DAP.view(N,H,W,C).permute(0, 3, 1, 2)
+        print("DAP,DSP",x.shape, result_tensor_DSP.shape, result_tensor_DAP.shape)
         x=x+result_tensor_DSP+result_tensor_DAP
-        print("DAP,DSP",N,C,H,W)
 
         # stage 1
         x, H, W = self.patch_embed1(x)
