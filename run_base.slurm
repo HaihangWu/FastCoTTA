@@ -49,4 +49,4 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 
-bash ./tools/dist_base.sh local_configs/segformer/B5/segformer.b5.1024x1024.city.160k.py ../mmsegmentation/segformer.b5.1024x1024.city.160k.pth 1 | tee cityB5-test.log
+bash ./tools/dist_base.sh local_configs/segformer/B5/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgfb5 1 | tee cityB5-test.log

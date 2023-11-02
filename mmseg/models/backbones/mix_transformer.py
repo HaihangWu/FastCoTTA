@@ -15,7 +15,7 @@ from mmseg.models.builder import BACKBONES
 from mmseg.utils import get_root_logger
 from mmcv.runner import load_checkpoint
 import math
-
+import random
 
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
@@ -201,13 +201,19 @@ class OverlapPatchEmbed(nn.Module):
 
 
 class MixVisionTransformer(nn.Module):
-    def __init__(self, img_size=224, patch_size=16, in_chans=3, num_classes=1000, embed_dims=[64, 128, 256, 512],
+    def __init__(self, prompt_config, img_size=224, patch_size=16, in_chans=3, num_classes=1000, embed_dims=[64, 128, 256, 512],
                  num_heads=[1, 2, 4, 8], mlp_ratios=[4, 4, 4, 4], qkv_bias=False, qk_scale=None, drop_rate=0.,
                  attn_drop_rate=0., drop_path_rate=0., norm_layer=nn.LayerNorm,
                  depths=[3, 4, 6, 3], sr_ratios=[8, 4, 2, 1]):
         super().__init__()
+        self.prompt_config = prompt_config
         self.num_classes = num_classes
         self.depths = depths
+
+        # visual prompts
+        #val = math.sqrt(6. / float(3 * reduce(mul, [patch_size, patch_size], 1) + embed_dims[0]))  # why?
+        self.DSP = self.create_prompts(in_chans, self.prompt_config.NUM_TOKENS, 1.0)
+        self.DAP = self.create_prompts(in_chans, self.prompt_config.NUM_TOKENS, 1.0)
 
         # patch_embed
         self.patch_embed1 = OverlapPatchEmbed(img_size=img_size, patch_size=7, stride=4, in_chans=in_chans,
@@ -257,6 +263,16 @@ class MixVisionTransformer(nn.Module):
         # self.head = nn.Linear(embed_dims[3], num_classes) if num_classes > 0 else nn.Identity()
 
         self.apply(self._init_weights)
+
+    def create_prompts(self, embed_dim, num_tokens, val):
+        prompt_dim = embed_dim
+        prompt_embeddings = nn.Parameter(
+            torch.zeros(
+                 num_tokens, prompt_dim
+            ))
+        nn.init.uniform_(prompt_embeddings.data, -val, val)
+        return prompt_embeddings
+
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -313,6 +329,20 @@ class MixVisionTransformer(nn.Module):
     def forward_features(self, x):
         B = x.shape[0]
         outs = []
+        N,C,H,W=x.shape
+        mask = torch.zeros(N*H * W, C)
+        indices_to_replace_DSP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
+        indices_to_replace_DAP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
+        # Create a list of tensors based on the conditions
+        result_tensor_DSP = [self.DSP[indices_to_replace_DSP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DSP else mask[index, :]  for index in range(N * H * W)]
+        result_tensor_DAP = [self.DAP[indices_to_replace_DAP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DAP else mask[index, :]  for index in range(N * H * W)]
+        # Reshape the result tensor if needed
+        result_tensor_DSP = torch.stack(result_tensor_DSP)
+        result_tensor_DSP = result_tensor_DSP.view(N,H,W,C).permute(0, 3, 1, 2)
+        result_tensor_DAP = torch.stack(result_tensor_DAP)
+        result_tensor_DAP = result_tensor_DAP.view(N,H,W,C).permute(0, 3, 1, 2)
+        x=x+result_tensor_DSP+result_tensor_DAP
+        print("DAP,DSP",N,C,H,W)
 
         # stage 1
         x, H, W = self.patch_embed1(x)
@@ -372,53 +402,53 @@ class DWConv(nn.Module):
 
 @BACKBONES.register_module()
 class mit_b0(MixVisionTransformer):
-    def __init__(self, **kwargs):
+    def __init__(self, prompt_config=None, **kwargs):
         super(mit_b0, self).__init__(
-            patch_size=4, embed_dims=[32, 64, 160, 256], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
+            prompt_config,patch_size=4, embed_dims=[32, 64, 160, 256], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
             qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=[2, 2, 2, 2], sr_ratios=[8, 4, 2, 1],
             drop_rate=0.0, drop_path_rate=0.1)
 
 
 @BACKBONES.register_module()
 class mit_b1(MixVisionTransformer):
-    def __init__(self, **kwargs):
+    def __init__(self, prompt_config=None, **kwargs):
         super(mit_b1, self).__init__(
-            patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
+            prompt_config,patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
             qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=[2, 2, 2, 2], sr_ratios=[8, 4, 2, 1],
             drop_rate=0.0, drop_path_rate=0.1)
 
 
 @BACKBONES.register_module()
 class mit_b2(MixVisionTransformer):
-    def __init__(self, **kwargs):
+    def __init__(self, prompt_config=None, **kwargs):
         super(mit_b2, self).__init__(
-            patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
+            prompt_config,patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
             qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=[3, 4, 6, 3], sr_ratios=[8, 4, 2, 1],
             drop_rate=0.0, drop_path_rate=0.1)
 
 
 @BACKBONES.register_module()
 class mit_b3(MixVisionTransformer):
-    def __init__(self, **kwargs):
+    def __init__(self, prompt_config=None, **kwargs):
         super(mit_b3, self).__init__(
-            patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
+            prompt_config,patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
             qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=[3, 4, 18, 3], sr_ratios=[8, 4, 2, 1],
             drop_rate=0.0, drop_path_rate=0.1)
 
 
 @BACKBONES.register_module()
 class mit_b4(MixVisionTransformer):
-    def __init__(self, **kwargs):
+    def __init__(self, prompt_config=None, **kwargs):
         super(mit_b4, self).__init__(
-            patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
+            prompt_config,patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
             qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=[3, 8, 27, 3], sr_ratios=[8, 4, 2, 1],
             drop_rate=0.0, drop_path_rate=0.1)
 
 
 @BACKBONES.register_module()
 class mit_b5(MixVisionTransformer):
-    def __init__(self, **kwargs):
+    def __init__(self,prompt_config=None, **kwargs):
         super(mit_b5, self).__init__(
-            patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
+            prompt_config,patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
             qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=[3, 6, 40, 3], sr_ratios=[8, 4, 2, 1],
             drop_rate=0.0, drop_path_rate=0.1)
