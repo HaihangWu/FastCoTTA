@@ -106,9 +106,13 @@ def train_segmentor(model,
             model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
     # build runner
-    updated_params = []
-    updated_params.extend([param for name, param in model.named_parameters() if "DAP" in name or "DSP" in name])
-    optimizer = build_optimizer(updated_params, cfg.optimizer)
+    for name, param in model.named_parameters():
+        if "DAP"  in name or "DSP"  in name:
+            param.requires_grad=True
+        else:
+            param.requires_grad = False
+
+    optimizer = build_optimizer(model, cfg.optimizer)
 
     if cfg.get('runner') is None:
         cfg.runner = {'type': 'IterBasedRunner', 'max_iters': cfg.total_iters}
