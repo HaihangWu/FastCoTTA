@@ -277,7 +277,8 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         print(seg_logit.shape,seg_label.shape)
         if len(seg_label.size()) > 4.5:
             print(torch.unique(seg_label[:,:,:,:,0]))
-            print(torch.equal(seg_label[:,:,:,:,0], seg_label[:,:,:,:,1]),torch.equal(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2]))
+            if not torch.equal(seg_label[:,:,:,:,0], seg_label[:,:,:,:,1]) or not torch.equal(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2]):
+                print(torch.equal(seg_label[:,:,:,:,0], seg_label[:,:,:,:,1]),torch.equal(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2]))
             seg_label=seg_label[:,:,:,:,0]
         seg_logit = resize(
             input=seg_logit,
