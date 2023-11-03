@@ -279,7 +279,7 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
             print(torch.unique(seg_label[:,:,:,:,0]))
             if not torch.equal(seg_label[:,:,:,:,0], seg_label[:,:,:,:,1]) or not torch.equal(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2]):
                 print(torch.equal(seg_label[:,:,:,:,0], seg_label[:,:,:,:,1]),torch.equal(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2]))
-                print(torch.unique(seg_label[:, :, :, :, 1]),torch.unique(seg_label[:, :, :, :, 2]))
+                print(torch.unique(seg_label[:, :, :, :, 0]),torch.unique(seg_label[:, :, :, :, 1]),torch.unique(seg_label[:, :, :, :, 2]))
                 exit()
             seg_label=seg_label[:,:,:,:,0]
         seg_logit = resize(
