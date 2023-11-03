@@ -278,8 +278,10 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         if len(seg_label.size()) > 4.5:
             print(torch.unique(seg_label[:,:,:,:,0]))
             if not torch.equal(seg_label[:,:,:,:,0], seg_label[:,:,:,:,1]) or not torch.equal(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2]):
-                print(torch.equal(seg_label[:,:,:,:,0], seg_label[:,:,:,:,1]),torch.equal(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2]))
-                print(torch.unique(seg_label[:, :, :, :, 0]),torch.unique(seg_label[:, :, :, :, 1]),torch.unique(seg_label[:, :, :, :, 2]))
+                mask1 = torch.eq(seg_label[:,:,:,:,0], seg_label[:,:,:,:,1])
+                mask2 = torch.eq(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2])
+                # Step 2: Count the False elements in the mask to find different elements
+                print(torch.sum(~mask1).item(),torch.sum(~mask2).item())
                 exit()
             seg_label=seg_label[:,:,:,:,0]
         seg_logit = resize(
