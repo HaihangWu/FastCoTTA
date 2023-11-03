@@ -274,20 +274,19 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
     def losses(self, seg_logit, seg_label):
         """Compute segmentation loss."""
         loss = dict()
-        print(seg_logit.shape,seg_label.shape)
+        #print(seg_logit.shape,seg_label.shape)
         if len(seg_label.size()) > 4.5:
-            print(torch.unique(seg_label[:,:,:,:,0]))
+            #print(torch.unique(seg_label[:,:,:,:,0]))
             if not torch.equal(seg_label[:,:,:,:,0], seg_label[:,:,:,:,1]) or not torch.equal(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2]):
                 mask1 = torch.eq(seg_label[:,:,:,:,0], seg_label[:,:,:,:,1])
                 mask2 = torch.eq(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2])
                 # Step 2: Count the False elements in the mask to find different elements
-                print(torch.sum(~mask1).item(),torch.sum(~mask2).item())
+                #print(torch.sum(~mask1).item(),torch.sum(~mask2).item())
                 masked_tensor1 = seg_label[:,:,:,:,0][~mask1]
                 masked_tensor1_1d = masked_tensor1.view(-1)
                 masked_tensor2 = seg_label[:,:,:,:,1][~mask1]
                 masked_tensor2_1d = masked_tensor2.view(-1)
-                print(torch.unique(masked_tensor2_1d),torch.unique(masked_tensor1_1d),masked_tensor1_1d)
-                exit()
+                print("mismatch",torch.unique(masked_tensor2_1d),torch.unique(masked_tensor1_1d))
             seg_label=seg_label[:,:,:,:,0]
         seg_logit = resize(
             input=seg_logit,
