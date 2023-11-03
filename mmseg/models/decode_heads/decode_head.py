@@ -282,6 +282,11 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
                 mask2 = torch.eq(seg_label[:,:,:,:,1], seg_label[:,:,:,:,2])
                 # Step 2: Count the False elements in the mask to find different elements
                 print(torch.sum(~mask1).item(),torch.sum(~mask2).item())
+                masked_tensor1 = seg_label[:,:,:,:,0][~mask1]
+                masked_tensor1_1d = masked_tensor1.view(-1)
+                masked_tensor2 = seg_label[:,:,:,:,1][~mask1]
+                masked_tensor2_1d = masked_tensor2.view(-1)
+                print(torch.unique(masked_tensor2_1d),torch.unique(masked_tensor1_1d),masked_tensor1_1d)
                 exit()
             seg_label=seg_label[:,:,:,:,0]
         seg_logit = resize(
