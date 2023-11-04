@@ -286,7 +286,7 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
                 masked_tensor1_1d = masked_tensor1.view(-1)
                 masked_tensor2 = seg_label[:,:,:,:,1][~mask1]
                 masked_tensor2_1d = masked_tensor2.view(-1)
-                print("mismatch",torch.unique(masked_tensor2_1d),torch.unique(masked_tensor1_1d))
+                print("mismatch",seg_logit.shape,torch.unique(masked_tensor2_1d),torch.unique(masked_tensor1_1d))
             seg_label=seg_label[:,:,:,:,1]
         seg_logit = resize(
             input=seg_logit,

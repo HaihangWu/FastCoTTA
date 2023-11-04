@@ -39,7 +39,7 @@ model = dict(
 )
 
 # data
-data = dict(samples_per_gpu=1)
+data = dict(samples_per_gpu=8)
 evaluation = dict(interval=4000, metric='mIoU')
 
 # optimizer
@@ -54,3 +54,5 @@ lr_config = dict(_delete_=True, policy='poly',
                  warmup_iters=1500,
                  warmup_ratio=1e-6,
                  power=1.0, min_lr=0.0, by_epoch=False)
+
+checkpoint_config = dict(by_epoch=True)
