@@ -1,5 +1,5 @@
 from .inference import inference_segmentor, init_segmentor, show_result_pyplot
-from .test import single_gpu_test,single_gpu_cotta,Efficient_adaptation
+from .test import single_gpu_test,single_gpu_cotta,Efficient_adaptation,DPT
 from .train import get_root_logger, set_random_seed, train_segmentor,init_random_seed
 
 __all__ = [

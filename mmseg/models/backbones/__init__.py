@@ -10,7 +10,8 @@ from .unet import UNet
 from .segclip_text_encoder import CLIPTextEncoder
 from .vit import VisionTransformer
 from .mix_transformer import *
+from .mscan import MSCAN
 
 __all__ = [
     'ResNet', 'ResNetV1c', 'ResNetV1d', 'ResNeXt', 'HRNet', 'FastSCNN',
-    'ResNeSt', 'MobileNetV2', 'UNet', 'CGNet', 'MobileNetV3','CLIPTextEncoder','VisionTransformer']
+    'ResNeSt', 'MobileNetV2', 'UNet', 'CGNet', 'MobileNetV3','CLIPTextEncoder','VisionTransformer','MSCAN']

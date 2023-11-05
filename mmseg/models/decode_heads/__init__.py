@@ -24,11 +24,12 @@ from .setr_up_head import SETRUPHead
 
 from .segformer_head import SegFormerHead
 from .text_setr_up_head import TextSETRHead
+from .ham_head import LightHamHead
 
 __all__ = [
     'FCNHead', 'PSPHead', 'ASPPHead', 'PSAHead', 'NLHead', 'GCHead', 'CCHead',
     'UPerHead', 'DepthwiseSeparableASPPHead', 'ANNHead', 'DAHead', 'OCRHead',
     'EncHead', 'DepthwiseSeparableFCNHead', 'FPNHead', 'EMAHead', 'DNLHead',
     'PointHead', 'APCHead', 'DMHead', 'LRASPPHead',
-    'SegFormerHead','TextSegFormerHead','TextSETRHead','SETRUPHead'
+    'SegFormerHead','TextSegFormerHead','TextSETRHead','SETRUPHead', 'LightHamHead'
 ]

@@ -212,8 +212,9 @@ class MixVisionTransformer(nn.Module):
 
         # visual prompts
         #val = math.sqrt(6. / float(3 * reduce(mul, [patch_size, patch_size], 1) + embed_dims[0]))  # why?
-        self.DSP = self.create_prompts(in_chans, self.prompt_config.NUM_TOKENS, 1.0)
-        self.DAP = self.create_prompts(in_chans, self.prompt_config.NUM_TOKENS, 1.0)
+        if self.prompt_config is not None:
+            self.DSP = self.create_prompts(in_chans, self.prompt_config.NUM_TOKENS, 1.0)
+            self.DAP = self.create_prompts(in_chans, self.prompt_config.NUM_TOKENS, 1.0)
 
         # patch_embed
         self.patch_embed1 = OverlapPatchEmbed(img_size=img_size, patch_size=7, stride=4, in_chans=in_chans,
@@ -329,20 +330,21 @@ class MixVisionTransformer(nn.Module):
     def forward_features(self, x):
         B = x.shape[0]
         outs = []
-        N,C,H,W=x.shape
-        mask = torch.zeros(N*H * W, C).cuda()
-        indices_to_replace_DSP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
-        indices_to_replace_DAP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
-        # Create a list of tensors based on the conditions
-        result_tensor_DSP = [self.DSP[indices_to_replace_DSP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DSP else mask[index, :]  for index in range(N * H * W)]
-        result_tensor_DAP = [self.DAP[indices_to_replace_DAP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DAP else mask[index, :]  for index in range(N * H * W)]
-        # Reshape the result tensor if needed
-        result_tensor_DSP = torch.stack(result_tensor_DSP).cuda()
-        result_tensor_DSP = result_tensor_DSP.view(N,H,W,C).permute(0, 3, 1, 2)
-        result_tensor_DAP = torch.stack(result_tensor_DAP).cuda()
-        result_tensor_DAP = result_tensor_DAP.view(N,H,W,C).permute(0, 3, 1, 2)
-        #print("DAP,DSP",x.shape, result_tensor_DSP.shape, result_tensor_DAP.shape)
-        x=x+result_tensor_DSP+result_tensor_DAP
+        if self.prompt_config is not None:
+            N,C,H,W=x.shape
+            mask = torch.zeros(N*H * W, C).cuda()
+            indices_to_replace_DSP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
+            indices_to_replace_DAP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
+            # Create a list of tensors based on the conditions
+            result_tensor_DSP = [self.DSP[indices_to_replace_DSP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DSP else mask[index, :]  for index in range(N * H * W)]
+            result_tensor_DAP = [self.DAP[indices_to_replace_DAP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DAP else mask[index, :]  for index in range(N * H * W)]
+            # Reshape the result tensor if needed
+            result_tensor_DSP = torch.stack(result_tensor_DSP).cuda()
+            result_tensor_DSP = result_tensor_DSP.view(N,H,W,C).permute(0, 3, 1, 2)
+            result_tensor_DAP = torch.stack(result_tensor_DAP).cuda()
+            result_tensor_DAP = result_tensor_DAP.view(N,H,W,C).permute(0, 3, 1, 2)
+            #print("DAP,DSP",x.shape, result_tensor_DSP.shape, result_tensor_DAP.shape)
+            x=x+result_tensor_DSP+result_tensor_DAP
 
         # stage 1
         x, H, W = self.patch_embed1(x)
