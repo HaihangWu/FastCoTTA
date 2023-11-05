@@ -10,6 +10,7 @@ ham_norm_cfg = dict(type='GN', num_groups=32, requires_grad=True)
 find_unused_parameters = True
 model = dict(
     type='EncoderDecoder',
+    pretrained='segnext_base_1024x1024_city_160k.pth',
     backbone=dict(
         embed_dims=[64, 128, 320, 512],
         depths=[3, 3, 12, 3],
