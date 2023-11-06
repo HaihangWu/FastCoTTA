@@ -44,7 +44,6 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='mmseg test (and eval) a model')
     parser.add_argument('config', help='test config file path')
-    parser.add_argument('config_s', help='test config file path')
     # parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument(
         '--aug-test', action='store_true', help='Use Flip and Multi scale aug')
