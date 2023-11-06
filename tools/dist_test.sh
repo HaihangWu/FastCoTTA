@@ -2,7 +2,7 @@
 
 CONFIG=$1
 #CHECKPOINT=$2
-GPUS=$3
+GPUS=$2
 #PORT=${PORT:-29505}
 PORT=$(expr 20000 + $(echo -n $SLURM_JOBID | tail -c 4))
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
