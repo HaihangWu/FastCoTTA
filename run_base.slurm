@@ -45,7 +45,7 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 
-bash ./tools/dist_base.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py source 1 | tee cityB5-test.log
+bash ./tools/dist_base.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py Source 1 | tee cityB5-test.log
 
 
 #bash ./tools/dist_test.sh local_configs/segnext/tiny/segnext.tiny.1024x1024.city.160k.py  1  | tee cityB5-test.log
