@@ -187,14 +187,14 @@ class MSCAN(BaseModule):
             self.DSP = self.create_prompts(in_chans, self.prompt_config.NUM_TOKENS, 1.0)
             self.DAP = self.create_prompts(in_chans, self.prompt_config.NUM_TOKENS, 1.0)
 
-        assert not (init_cfg and pretrained), \
-            'init_cfg and pretrained cannot be set at the same time'
-        if isinstance(pretrained, str):
-            warnings.warn('DeprecationWarning: pretrained is deprecated, '
-                          'please use "init_cfg" instead')
-            self.init_cfg = dict(type='Pretrained', checkpoint=pretrained)
-        elif pretrained is not None:
-            raise TypeError('pretrained must be a str or None')
+        # assert not (init_cfg and pretrained), \
+        #     'init_cfg and pretrained cannot be set at the same time'
+        # if isinstance(pretrained, str):
+        #     warnings.warn('DeprecationWarning: pretrained is deprecated, '
+        #                   'please use "init_cfg" instead')
+        #     self.init_cfg = dict(type='Pretrained', checkpoint=pretrained)
+        # elif pretrained is not None:
+        #     raise TypeError('pretrained must be a str or None')
 
         self.depths = depths
         self.num_stages = num_stages

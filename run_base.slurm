@@ -6,20 +6,20 @@
 #SBATCH --job-name="example.py"
 
 # Partition for the job:
-# --partition deeplearn
-# --qos gpgpudeeplearn
+#SBATCH --partition deeplearn
+#SBATCH --qos gpgpudeeplearn
 
 # --partition=feit-gpu-a100
 # --qos=feit
 
-#SBATCH -p gpu-a100
+# -p gpu-a100
 
 # Request different amount of resources for different nodes
 # --constraint=[dlg1|dlg2|dlg3]
 # --constraint=[dlg4|dlg5]
 #SBATCH --nodes=1                # node count
-#SBATCH --ntasks-per-node=2      # total number of tasks per node
-#SBATCH --gres=gpu:2             # number of gpus per node
+#SBATCH --ntasks-per-node=1      # total number of tasks per node
+#SBATCH --gres=gpu:1             # number of gpus per node
 #SBATCH --cpus-per-task=8        # cpu-cores per task (>1 if multi-threaded tasks)
 #SBATCH --mem-per-cpu=8G
 
@@ -45,6 +45,6 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 
-#bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py Source 1 | tee Source.log
+bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py Source 1 | tee Source.log
 
-bash ./tools/dist_train.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgfb5/ 2  | tee finetune_segformer.log
+#bash ./tools/dist_train.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgfb5/ 2  | tee finetune_segformer.log
