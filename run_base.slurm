@@ -28,7 +28,7 @@
 # --gpus-per-task=1  # number of gpus per task
 
 # The maximum running time of the job in days-hours:mins:sec
-#SBATCH --time=01-00:00:00
+#SBATCH --time=00-10:00:00
 
 module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
@@ -45,6 +45,6 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 
-bash ./tools/dist_base.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py BN 1 | tee BN.log
+bash ./tools/dist_base.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py Source 1 | tee Source.log
 
 #bash ./tools/dist_test.sh local_configs/segnext/tiny/segnext.tiny.1024x1024.city.160k.py  1  | tee cityB5-test.log

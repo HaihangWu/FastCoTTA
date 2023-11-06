@@ -1,8 +1,8 @@
 _base_ = [
-    '../../_base_/models/mscan.py',
-    '../../_base_/datasets/acdc_1024x1024_repeat.py',
-    '../../_base_/default_runtime.py',
-    '../../_base_/schedules/schedule_160k_adamw.py'
+    '../_base_/models/mscan.py',
+    '../_base_/datasets/acdc_1024x1024_repeat.py',
+    '../_base_/default_runtime.py',
+    '../_base_/schedules/schedule_160k_adamw.py'
 ]
 # model settings
 norm_cfg = dict(type='SyncBN', requires_grad=True)
