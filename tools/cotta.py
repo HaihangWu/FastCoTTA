@@ -44,6 +44,7 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='mmseg test (and eval) a model')
     parser.add_argument('config', help='test config file path')
+    parser.add_argument('config_s', help='test config file path')
     # parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument(
         '--aug-test', action='store_true', help='Use Flip and Multi scale aug')
@@ -117,8 +118,13 @@ def main():
         raise ValueError('The output file must be a pkl file.')
 
     cfg = mmcv.Config.fromfile(args.config)
+    if 'AuxAdapt' in args.method:
+        config_s= args.config.replace("base", "tiny") if 'segnext' in args.config else args.config.replace("b5", "b0")
+        cfg_s = mmcv.Config.fromfile(config_s)
     if args.options is not None:
         cfg.merge_from_dict(args.options)
+        if 'AuxAdapt' in args.method:
+            cfg_s.merge_from_dict(args.options)
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
@@ -128,9 +134,7 @@ def main():
             if cfg.data.test.test_cases[i].type in ['CityscapesDataset', 'ACDCDataset','KITTIDataset','NightCityDataset']:
                 # hard code index
                 cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
-                    0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
-                    #1.0, 2.0
-                ]
+                    0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
                 cfg.data.test.test_cases[i].pipeline[1].flip = True
                 if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
                     cfg.data.test.test_cases[i].pipeline[1].img_ratios = [1.0]
@@ -178,6 +182,7 @@ def main():
     cfg.model.train_cfg = None
     #cfg.model.class_names=datasets[0].CLASSES
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
+
     print(model)
     if 'TENT' in args.method:
         for name, param in model.named_parameters():
@@ -202,6 +207,15 @@ def main():
         efficient_test = args.eval_options.get('efficient_test', False)
 
     model = MMDataParallel(model, device_ids=[0])
+    if 'AuxAdapt' in args.method:
+        cfg_s.model.train_cfg = None
+        model_s = build_segmentor(cfg_s.model, test_cfg=cfg_s.get('test_cfg'))
+        pretrained_dict = torch.load(cfg_s.model.pretrained, map_location='cpu')
+        model_s.load_state_dict(pretrained_dict['state_dict'])
+        model_s.CLASSES = datasets[0].CLASSES
+        model_s.PALETTE = datasets[0].PALETTE
+        model_s = MMDataParallel(model_s, device_ids=[0])
+
     anchor = deepcopy(model.state_dict()) #?
     anchor_model = deepcopy(model) #?
     ema_model = create_ema_model(model) #?
@@ -234,8 +248,7 @@ def main():
             if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
                 outputs = single_model_update(model, data_loader, args, efficient_test)
             elif 'AuxAdapt'in args.method:
-                model_s=None
-                outputs=single_gpu_AuxAdapt(model,model_s,data_loader,args.show, args.show_dir,efficient_test,frame_passed)
+                outputs=single_gpu_AuxAdapt(model,model_s,data_loader,efficient_test,frame_passed)
             elif 'VDP'in args.method:
                 outputs, frame_passed, ldelta = DPT(model, data_loader, ldelta,
                                                     efficient_test, ema_model, anchor_model, frame_passed, i * 4 + j)

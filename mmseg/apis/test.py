@@ -415,8 +415,6 @@ def DPT(model,
 def single_gpu_AuxAdapt(model_l,
                         model_s,
                     data_loader,
-                    show=False,
-                    out_dir=None,
                     efficient_test=False,
                     frame_passed=0):
     model_l.eval()
@@ -437,8 +435,6 @@ def single_gpu_AuxAdapt(model_l,
     # optimizer = torch.optim.SGD(param_list, lr=0.01/8 )  # for SETR;
     pred_time = 0
     for i, data in enumerate(data_loader):
-        model_l.eval()  # student model
-        model_s.eval()  # source model
         pred_begin = time.time()
 
         with torch.no_grad():
