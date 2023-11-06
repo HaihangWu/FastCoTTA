@@ -10,7 +10,7 @@ from mmcv.runner import BaseModule
 from mmcv.cnn.bricks import DropPath
 from mmcv.cnn.utils.weight_init import (constant_init, normal_init,
                                         trunc_normal_init)
-
+import random
 
 class Mlp(BaseModule):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
@@ -171,6 +171,7 @@ class OverlapPatchEmbed(BaseModule):
 class MSCAN(BaseModule):
     def __init__(self,
                  in_chans=3,
+                 prompt_config=None,
                  embed_dims=[64, 128, 256, 512],
                  mlp_ratios=[4, 4, 4, 4],
                  drop_rate=0.,
@@ -181,6 +182,10 @@ class MSCAN(BaseModule):
                  pretrained=None,
                  init_cfg=None):
         super(MSCAN, self).__init__(init_cfg=init_cfg)
+        self.prompt_config = prompt_config
+        if self.prompt_config is not None:
+            self.DSP = self.create_prompts(in_chans, self.prompt_config.NUM_TOKENS, 1.0)
+            self.DAP = self.create_prompts(in_chans, self.prompt_config.NUM_TOKENS, 1.0)
 
         assert not (init_cfg and pretrained), \
             'init_cfg and pretrained cannot be set at the same time'
@@ -219,6 +224,15 @@ class MSCAN(BaseModule):
             setattr(self, f"block{i + 1}", block)
             setattr(self, f"norm{i + 1}", norm)
 
+    def create_prompts(self, embed_dim, num_tokens, val):
+        prompt_dim = embed_dim
+        prompt_embeddings = nn.Parameter(
+            torch.zeros(
+                 num_tokens, prompt_dim
+            ))
+        nn.init.uniform_(prompt_embeddings.data, -val, val)
+        return prompt_embeddings
+
     def init_weights(self):
         print('init cfg', self.init_cfg)
         if self.init_cfg is None:
@@ -240,6 +254,21 @@ class MSCAN(BaseModule):
     def forward(self, x):
         B = x.shape[0]
         outs = []
+        if self.prompt_config is not None:
+            N,C,H,W=x.shape
+            mask = torch.zeros(N*H * W, C).cuda()
+            indices_to_replace_DSP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
+            indices_to_replace_DAP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
+            # Create a list of tensors based on the conditions
+            result_tensor_DSP = [self.DSP[indices_to_replace_DSP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DSP else mask[index, :]  for index in range(N * H * W)]
+            result_tensor_DAP = [self.DAP[indices_to_replace_DAP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DAP else mask[index, :]  for index in range(N * H * W)]
+            # Reshape the result tensor if needed
+            result_tensor_DSP = torch.stack(result_tensor_DSP).cuda()
+            result_tensor_DSP = result_tensor_DSP.view(N,H,W,C).permute(0, 3, 1, 2)
+            result_tensor_DAP = torch.stack(result_tensor_DAP).cuda()
+            result_tensor_DAP = result_tensor_DAP.view(N,H,W,C).permute(0, 3, 1, 2)
+            #print("DAP,DSP",x.shape, result_tensor_DSP.shape, result_tensor_DAP.shape)
+            x=x+result_tensor_DSP+result_tensor_DAP
 
         for i in range(self.num_stages):
             patch_embed = getattr(self, f"patch_embed{i + 1}")

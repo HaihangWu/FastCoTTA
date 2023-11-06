@@ -1,47 +1,44 @@
 _base_ = [
-    '../_base_/models/segformer.py',
+    '../_base_/models/mscan.py',
     '../_base_/datasets/cityscapes_1024x1024_repeat.py',
     '../_base_/default_runtime.py',
     '../_base_/schedules/schedule_160k_adamw.py'
 ]
-
 # model settings
 norm_cfg = dict(type='SyncBN', requires_grad=True)
+ham_norm_cfg = dict(type='GN', num_groups=32, requires_grad=True)
 prompt_config=dict(NUM_TOKENS = 400,LOCATION = "random")
 find_unused_parameters = True
 model = dict(
     type='EncoderDecoder',
-    pretrained='/data/gpfs/projects/punim0512/Haihangw-Projects/segformer/segformer.b5.1024x1024.city.160k.pth',
-    #pretrained='work_dirs/Lsegformer.b5.1024x1024.city.160k/iter_160000.pth',
+    pretrained='/data/gpfs/projects/punim0512/Haihangw-Projects/segformer/segnext_base_1024x1024_city_160k.pth',
     backbone=dict(
-        type='mit_b5',
         prompt_config=prompt_config,
-        style='pytorch'),
+        embed_dims=[64, 128, 320, 512],
+        depths=[3, 3, 12, 3],
+        init_cfg=dict(type='Pretrained', checkpoint='pretrained/mscan_b.pth'),
+        drop_path_rate=0.1),
     decode_head=dict(
-        type='SegFormerHead',
-        in_channels=[64, 128, 320, 512],
-        in_index=[0, 1, 2, 3],
-        feature_strides=[4, 8, 16, 32],
-        channels=128,
+        type='LightHamHead',
+        in_channels=[128, 320, 512],
+        in_index=[1, 2, 3],
+        channels=512,
+        ham_channels=512,
         dropout_ratio=0.1,
         num_classes=19,
-        norm_cfg=norm_cfg,
+        norm_cfg=ham_norm_cfg,
         align_corners=False,
-        decoder_params=dict(embed_dim=768),
-        loss_decode=dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
+        loss_decode=dict(
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
     # model training and testing settings
     train_cfg=dict(),
     # test_cfg=dict(mode='whole'))
-    test_cfg=dict(mode='slide', crop_size=(1024,1024), stride=(768,768))
-    # ft_model=True,
-    # include_key='linear_pred',
-    # load_text_embedding='configs/_base_/datasets/text_embedding/voc12_single.npy'
-)
+    test_cfg=dict(mode='slide', crop_size=(1024, 1024), stride=(768, 768)))
 
 # data
-data = dict(samples_per_gpu=4)
-evaluation = dict(interval=4000, metric='mIoU')
-
+data = dict(samples_per_gpu=8)
+evaluation = dict(interval=8000, metric='mIoU')
+checkpoint_config = dict(by_epoch=False, interval=8000)
 # optimizer
 optimizer = dict(_delete_=True, type='AdamW', lr=0.00006, betas=(0.9, 0.999), weight_decay=0.01,
                  paramwise_cfg=dict(custom_keys={'pos_block': dict(decay_mult=0.),
