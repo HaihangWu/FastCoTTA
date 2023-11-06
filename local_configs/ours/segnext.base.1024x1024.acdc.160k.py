@@ -1,6 +1,6 @@
 _base_ = [
     '../../_base_/models/mscan.py',
-    '../../_base_/datasets/cityscapes_1024x1024_repeat.py',
+    '../../_base_/datasets/acdc_1024x1024_repeat.py',
     '../../_base_/default_runtime.py',
     '../../_base_/schedules/schedule_160k_adamw.py'
 ]
@@ -34,7 +34,7 @@ model = dict(
     test_cfg=dict(mode='slide', crop_size=(1024, 1024), stride=(768, 768)))
 
 # data
-data = dict(samples_per_gpu=2)
+data = dict(samples_per_gpu=1)
 evaluation = dict(interval=8000, metric='mIoU')
 checkpoint_config = dict(by_epoch=False, interval=8000)
 # optimizer

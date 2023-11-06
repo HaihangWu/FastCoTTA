@@ -7,7 +7,7 @@ from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from mmcv.runner import get_dist_info, init_dist, load_checkpoint
 from mmcv.utils import DictAction
 
-from mmseg.apis import single_gpu_test, single_gpu_cotta,Efficient_adaptation,DPT
+from mmseg.apis import single_model_update, single_gpu_cotta,Efficient_adaptation,DPT,single_gpu_ours,single_gpu_AuxAdapt
 from mmseg.datasets import build_dataloader, build_dataset
 from mmseg.models import build_segmentor
 from IPython import embed
@@ -84,6 +84,11 @@ def parse_args():
         choices=['none', 'pytorch', 'slurm', 'mpi'],
         default='none',
         help='job launcher')
+    parser.add_argument(
+        '--method',
+        choices=['Source', 'BN', 'TENT', 'AuxAdapt', 'DPT', 'ETA', 'CoTTA', 'Ours'],
+        default='none',
+        help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
     parser.add_argument('--current_model_probs', default='empty', type=str,
                         help='EATA baseline')
@@ -127,6 +132,13 @@ def main():
                     #1.0, 2.0
                 ]
                 cfg.data.test.test_cases[i].pipeline[1].flip = True
+                if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
+                    cfg.data.test.test_cases[i].pipeline[1].img_ratios = [1.0]
+                    cfg.data.test.test_cases[i].pipeline[1].flip = False
+                elif 'AuxAdapt' in args.method:
+                    cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
+                        1.0, 2.0
+                    ]
             elif cfg.data.test.test_cases[i].type == 'ADE20KDataset':
                 # hard code index
                 cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
@@ -166,6 +178,13 @@ def main():
     cfg.model.train_cfg = None
     #cfg.model.class_names=datasets[0].CLASSES
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
+    print(model)
+    if 'TENT' in args.method:
+        for name, param in model.named_parameters():
+            if ("norm" in name or "bn" in name or "ln" in name):
+                    param.requires_grad = True
+            else:
+                param.requires_grad = False
     #checkpoint = load_checkpoint(model, cfg.model.pretrained, map_location='cpu')
     # model.CLASSES = checkpoint['meta']['CLASSES']
     # model.PALETTE = checkpoint['meta']['PALETTE']
@@ -189,7 +208,7 @@ def main():
     for name, param in anchor_model.named_parameters():
         if "DSP" in name or "DAP" in name:
                 param = torch.zeros_like(param)
-    print([param.dta for name, param in anchor_model.named_parameters() if "DSP" in name or "DAP" in name])
+    print([param.data for name, param in anchor_model.named_parameters() if "DSP" in name or "DAP" in name])
     frame_passed=0
     total_predict_time=0
     domains_detections={}
@@ -211,12 +230,25 @@ def main():
         for dataset, data_loader in zip(datasets, data_loaders):
             j=j+1
             pred_begin = time.time()
-            # outputs,frame_passed = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
-            #                           efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
-            # outputs,frame_passed = Efficient_adaptation(model, data_loader, current_model_probs,
-            #                           efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
-            outputs,frame_passed,ldelta = DPT(model, data_loader,ldelta,
-                                      efficient_test, ema_model, anchor_model,frame_passed, i*4+j)
+            choices = ['Source', 'BN', 'TENT', 'AuxAdapt', 'DPT', 'ETA', 'CoTTA', 'Ours'],
+            if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
+                outputs = single_model_update(model, data_loader, args, efficient_test)
+            elif 'AuxAdapt'in args.method:
+                model_s=None
+                outputs=single_gpu_AuxAdapt(model,model_s,data_loader,args.show, args.show_dir,efficient_test,frame_passed)
+            elif 'VDP'in args.method:
+                outputs, frame_passed, ldelta = DPT(model, data_loader, ldelta,
+                                                    efficient_test, ema_model, anchor_model, frame_passed, i * 4 + j)
+            elif 'ETA'in args.method:
+                outputs,frame_passed = Efficient_adaptation(model, data_loader, current_model_probs,
+                                          efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
+            elif 'CoTTA'in args.method:
+                outputs,frame_passed = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
+                                          efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
+            elif 'Ours'in args.method:
+                outputs,frame_passed,domains_detections = single_gpu_ours(model, data_loader, args.show, args.show_dir,
+                                          efficient_test,anchor, ema_model, anchor_model,frame_passed, domains_detections,i*4+j)
+
             total_predict_time = total_predict_time+time.time()-pred_begin
             total_processed_frame=total_processed_frame+len(data_loader)
 
