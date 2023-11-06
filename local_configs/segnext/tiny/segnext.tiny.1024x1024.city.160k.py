@@ -10,7 +10,7 @@ ham_norm_cfg = dict(type='GN', num_groups=32, requires_grad=True)
 find_unused_parameters = True
 model = dict(
     type='EncoderDecoder',
-    pretrained='segnext_tiny_1024x1024_city_160k.pth',
+    pretrained='/data/gpfs/projects/punim0512/Haihangw-Projects/segformer/segnext_tiny_1024x1024_city_160k.pth',
     backbone=dict(
         init_cfg=dict(type='Pretrained', checkpoint='pretrained/mscan_t.pth')),
     decode_head=dict(
