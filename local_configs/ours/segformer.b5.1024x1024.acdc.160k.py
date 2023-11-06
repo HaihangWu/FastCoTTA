@@ -10,7 +10,7 @@ norm_cfg = dict(type='SyncBN', requires_grad=True)
 find_unused_parameters = True
 model = dict(
     type='EncoderDecoder',
-    pretrained='../mmsegmentation/segformer.b5.1024x1024.city.160k.pth',
+    pretrained='/data/gpfs/projects/punim0512/Haihangw-Projects/segformer/segformer.b5.1024x1024.city.160k.pth',
     #pretrained='work_dirs/Lsegformer.b5.1024x1024.city.160k/iter_160000.pth',
     backbone=dict(
         type='mit_b5',
