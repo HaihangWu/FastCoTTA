@@ -185,7 +185,7 @@ def main():
     print(model)
     if 'TENT' in args.method:
         for name, param in model.named_parameters():
-            if ("norm" in name or "bn" in name or "ln" in name):
+            if ("norm" in name or "bn" in name or "ln" in name or "BatchNorm" in name):
                     param.requires_grad = True
             else:
                 param.requires_grad = False
@@ -243,7 +243,6 @@ def main():
         for dataset, data_loader in zip(datasets, data_loaders):
             j=j+1
             pred_begin = time.time()
-            choices = ['Source', 'BN', 'TENT', 'AuxAdapt', 'DPT', 'ETA', 'CoTTA', 'Ours'],
             if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
                 outputs = single_model_update(model, data_loader, args, efficient_test)
             elif 'AuxAdapt'in args.method:
