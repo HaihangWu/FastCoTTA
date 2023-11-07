@@ -6,13 +6,13 @@
 #SBATCH --job-name="example.py"
 
 # Partition for the job:
-# --partition deeplearn
-# --qos gpgpudeeplearn
+#SBATCH --partition deeplearn
+#SBATCH --qos gpgpudeeplearn
 
 # --partition=feit-gpu-a100
 # --qos=feit
 
-#SBATCH -p gpu-a100
+# -p gpu-a100
 
 # Request different amount of resources for different nodes
 # --constraint=[dlg1|dlg2|dlg3]
@@ -45,8 +45,8 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 
-#bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py BN 1 | tee BN.log
+bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py ETA 1 | tee ETA.log
 
-bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.night.160k.py Source 1 | tee Source_night.log
+#bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.night.160k.py Source 1 | tee Source_night.log
 
 #bash ./tools/dist_train.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgf/ 1  | tee finetune_segformer.log
