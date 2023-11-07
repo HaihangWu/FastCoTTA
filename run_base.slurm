@@ -47,6 +47,6 @@ echo "r$SLURM_NODEID Launching python script"
 
 #bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py BN 1 | tee BN.log
 
-bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.night.160k.py BN 1 | tee BN_night.log
+bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.night.160k.py TENT 1 | tee TENT_night.log
 
 #bash ./tools/dist_train.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgf/ 1  | tee finetune_segformer.log
