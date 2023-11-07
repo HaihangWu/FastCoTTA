@@ -576,6 +576,7 @@ def single_model_update(model,
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     param_list = []
+    pred_conf=[]
     for name, param in model.named_parameters():
         if param.requires_grad:
             param_list.append(param)
@@ -585,6 +586,7 @@ def single_model_update(model,
         pred_begin=time.time()
         with torch.no_grad():
             result, probs, preds = model(return_loss=False, **data)
+            pred_conf.append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
         img_id = 0
         if isinstance(result, list):
@@ -610,5 +612,5 @@ def single_model_update(model,
         if i==399:
             for _ in range(batch_size):
                 prog_bar.update()
-    print("pred_time: %.3f seconds;" % (pred_time/(i+1)))
+    print("pred_time: %.3f seconds; confidence: %.3f " % (pred_time/(i+1),np.mean(pred_conf)))
     return results
