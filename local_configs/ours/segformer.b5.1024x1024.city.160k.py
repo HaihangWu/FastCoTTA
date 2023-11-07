@@ -39,7 +39,7 @@ model = dict(
 )
 
 # data
-data = dict(samples_per_gpu=4)
+data = dict(samples_per_gpu=6)
 evaluation = dict(interval=4000, metric='mIoU')
 
 # optimizer
