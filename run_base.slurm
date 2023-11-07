@@ -9,10 +9,10 @@
 # --partition deeplearn
 # --qos gpgpudeeplearn
 
-# --partition=feit-gpu-a100
-# --qos=feit
+#SBATCH --partition=feit-gpu-a100
+#SBATCH --qos=feit
 
-#SBATCH -p gpu-a100
+# -p gpu-a100
 
 # Request different amount of resources for different nodes
 # --constraint=[dlg1|dlg2|dlg3]
@@ -28,7 +28,7 @@
 # --gpus-per-task=1  # number of gpus per task
 
 # The maximum running time of the job in days-hours:mins:sec
-#SBATCH --time=05-00:00:00
+#SBATCH --time=01-00:00:00
 
 module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
@@ -49,4 +49,4 @@ echo "r$SLURM_NODEID Launching python script"
 
 #bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py AuxAdapt 1 | tee AuxAdapt.log
 
-bash ./tools/dist_train.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgf/ 1  | tee finetune_segformer.log
+#bash ./tools/dist_train.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgf/ 1  | tee finetune_segformer.log
