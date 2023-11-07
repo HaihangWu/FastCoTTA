@@ -531,7 +531,7 @@ def single_gpu_AuxAdapt(model_l,
                 result = np2tmp(result)
             results.append(result)
 
-        torch.mean(weight * loss["decode.loss_ce"]).backward()
+        torch.mean(weight * loss["decode.loss_seg"]).backward()
         optimizer.step()
         optimizer.zero_grad()
 
