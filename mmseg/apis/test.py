@@ -567,9 +567,9 @@ def single_model_update(model,
         list: The prediction results.
     """
 
-    if "Source" in args.method:
+    if "Source" in args.method or 'TENT' in args.method:
         model.eval()
-    if 'BN' in args.method or 'TENT' in args.method:
+    if 'BN' in args.method:
         model.train()
 
     results = []
