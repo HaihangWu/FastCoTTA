@@ -45,7 +45,7 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 
-bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py BN 1 | tee BN_night.log
+bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py BN 1 | tee BN.log
 
 #bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.night.160k.py CoTTA 1 | tee CoTTA_night.log
 

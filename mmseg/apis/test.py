@@ -64,7 +64,74 @@ def single_gpu_ours(model,
                      frame_passed =0,
                     domains_detections={},
                      round=-1):
-    pass
+    model.eval()
+    anchor_model.eval()
+    results = []
+    domain_storage_length=100
+    #storage_temp_length=10
+    dataset = data_loader.dataset
+    prog_bar = mmcv.ProgressBar(len(dataset))
+    param_list = []
+    out_dir = "./Cotta/"+str(frame_passed)
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            param_list.append(param)
+        else:
+            param.requires_grad=False
+    optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer, segnext
+    pred_time=0
+    print("new domain starts,",frame_passed)
+    new_domain_frame=frame_passed
+    for i, data in enumerate(data_loader):
+        model.eval() # student model
+        ema_model.eval() # teacher model
+        anchor_model.eval() # source model
+        pred_begin=time.time()
+        frame_passed=frame_passed +1
+        with torch.no_grad():
+            img_id = 0
+            if len(data['img']) == 14:
+                img_id = 4  # The default size without flip
+
+
+            if not domains_detections["adaptation"]:
+                result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
+                                                      img_metas=[data['img_metas'][img_id].data[0]])
+                domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+            else:
+                result_ori, probs, preds = ema_model(return_loss=False, **data)
+                conf_mean=np.mean(probs[img_id])
+                domains_detections["storage"].append(conf_mean)
+            result = [preds[img_id][0].astype(np.int64)]
+            result_ = [result_ori[0].astype(np.int64)]
+
+
+        if domains_detections["adaptation"]:
+            if isinstance(result, list):
+                if len(data['img']) == 14:
+                    img_id = 4  # The default size without flip
+                else:
+                    img_id = 0
+                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0],
+                                     gt_semantic_seg=torch.from_numpy(result_[0]).cuda().unsqueeze(0).unsqueeze(0))
+                if efficient_test:
+                    result = [np2tmp(_) for _ in result]
+                results.extend(result)
+            else:
+                if efficient_test:
+                    result = np2tmp(result)
+                results.append(result)
+            torch.mean(loss["decode.loss_seg"]).backward()
+            optimizer.step()
+            optimizer.zero_grad()
+            ema_model = update_ema_variables(ema_model=ema_model, model=model, alpha_teacher=0.999)  # teacher model
+        else:
+            if efficient_test:
+                result = [np2tmp(_) for _ in result]
+            results.extend(result)
+
+    print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
+    return results,frame_passed,domains_detections
 
 def single_gpu_cotta(model,
                     data_loader,
