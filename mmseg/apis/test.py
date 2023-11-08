@@ -88,22 +88,34 @@ def single_gpu_ours(model,
         anchor_model.eval() # source model
         pred_begin=time.time()
         frame_passed=frame_passed +1
+        if domains_detections["dm_shift"]:
+            domains_detections["dm_reso_select_processed_frames"] = 0
+            domains_detections["dm_reso_select_conf_info"] = [[], []]
+            domains_detections["dm_shift"]=False
+
         with torch.no_grad():
-            img_id = 0
-            if len(data['img']) == 14:
-                img_id = 4  # The default size without flip
+            if domains_detections["dm_reso_select_processed_frames"] < 0:
+                if domains_detections["adaptation"]:
+                    result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
+                                                      img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
+                else:
+                    result, probs, preds = ema_model(return_loss=False, img=[data['img'][0]],
+                                                      img_metas=[data['img_metas'][0].data[0]])
+                domains_detections["pred_conf"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
-
-            if not domains_detections["adaptation"]:
-                result_ori, probs, preds = ema_model(return_loss=False, img=[data['img'][img_id]],
-                                                      img_metas=[data['img_metas'][img_id].data[0]])
-                domains_detections["storage"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
-            else:
-                result_ori, probs, preds = ema_model(return_loss=False, **data)
-                conf_mean=np.mean(probs[img_id])
-                domains_detections["storage"].append(conf_mean)
-            result = [preds[img_id][0].astype(np.int64)]
-            result_ = [result_ori[0].astype(np.int64)]
+            ######### domain resolution selector##################
+            if domains_detections["dm_reso_select_processed_frames"]>=0 and domains_detections["dm_reso_select_processed_frames"] < domains_detections["hp_k"]:
+                result, probs, preds = anchor_model(return_loss=False, **data)
+                domains_detections["dm_reso_select_conf_info"][0].append(np.mean(probs[0])) # low reso conf
+                domains_detections["dm_reso_select_conf_info"][1].append(np.mean(probs[1])) # high reso conf
+                result = [(result[-1]).astype(np.int64)]
+                domains_detections["dm_reso_select_processed_frames"]=domains_detections["dm_reso_select_processed_frames"]+1
+            if domains_detections["dm_reso_select_processed_frames"] >= domains_detections["hp_k"]:
+                if np.mean(domains_detections["dm_reso_select_conf_info"][0])>np.mean(domains_detections["dm_reso_select_conf_info"][1]):
+                    domains_detections["imge_id"] = 0
+                else:
+                    domains_detections["imge_id"] = 1
+                domains_detections["dm_reso_select_processed_frames"] = -1
 
 
         if domains_detections["adaptation"]:

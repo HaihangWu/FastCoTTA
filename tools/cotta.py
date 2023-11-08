@@ -13,6 +13,7 @@ from mmseg.models import build_segmentor
 from IPython import embed
 from copy import deepcopy
 import time
+from collections import deque
 
 
 def create_ema_model(model):
@@ -138,10 +139,10 @@ def main():
                 if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
                     cfg.data.test.test_cases[i].pipeline[1].img_ratios = [2.0]
                     cfg.data.test.test_cases[i].pipeline[1].flip = False
-                elif 'AuxAdapt' in args.method:
-                    cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
-                        1.0, 2.0
-                    ]
+                elif 'AuxAdapt' in args.method or 'Ours' in args.method:
+                    cfg.data.test.test_cases[i].pipeline[1].img_ratios = [1.0, 2.0]
+                    cfg.data.test.test_cases[i].pipeline[1].flip = False
+
             elif cfg.data.test.test_cases[i].type == 'ADE20KDataset':
                 # hard code index
                 cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
@@ -233,7 +234,16 @@ def main():
     #domains_detections["shift"]=False
     domains_detections["storage"] = []
     domains_detections["adapted_frame"] = 0
-    #domains_detections["current_DM"] = None # currrent domain
+
+    domains_detections["dm_shift"] = True
+    domains_detections["hp_k"] = 5
+    domains_detections["dm_reso_select_processed_frames"] = -1
+    domains_detections["dm_reso_select_conf_info"]=[[],[]]
+    domains_detections["imge_id"]=None
+    domains_detections["adaptation"] = False
+    domains_detections["pred_conf"] = deque([0, 0], maxlen=domains_detections["hp_k"])
+
+
     total_predict_time=0
     total_processed_frame=0
     current_model_probs=None
