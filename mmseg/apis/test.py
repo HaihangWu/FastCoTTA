@@ -77,13 +77,12 @@ def single_gpu_ours(model,
         else:
             param.requires_grad=False
     optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer, segnext
-    pred_time=0
+    pred_begin=time.time()
     print("new domain starts,",frame_passed)
     for i, data in enumerate(data_loader):
         model.eval() # student model
         ema_model.eval() # teacher model
         anchor_model.eval() # source model
-        pred_begin=time.time()
         frame_passed=frame_passed +1
         ######### Adaptation trigger##################
         if domains_detections["dm_reso_select_processed_frames"] >= domains_detections["hp_k"]:
@@ -94,6 +93,7 @@ def single_gpu_ours(model,
                 domains_detections["imge_id"] = 1
             domains_detections["dm_reso_select_processed_frames"] = -1
             domains_detections["adaptation"] = True
+            print("domain resolution selection", domains_detections["imge_id"], round, frame_passed)
 
         ######### domain shift detection##################
         if len(domains_detections["pred_conf"])>= (2*domains_detections["hp_k"]):
@@ -102,9 +102,10 @@ def single_gpu_ours(model,
             second_domain_mean=np.mean(list(domains_detections["pred_conf"])[domains_detections["hp_k"]:])
             second_domain_std=np.std(list(domains_detections["pred_conf"])[domains_detections["hp_k"]:])
             domain_distance=abs(first_domain_mean-second_domain_mean)/np.sqrt(first_domain_std ** 2.0 + second_domain_std ** 2.0)
+            print("domain shifted test", domain_distance, first_domain_mean, second_domain_mean, first_domain_std, second_domain_std, frame_passed,round)
             if domain_distance>domains_detections["hp_z"]:
                 domains_detections["dm_shift"] = True
-                print("domain shifted",domain_distance, round, frame_passed)
+                #print("domain shifted",domain_distance, round, frame_passed)
 
         if domains_detections["dm_shift"]:
             domains_detections["dm_reso_select_processed_frames"] = 0
@@ -120,9 +121,10 @@ def single_gpu_ours(model,
             teacher_pred_mean = np.mean(list(domains_detections["pred_conf"])[:domains_detections["hp_k"]])
             teacher_pred_std=np.std(list(domains_detections["pred_conf"])[:domains_detections["hp_k"]])
             TS_distance=(teacher_pred_mean-source_pred_mean)/np.sqrt(source_pred_std ** 2.0 + teacher_pred_std ** 2.0)
+            print("adaptation termination test", TS_distance, source_pred_mean, teacher_pred_mean, source_pred_std, teacher_pred_std, frame_passed,round)
             if TS_distance>domains_detections["hp_z"]:
                 domains_detections["adaptation"] = False
-                print("adaptation termination",TS_distance, round, frame_passed)
+                #print("adaptation termination test",TS_distance, round, frame_passed)
 
         with torch.no_grad():
             if domains_detections["dm_reso_select_processed_frames"] < 0: #domain resolution has been selectd; start to use teacher model for prediction
@@ -164,6 +166,7 @@ def single_gpu_ours(model,
             optimizer.zero_grad()
             ema_model = update_ema_variables(ema_model=ema_model, model=model, alpha_teacher=0.999)  # teacher model
 
+    pred_time = time.time() - pred_begin
     print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
     return results,frame_passed,domains_detections
 
