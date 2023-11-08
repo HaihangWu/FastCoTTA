@@ -103,7 +103,7 @@ def single_gpu_ours(model,
             second_domain_std=np.std(list(domains_detections["pred_conf"])[domains_detections["hp_k"]:])
             domain_distance=abs(first_domain_mean-second_domain_mean)/np.sqrt(first_domain_std ** 2.0 + second_domain_std ** 2.0)
             print("domain shifted test", domain_distance, first_domain_mean, second_domain_mean, first_domain_std, second_domain_std, frame_passed,round)
-            if domain_distance>domains_detections["hp_z"]:
+            if domain_distance>domains_detections["hp_z_dm_shift"]:
                 domains_detections["dm_shift"] = True
                 #print("domain shifted",domain_distance, round, frame_passed)
 
@@ -122,7 +122,7 @@ def single_gpu_ours(model,
             teacher_pred_std=np.std(list(domains_detections["pred_conf"])[:domains_detections["hp_k"]])
             TS_distance=(teacher_pred_mean-source_pred_mean)/np.sqrt(source_pred_std ** 2.0 + teacher_pred_std ** 2.0)
             print("adaptation termination test", TS_distance, source_pred_mean, teacher_pred_mean, source_pred_std, teacher_pred_std, frame_passed,round)
-            if TS_distance>domains_detections["hp_z"]:
+            if TS_distance>domains_detections["hp_z_adapt_ends"]:
                 domains_detections["adaptation"] = False
                 #print("adaptation termination test",TS_distance, round, frame_passed)
 

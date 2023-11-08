@@ -237,7 +237,8 @@ def main():
 
     domains_detections["dm_shift"] = True
     domains_detections["hp_k"] = 5
-    domains_detections["hp_z"] = 2.0
+    domains_detections["hp_z_dm_shift"] = 2.0
+    domains_detections["hp_z_adapt_ends"] = 2.0
     domains_detections["dm_reso_select_processed_frames"] = -1
     domains_detections["dm_reso_select_conf_info"]=[[],[]]
     domains_detections["imge_id"]=None
