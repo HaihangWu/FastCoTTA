@@ -67,8 +67,6 @@ def single_gpu_ours(model,
     model.eval()
     anchor_model.eval()
     results = []
-    domain_storage_length=100
-    #storage_temp_length=10
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     param_list = []
@@ -81,26 +79,57 @@ def single_gpu_ours(model,
     optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer, segnext
     pred_time=0
     print("new domain starts,",frame_passed)
-    new_domain_frame=frame_passed
     for i, data in enumerate(data_loader):
         model.eval() # student model
         ema_model.eval() # teacher model
         anchor_model.eval() # source model
         pred_begin=time.time()
         frame_passed=frame_passed +1
+        ######### Adaptation trigger##################
+        if domains_detections["dm_reso_select_processed_frames"] >= domains_detections["hp_k"]:
+            if np.mean(domains_detections["dm_reso_select_conf_info"][0]) > np.mean(
+                    domains_detections["dm_reso_select_conf_info"][1]):
+                domains_detections["imge_id"] = 0
+            else:
+                domains_detections["imge_id"] = 1
+            domains_detections["dm_reso_select_processed_frames"] = -1
+            domains_detections["adaptation"] = True
+
+        ######### domain shift detection##################
+        if len(domains_detections["pred_conf"])>= (2*domains_detections["hp_k"]):
+            first_domain_mean=np.mean(list(domains_detections["pred_conf"])[:domains_detections["hp_k"]])
+            first_domain_std=np.std(list(domains_detections["pred_conf"])[:domains_detections["hp_k"]])
+            second_domain_mean=np.mean(list(domains_detections["pred_conf"])[domains_detections["hp_k"]:])
+            second_domain_std=np.std(list(domains_detections["pred_conf"])[domains_detections["hp_k"]:])
+            domain_distance=abs(first_domain_mean-second_domain_mean)/np.sqrt(first_domain_std ** 2.0 + second_domain_std ** 2.0)
+            if domain_distance>domains_detections["hp_z"]:
+                domains_detections["dm_shift"] = True
+                print("domain shifted",domain_distance, round, frame_passed)
+
         if domains_detections["dm_shift"]:
             domains_detections["dm_reso_select_processed_frames"] = 0
             domains_detections["dm_reso_select_conf_info"] = [[], []]
+            domains_detections["pred_conf"].clear()
+            domains_detections["adaptation"] = False
             domains_detections["dm_shift"]=False
+        ### we make assumption that frames in the same domain are similar
+        elif not domains_detections["dm_shift"] and domains_detections["adaptation"] and len(domains_detections["pred_conf"])>= (domains_detections["hp_k"]): ######### Adaptation Termination
+            imge_id = domains_detections["imge_id"]
+            source_pred_mean = np.mean(domains_detections["dm_reso_select_conf_info"][imge_id])
+            source_pred_std = np.std(domains_detections["dm_reso_select_conf_info"][imge_id])
+            teacher_pred_mean = np.mean(list(domains_detections["pred_conf"])[:domains_detections["hp_k"]])
+            teacher_pred_std=np.std(list(domains_detections["pred_conf"])[:domains_detections["hp_k"]])
+            TS_distance=(teacher_pred_mean-source_pred_mean)/np.sqrt(source_pred_std ** 2.0 + teacher_pred_std ** 2.0)
+            if TS_distance>domains_detections["hp_z"]:
+                domains_detections["adaptation"] = False
+                print("adaptation termination",TS_distance, round, frame_passed)
 
         with torch.no_grad():
-            if domains_detections["dm_reso_select_processed_frames"] < 0:
+            if domains_detections["dm_reso_select_processed_frames"] < 0: #domain resolution has been selectd; start to use teacher model for prediction
+                imge_id=0
                 if domains_detections["adaptation"]:
-                    result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
-                                                      img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
-                else:
-                    result, probs, preds = ema_model(return_loss=False, img=[data['img'][0]],
-                                                      img_metas=[data['img_metas'][0].data[0]])
+                    imge_id = domains_detections["imge_id"]
+                result, probs, preds = ema_model(return_loss=False, img=[data['img'][imge_id]],img_metas=[data['img_metas'][imge_id].data[0]])
                 domains_detections["pred_conf"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
             ######### domain resolution selector##################
@@ -110,37 +139,30 @@ def single_gpu_ours(model,
                 domains_detections["dm_reso_select_conf_info"][1].append(np.mean(probs[1])) # high reso conf
                 result = [(result[-1]).astype(np.int64)]
                 domains_detections["dm_reso_select_processed_frames"]=domains_detections["dm_reso_select_processed_frames"]+1
-            if domains_detections["dm_reso_select_processed_frames"] >= domains_detections["hp_k"]:
-                if np.mean(domains_detections["dm_reso_select_conf_info"][0])>np.mean(domains_detections["dm_reso_select_conf_info"][1]):
-                    domains_detections["imge_id"] = 0
-                else:
-                    domains_detections["imge_id"] = 1
-                domains_detections["dm_reso_select_processed_frames"] = -1
 
+
+
+        if isinstance(result, list):
+            if len(data['img']) == 14:
+                img_id = 4  # The default size without flip
+            else:
+                img_id = 0
+            if domains_detections["adaptation"]:
+                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0],
+                                     gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
+            if efficient_test:
+                result = [np2tmp(_) for _ in result]
+            results.extend(result)
+        else:
+            if efficient_test:
+                result = np2tmp(result)
+            results.append(result)
 
         if domains_detections["adaptation"]:
-            if isinstance(result, list):
-                if len(data['img']) == 14:
-                    img_id = 4  # The default size without flip
-                else:
-                    img_id = 0
-                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0],
-                                     gt_semantic_seg=torch.from_numpy(result_[0]).cuda().unsqueeze(0).unsqueeze(0))
-                if efficient_test:
-                    result = [np2tmp(_) for _ in result]
-                results.extend(result)
-            else:
-                if efficient_test:
-                    result = np2tmp(result)
-                results.append(result)
             torch.mean(loss["decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
             ema_model = update_ema_variables(ema_model=ema_model, model=model, alpha_teacher=0.999)  # teacher model
-        else:
-            if efficient_test:
-                result = [np2tmp(_) for _ in result]
-            results.extend(result)
 
     print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
     return results,frame_passed,domains_detections

@@ -226,22 +226,23 @@ def main():
     frame_passed=0
     total_predict_time=0
     domains_detections={}
-    domains_detections["detection"]=True
-    domains_detections["detection_prob"]=0.1
-    domains_detections["adaptation_prob"] = {}
-    domains_detections["cur_adaptation_prob"] = 1.0
-    domains_detections["cur_dom"]="domain"+str(1)
-    #domains_detections["shift"]=False
-    domains_detections["storage"] = []
-    domains_detections["adapted_frame"] = 0
+    # domains_detections["detection"]=True
+    # domains_detections["detection_prob"]=0.1
+    # domains_detections["adaptation_prob"] = {}
+    # domains_detections["cur_adaptation_prob"] = 1.0
+    # domains_detections["cur_dom"]="domain"+str(1)
+    # #domains_detections["shift"]=False
+    # domains_detections["storage"] = []
+    # domains_detections["adapted_frame"] = 0
 
     domains_detections["dm_shift"] = True
     domains_detections["hp_k"] = 5
+    domains_detections["hp_z"] = 2.0
     domains_detections["dm_reso_select_processed_frames"] = -1
     domains_detections["dm_reso_select_conf_info"]=[[],[]]
     domains_detections["imge_id"]=None
     domains_detections["adaptation"] = False
-    domains_detections["pred_conf"] = deque([0, 0], maxlen=domains_detections["hp_k"])
+    domains_detections["pred_conf"] = deque(maxlen=(2*domains_detections["hp_k"]))
 
 
     total_predict_time=0
