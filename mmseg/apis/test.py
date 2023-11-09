@@ -118,8 +118,8 @@ def single_gpu_ours(model,
             imge_id = domains_detections["imge_id"]
             source_pred_mean = np.mean(domains_detections["dm_reso_select_conf_info"][imge_id])
             source_pred_std = np.std(domains_detections["dm_reso_select_conf_info"][imge_id])
-            teacher_pred_mean = np.mean(list(domains_detections["pred_conf"])[:domains_detections["hp_k"]])
-            teacher_pred_std=np.std(list(domains_detections["pred_conf"])[:domains_detections["hp_k"]])
+            teacher_pred_mean = np.mean(list(domains_detections["pred_conf"])[-domains_detections["hp_k"]:])
+            teacher_pred_std=np.std(list(domains_detections["pred_conf"])[-domains_detections["hp_k"]:])
             TS_distance=(teacher_pred_mean-source_pred_mean)/np.sqrt(source_pred_std ** 2.0 + teacher_pred_std ** 2.0)
             print("adaptation termination test", TS_distance, source_pred_mean, teacher_pred_mean, source_pred_std, teacher_pred_std, frame_passed,round)
             if TS_distance>domains_detections["hp_z_adapt_ends"]:
@@ -133,6 +133,7 @@ def single_gpu_ours(model,
                     imge_id = domains_detections["imge_id"]
                 result, probs, preds = ema_model(return_loss=False, img=[data['img'][imge_id]],img_metas=[data['img_metas'][imge_id].data[0]])
                 domains_detections["pred_conf"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+                print("teacher pred conf:",np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
             ######### domain resolution selector##################
             if domains_detections["dm_reso_select_processed_frames"]>=0 and domains_detections["dm_reso_select_processed_frames"] < domains_detections["hp_k"]:
