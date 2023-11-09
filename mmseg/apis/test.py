@@ -84,7 +84,7 @@ def single_gpu_ours(model,
         ema_model.eval() # teacher model
         anchor_model.eval() # source model
         frame_passed=frame_passed +1
-        ######### Adaptation trigger##################
+        ######### Domain resolution selector/Adaptation trigger##################
         if domains_detections["dm_reso_select_processed_frames"] >= domains_detections["hp_k"]:
             if np.mean(domains_detections["dm_reso_select_conf_info"][0]) > np.mean(
                     domains_detections["dm_reso_select_conf_info"][1]):
@@ -114,16 +114,23 @@ def single_gpu_ours(model,
             domains_detections["adaptation"] = False
             domains_detections["dm_shift"]=False
         ### we make assumption that frames in the same domain are similar
-        elif not domains_detections["dm_shift"] and domains_detections["adaptation"] and len(domains_detections["pred_conf"])>= (domains_detections["hp_k"]): ######### Adaptation Termination
-            imge_id = domains_detections["imge_id"]
+        elif not domains_detections["dm_shift"] and len(domains_detections["pred_conf"])>= (domains_detections["hp_k"]): ######### Adaptation Termination
+            imge_id = 0
+            if domains_detections["adaptation"]:
+                imge_id = domains_detections["imge_id"]
             source_pred_mean = np.mean(domains_detections["dm_reso_select_conf_info"][imge_id])
             source_pred_std = np.std(domains_detections["dm_reso_select_conf_info"][imge_id])
             teacher_pred_mean = np.mean(list(domains_detections["pred_conf"])[-domains_detections["hp_k"]:])
             teacher_pred_std=np.std(list(domains_detections["pred_conf"])[-domains_detections["hp_k"]:])
             TS_distance=(teacher_pred_mean-source_pred_mean)/np.sqrt(source_pred_std ** 2.0 + teacher_pred_std ** 2.0)
-            print("adaptation termination test", TS_distance, source_pred_mean, teacher_pred_mean, source_pred_std, teacher_pred_std, frame_passed,round)
-            if TS_distance>domains_detections["hp_z_adapt_ends"]:
+            if TS_distance<domains_detections["hp_z_adapt_ends"] and domains_detections["adaptation"]:
                 domains_detections["adaptation"] = False
+                domains_detections["pred_conf"].clear()
+            if TS_distance > domains_detections["hp_z_adapt_ends"] and not domains_detections["adaptation"]:
+                domains_detections["adaptation"] = True
+                domains_detections["pred_conf"].clear()
+            print("adaptation termination test", domains_detections["adaptation"], TS_distance, source_pred_mean, teacher_pred_mean, source_pred_std,
+                      teacher_pred_std, frame_passed, round)
                 #print("adaptation termination test",TS_distance, round, frame_passed)
 
         with torch.no_grad():
@@ -133,7 +140,7 @@ def single_gpu_ours(model,
                     imge_id = domains_detections["imge_id"]
                 result, probs, preds = ema_model(return_loss=False, img=[data['img'][imge_id]],img_metas=[data['img_metas'][imge_id].data[0]])
                 domains_detections["pred_conf"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
-                print("teacher pred conf:",np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+                #print("teacher pred conf:",np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
             ######### domain resolution selector##################
             if domains_detections["dm_reso_select_processed_frames"]>=0 and domains_detections["dm_reso_select_processed_frames"] < domains_detections["hp_k"]:
