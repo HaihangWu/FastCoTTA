@@ -125,10 +125,10 @@ def single_gpu_ours(model,
             TS_distance=(teacher_pred_mean-source_pred_mean)/np.sqrt(source_pred_std ** 2.0 + teacher_pred_std ** 2.0)
             if TS_distance<domains_detections["hp_z_adapt_ends"] and domains_detections["adaptation"]:
                 domains_detections["adaptation"] = False
-                domains_detections["pred_conf"].clear()
+                #domains_detections["pred_conf"].clear()
             if TS_distance > domains_detections["hp_z_adapt_ends"] and not domains_detections["adaptation"]:
                 domains_detections["adaptation"] = True
-                domains_detections["pred_conf"].clear()
+                #domains_detections["pred_conf"].clear()
             print("adaptation termination test", domains_detections["adaptation"], TS_distance, source_pred_mean, teacher_pred_mean, source_pred_std,
                       teacher_pred_std, frame_passed, round)
                 #print("adaptation termination test",TS_distance, round, frame_passed)
