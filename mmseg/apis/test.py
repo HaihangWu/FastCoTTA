@@ -111,6 +111,8 @@ def single_gpu_ours(model,
             source_pred_std_s = np.std(domains_detections["dm_reso_select_conf_info"][0])
             source_pred_mean_l = np.mean(domains_detections["dm_reso_select_conf_info"][1])
             source_pred_std_l = np.std(domains_detections["dm_reso_select_conf_info"][1])
+            TS_distance_s=0
+            TS_distance_l=0
             if len(domains_detections["pred_conf"][0])>1.5:
                 teacher_pred_mean_s=np.mean(domains_detections["pred_conf"][0])
                 teacher_pred_std_s = np.mean(domains_detections["pred_conf"][0])
