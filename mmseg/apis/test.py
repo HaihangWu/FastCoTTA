@@ -103,8 +103,7 @@ def single_gpu_ours(model,
             domains_detections["dm_shift"]=False
 
         ### dynamic adaptation: we make assumption that frames in the same domain are similar
-        print(np.array(domains_detections["pred_conf"], dtype=object).size >= (domains_detections["hp_k"]), np.array(domains_detections["pred_conf"], dtype=object).size,domains_detections["hp_k"],domains_detections["pred_conf"])
-        if np.array(domains_detections["pred_conf"], dtype=object).size >= (domains_detections["hp_k"]):
+        if np.sum([len(sublist) for sublist in domains_detections["pred_conf"]]) >= (domains_detections["hp_k"]):
             # imge_id = 0
             # if domains_detections["adaptation"]:
             #     imge_id = domains_detections["imge_id"]
@@ -124,8 +123,8 @@ def single_gpu_ours(model,
                     source_pred_std_l ** 2.0 + teacher_pred_std_l ** 2.0)
             # teacher_pred_mean = np.mean(list(domains_detections["pred_conf"])[-domains_detections["hp_k"]:])
             # teacher_pred_std=np.std(list(domains_detections["pred_conf"])[-domains_detections["hp_k"]:])
-            TS_distance=TS_distance_s*(np.array(domains_detections["pred_conf"][0]).size/np.array(domains_detections["pred_conf"], dtype=object).size)\
-                        +TS_distance_l*(np.array(domains_detections["pred_conf"][1]).size/np.array(domains_detections["pred_conf"], dtype=object).size)
+            TS_distance=TS_distance_s*(len(domains_detections["pred_conf"][0])/np.sum([len(sublist) for sublist in domains_detections["pred_conf"]]))\
+                        +TS_distance_l*(len(domains_detections["pred_conf"][1])/np.sum([len(sublist) for sublist in domains_detections["pred_conf"]]))
             if TS_distance<domains_detections["hp_z_adapt_ends"] and domains_detections["adaptation"]:
                 domains_detections["adaptation"] = False
             if TS_distance > domains_detections["hp_z_adapt_ends"] and not domains_detections["adaptation"]:
