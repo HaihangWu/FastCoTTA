@@ -174,11 +174,15 @@ def single_gpu_ours(model,
             #         domains_detections["pred_conf"][1].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
                 if np.mean(domains_detections["conf_gain"])<domains_detections["adat_ends"]:
-                    result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
-                                                     img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
-                    result_source, probs_source, preds_source = anchor_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
-                                                     img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
-                    domains_detections["conf_gain"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy())-np.mean(torch.amax(probs_source[0], 0).cpu().numpy()))
+                    # result_source, probs_source, preds_source = anchor_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
+                    #                                  img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
+                    result_surce, probs_surce, preds_surce = anchor_model(return_loss=False, **data)
+                    imge_id=0
+                    if np.mean(probs_surce[0]) < np.mean(probs_surce[1]):
+                        imge_id = 1
+                    result, probs, preds = ema_model(return_loss=False, img=[data['img'][imge_id]],
+                                                     img_metas=[data['img_metas'][imge_id].data[0]])
+                    domains_detections["conf_gain"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy())-np.mean(probs_surce[0]))
                 else:
                     result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
                                                      img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
