@@ -85,70 +85,90 @@ def single_gpu_ours(model,
         anchor_model.eval() # source model
         frame_passed=frame_passed +1
         ######### Domain resolution selector/Adaptation trigger##################
-        if domains_detections["dm_reso_select_processed_frames"] >= domains_detections["hp_k"]:
+        if domains_detections["dm_reso_select_processed_frames"] > 0:
             if np.mean(domains_detections["dm_reso_select_conf_info"][0]) > np.mean(
                     domains_detections["dm_reso_select_conf_info"][1]):
                 domains_detections["imge_id"] = 0
             else:
                 domains_detections["imge_id"] = 1
             domains_detections["dm_reso_select_processed_frames"] = -1
-            domains_detections["adaptation"] = True
-            print("domain resolution selection", domains_detections["imge_id"], round, frame_passed)
-
-        ######### domain shift detection##################
-        if len(domains_detections["pred_conf"])>= (2*domains_detections["hp_k"]):
-            first_domain_mean=np.mean(list(domains_detections["pred_conf"])[:domains_detections["hp_k"]])
-            first_domain_std=np.std(list(domains_detections["pred_conf"])[:domains_detections["hp_k"]])
-            second_domain_mean=np.mean(list(domains_detections["pred_conf"])[domains_detections["hp_k"]:])
-            second_domain_std=np.std(list(domains_detections["pred_conf"])[domains_detections["hp_k"]:])
-            domain_distance=abs(first_domain_mean-second_domain_mean)/np.sqrt(first_domain_std ** 2.0 + second_domain_std ** 2.0)
-            print("domain shifted test", domain_distance, first_domain_mean, second_domain_mean, first_domain_std, second_domain_std, frame_passed,round)
-            if domain_distance>domains_detections["hp_z_dm_shift"]:
-                domains_detections["dm_shift"] = True
-                #print("domain shifted",domain_distance, round, frame_passed)
+            # domains_detections["adaptation"] = True
+            print("domain resolution selection", domains_detections["imge_id"], np.mean(domains_detections["dm_reso_select_conf_info"][0]) ,np.mean(domains_detections["dm_reso_select_conf_info"][1]) ,round, frame_passed)
 
         if domains_detections["dm_shift"]:
             domains_detections["dm_reso_select_processed_frames"] = 0
-            domains_detections["dm_reso_select_conf_info"] = [[], []]
-            domains_detections["pred_conf"].clear()
+            #domains_detections["dm_reso_select_conf_info"] = [[], []]
+            domains_detections["pred_conf"]=[[],[]]
             domains_detections["adaptation"] = False
             domains_detections["dm_shift"]=False
-        ### we make assumption that frames in the same domain are similar
-        elif not domains_detections["dm_shift"] and len(domains_detections["pred_conf"])>= (domains_detections["hp_k"]): ######### Adaptation Termination
-            imge_id = 0
-            if domains_detections["adaptation"]:
-                imge_id = domains_detections["imge_id"]
-            source_pred_mean = np.mean(domains_detections["dm_reso_select_conf_info"][imge_id])
-            source_pred_std = np.std(domains_detections["dm_reso_select_conf_info"][imge_id])
-            teacher_pred_mean = np.mean(list(domains_detections["pred_conf"])[-domains_detections["hp_k"]:])
-            teacher_pred_std=np.std(list(domains_detections["pred_conf"])[-domains_detections["hp_k"]:])
-            TS_distance=(teacher_pred_mean-source_pred_mean)/np.sqrt(source_pred_std ** 2.0 + teacher_pred_std ** 2.0)
+        ### adaptation decison: we make assumption that frames in the same domain are similar
+        elif not domains_detections["dm_shift"] and np.array(domains_detections["pred_conf"]).size >= (domains_detections["hp_k"]):
+            # imge_id = 0
+            # if domains_detections["adaptation"]:
+            #     imge_id = domains_detections["imge_id"]
+            source_pred_mean_s = np.mean(domains_detections["dm_reso_select_conf_info"][0])
+            source_pred_std_s = np.std(domains_detections["dm_reso_select_conf_info"][0])
+            source_pred_mean_l = np.mean(domains_detections["dm_reso_select_conf_info"][1])
+            source_pred_std_l = np.std(domains_detections["dm_reso_select_conf_info"][1])
+            if len(domains_detections["pred_conf"][0])>1.5:
+                teacher_pred_mean_s=np.mean(domains_detections["pred_conf"][0])
+                teacher_pred_std_s = np.mean(domains_detections["pred_conf"][0])
+                TS_distance_s = (teacher_pred_mean_s - source_pred_mean_s) / np.sqrt(
+                    source_pred_std_s ** 2.0 + teacher_pred_std_s ** 2.0)
+            if len(domains_detections["pred_conf"][1])>1.5:
+                teacher_pred_mean_l=np.mean(domains_detections["pred_conf"][1])
+                teacher_pred_std_l = np.mean(domains_detections["pred_conf"][1])
+                TS_distance_l = (teacher_pred_mean_l - source_pred_mean_l) / np.sqrt(
+                    source_pred_std_l ** 2.0 + teacher_pred_std_l ** 2.0)
+            # teacher_pred_mean = np.mean(list(domains_detections["pred_conf"])[-domains_detections["hp_k"]:])
+            # teacher_pred_std=np.std(list(domains_detections["pred_conf"])[-domains_detections["hp_k"]:])
+            TS_distance=TS_distance_s*(np.array(domains_detections["pred_conf"][0]).size/np.array(domains_detections["pred_conf"]).size)\
+                        +TS_distance_l*(np.array(domains_detections["pred_conf"][1]).size/np.array(domains_detections["pred_conf"]).size)
             if TS_distance<domains_detections["hp_z_adapt_ends"] and domains_detections["adaptation"]:
                 domains_detections["adaptation"] = False
-                domains_detections["pred_conf"].clear()
             if TS_distance > domains_detections["hp_z_adapt_ends"] and not domains_detections["adaptation"]:
                 domains_detections["adaptation"] = True
-                domains_detections["pred_conf"].clear()
-            print("adaptation termination test", domains_detections["adaptation"], TS_distance, source_pred_mean, teacher_pred_mean, source_pred_std,
-                      teacher_pred_std, frame_passed, round)
+            print("adaptation  test:", domains_detections["adaptation"], TS_distance, frame_passed, round)
                 #print("adaptation termination test",TS_distance, round, frame_passed)
 
         with torch.no_grad():
-            if domains_detections["dm_reso_select_processed_frames"] < 0: #domain resolution has been selectd; start to use teacher model for prediction
-                imge_id=0
-                if domains_detections["adaptation"]:
-                    imge_id = domains_detections["imge_id"]
-                result, probs, preds = ema_model(return_loss=False, img=[data['img'][imge_id]],img_metas=[data['img_metas'][imge_id].data[0]])
-                domains_detections["pred_conf"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
-                #print("teacher pred conf:",np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+                ######### domain shift detection##################
+                # if len(domains_detections["pred_conf"])>= (2*domains_detections["hp_k"]):
+            if frame_passed % domains_detections["hp_k"] == 0:
+                imge_id = 0
+                result, probs, preds = anchor_model(return_loss=False, img=[data['img'][imge_id]],
+                                                 img_metas=[data['img_metas'][imge_id].data[0]])
+                if len(domains_detections["domain_conf"])>1.5:
+                    first_domain_mean = np.mean(domains_detections["domain_conf"])
+                    first_domain_std = np.std(domains_detections["domain_conf"])
+                    second_domain_mean = np.mean(torch.amax(probs[0], 0).cpu().numpy())
+                    domain_distance = abs(first_domain_mean - second_domain_mean) / np.sqrt(
+                        first_domain_std ** 2.0)
+                    print("domain shifted test", domain_distance, first_domain_mean, second_domain_mean, first_domain_std, frame_passed, round)
+                if domain_distance > domains_detections["hp_z_dm_shift"]:
+                    domains_detections["dm_shift"] = True
+                    domains_detections["domain_conf"] = []
+                else:
+                    domains_detections["domain_conf"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
             ######### domain resolution selector##################
-            if domains_detections["dm_reso_select_processed_frames"]>=0 and domains_detections["dm_reso_select_processed_frames"] < domains_detections["hp_k"]:
+            if domains_detections["dm_reso_select_processed_frames"]>=0 and frame_passed%domains_detections["hp_k"]!=0: #and domains_detections["dm_reso_select_processed_frames"] < domains_detections["hp_k"]:
                 result, probs, preds = anchor_model(return_loss=False, **data)
                 domains_detections["dm_reso_select_conf_info"][0].append(np.mean(probs[0])) # low reso conf
                 domains_detections["dm_reso_select_conf_info"][1].append(np.mean(probs[1])) # high reso conf
                 result = [(result[-1]).astype(np.int64)]
                 domains_detections["dm_reso_select_processed_frames"]=domains_detections["dm_reso_select_processed_frames"]+1
+
+            #########  after selecting the domain resolution, use teacher model for prediction
+            if domains_detections["dm_reso_select_processed_frames"] < 0 and frame_passed%domains_detections["hp_k"]!=0:
+                imge_id=0
+                if domains_detections["adaptation"]:
+                    imge_id = domains_detections["imge_id"]
+                result, probs, preds = ema_model(return_loss=False, img=[data['img'][imge_id]],img_metas=[data['img_metas'][imge_id].data[0]])
+                if imge_id==0:
+                    domains_detections["pred_conf"][0].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+                else:
+                    domains_detections["pred_conf"][1].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
 
 

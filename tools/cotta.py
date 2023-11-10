@@ -237,14 +237,15 @@ def main():
     # domains_detections["adapted_frame"] = 0
 
     domains_detections["dm_shift"] = True
-    domains_detections["hp_k"] = 5
+    domains_detections["hp_k"] = 20
     domains_detections["hp_z_dm_shift"] = 1.0
-    domains_detections["hp_z_adapt_ends"] = -0.0
+    domains_detections["hp_z_adapt_ends"] = -0.5
     domains_detections["dm_reso_select_processed_frames"] = -1
     domains_detections["dm_reso_select_conf_info"]=[[],[]]
     domains_detections["imge_id"]=None
     domains_detections["adaptation"] = False
-    domains_detections["pred_conf"] = deque(maxlen=(2*domains_detections["hp_k"]))
+    domains_detections["pred_conf"] = [[],[]] #deque(maxlen=(2*domains_detections["hp_k"]))
+    domains_detections["domain_conf"]=[]
 
 
     total_predict_time=0
