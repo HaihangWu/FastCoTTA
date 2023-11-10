@@ -205,7 +205,7 @@ def single_gpu_ours(model,
             ema_model = update_ema_variables(ema_model=ema_model, model=model, alpha_teacher=0.999)  # teacher model
 
     pred_time = time.time() - pred_begin
-    print("average pred_time: %.3f seconds; average conf gain: %.3f" % (pred_time/(i+1),np.mean(domains_detections["adaptation"])))
+    print("average pred_time: %.3f seconds; average conf gain: %.3f" % (pred_time/(i+1),np.mean(domains_detections["conf_gain"])))
     return results,frame_passed,domains_detections
 
 def single_gpu_cotta(model,
