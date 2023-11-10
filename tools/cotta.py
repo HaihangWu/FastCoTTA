@@ -236,10 +236,11 @@ def main():
     # domains_detections["storage"] = []
     # domains_detections["adapted_frame"] = 0
 
-    domains_detections["dm_shift"] = True
     domains_detections["hp_k"] = 20
+    domains_detections["hp_reso_select_k"] = 5
     domains_detections["hp_z_dm_shift"] = 3.0
     domains_detections["hp_z_adapt_ends"] = -0.5
+    domains_detections["dm_shift"] = True
     domains_detections["dm_reso_select_processed_frames"] = -1
     domains_detections["dm_reso_select_conf_info"]=[[],[]]
     domains_detections["imge_id"]=None

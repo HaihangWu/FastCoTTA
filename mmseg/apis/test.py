@@ -85,7 +85,7 @@ def single_gpu_ours(model,
         anchor_model.eval() # source model
         frame_passed=frame_passed +1
         ######### Domain resolution selector/Adaptation trigger##################
-        if domains_detections["dm_reso_select_processed_frames"] > 0:
+        if domains_detections["dm_reso_select_processed_frames"] > domains_detections["hp_reso_select_k"]:
             if np.mean(domains_detections["dm_reso_select_conf_info"][0]) > np.mean(
                     domains_detections["dm_reso_select_conf_info"][1]):
                 domains_detections["imge_id"] = 0
@@ -103,7 +103,7 @@ def single_gpu_ours(model,
             domains_detections["dm_shift"]=False
 
         ### dynamic adaptation: we make assumption that frames in the same domain are similar
-        if np.sum([len(sublist) for sublist in domains_detections["pred_conf"]]) >= (domains_detections["hp_k"]):
+        if np.sum([len(sublist) for sublist in domains_detections["pred_conf"]]) >= (domains_detections["hp_k"]-domains_detections["hp_reso_select_k"]):
             # imge_id = 0
             # if domains_detections["adaptation"]:
             #     imge_id = domains_detections["imge_id"]
@@ -131,7 +131,7 @@ def single_gpu_ours(model,
                 domains_detections["adaptation"] = False
             if TS_distance > domains_detections["hp_z_adapt_ends"] and not domains_detections["adaptation"]:
                 domains_detections["adaptation"] = True
-            print("adaptation  test:", domains_detections["adaptation"], TS_distance, frame_passed, round)
+            print("adaptation  test:", domains_detections["adaptation"], TS_distance,TS_distance_s,TS_distance_l, np.sum([len(sublist) for sublist in domains_detections["pred_conf"]]), frame_passed, round)
                 #print("adaptation termination test",TS_distance, round, frame_passed)
 
         with torch.no_grad():
