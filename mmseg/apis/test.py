@@ -103,6 +103,7 @@ def single_gpu_ours(model,
             domains_detections["dm_shift"]=False
 
         ### dynamic adaptation: we make assumption that frames in the same domain are similar
+        print(np.array(domains_detections["pred_conf"], dtype=object).size >= (domains_detections["hp_k"]), np.array(domains_detections["pred_conf"], dtype=object).size,domains_detections["hp_k"],domains_detections["pred_conf"])
         if np.array(domains_detections["pred_conf"], dtype=object).size >= (domains_detections["hp_k"]):
             # imge_id = 0
             # if domains_detections["adaptation"]:
