@@ -147,7 +147,7 @@ def single_gpu_ours(model,
                     second_domain_mean = np.mean(torch.amax(probs[0], 0).cpu().numpy())
                     domain_distance = abs(first_domain_mean - second_domain_mean) / np.sqrt(
                         first_domain_std ** 2.0)
-                    print("domain shifted test", domain_distance, first_domain_mean, second_domain_mean, first_domain_std, frame_passed, round)
+                    print("domain shift test", domain_distance, first_domain_mean, second_domain_mean, first_domain_std, frame_passed, round)
                 if domain_distance > domains_detections["hp_z_dm_shift"]:
                     domains_detections["dm_shift"] = True
                     domains_detections["domain_conf"] = []
