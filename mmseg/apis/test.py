@@ -173,7 +173,7 @@ def single_gpu_ours(model,
             #     else:
             #         domains_detections["pred_conf"][1].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
-                if np.mean(domains_detections["conf_gain"])>domains_detections["adat_ends"]:
+                if np.mean(domains_detections["conf_gain"])<domains_detections["adat_ends"]:
                     result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
                                                      img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
                     result_source, probs_source, preds_source = anchor_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
@@ -187,7 +187,7 @@ def single_gpu_ours(model,
                 img_id = 4  # The default size without flip
             else:
                 img_id = 0
-            if np.mean(domains_detections["conf_gain"])>domains_detections["adat_ends"]:
+            if np.mean(domains_detections["conf_gain"])<domains_detections["adat_ends"]:
                 loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0],
                                      gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
             if efficient_test:
@@ -198,7 +198,7 @@ def single_gpu_ours(model,
                 result = np2tmp(result)
             results.append(result)
 
-        if np.mean(domains_detections["conf_gain"])>domains_detections["adat_ends"]:
+        if np.mean(domains_detections["conf_gain"])<domains_detections["adat_ends"]:
             torch.mean(loss["decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
