@@ -181,8 +181,8 @@ def single_gpu_ours(model,
                             domains_detections["imge_id"] = 1
                         source_model_conf=np.mean(probs_surce[0])
                     else:
-                        result_source, probs_source, preds_source = anchor_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
-                                                         img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
+                        result_source, probs_source, preds_source = anchor_model(return_loss=False, img=[data['img'][0]],
+                                                         img_metas=[data['img_metas'][0].data[0]])
                         source_model_conf = np.mean(torch.amax(probs_source[0], 0).cpu().numpy())
                     result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
                                                      img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
