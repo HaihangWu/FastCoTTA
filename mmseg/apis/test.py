@@ -101,8 +101,9 @@ def single_gpu_ours(model,
             domains_detections["pred_conf"]=[[],[]]
             domains_detections["adaptation"] = False
             domains_detections["dm_shift"]=False
-        ### adaptation decison: we make assumption that frames in the same domain are similar
-        elif not domains_detections["dm_shift"] and np.array(domains_detections["pred_conf"]).size >= (domains_detections["hp_k"]):
+
+        ### dynamic adaptation: we make assumption that frames in the same domain are similar
+        if np.array(domains_detections["pred_conf"]).size >= (domains_detections["hp_k"]):
             # imge_id = 0
             # if domains_detections["adaptation"]:
             #     imge_id = domains_detections["imge_id"]
