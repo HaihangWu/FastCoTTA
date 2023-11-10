@@ -137,7 +137,8 @@ def single_gpu_ours(model,
         with torch.no_grad():
                 ######### domain shift detection##################
                 # if len(domains_detections["pred_conf"])>= (2*domains_detections["hp_k"]):
-            domain_shift_detection=True if (frame_passed % domains_detections["hp_k"] == 0 or (frame_passed+1) % domains_detections["hp_k"] == 0) else False
+            domain_shift_detection=True if (frame_passed % domains_detections["hp_k"] == 0
+                                            or ((frame_passed+1) % domains_detections["hp_k"] == 0 and len(domains_detections["domain_conf"])<1.5)) else False
             if domain_shift_detection:
                 imge_id = 0
                 result, probs, preds = anchor_model(return_loss=False, img=[data['img'][imge_id]],
