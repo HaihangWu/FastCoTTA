@@ -135,7 +135,8 @@ def single_gpu_ours(model,
         with torch.no_grad():
                 ######### domain shift detection##################
                 # if len(domains_detections["pred_conf"])>= (2*domains_detections["hp_k"]):
-            if frame_passed % domains_detections["hp_k"] == 0:
+            domain_shift_detection=True if (frame_passed % domains_detections["hp_k"] == 0 or (frame_passed+1) % domains_detections["hp_k"] == 0) else False
+            if domain_shift_detection:
                 imge_id = 0
                 result, probs, preds = anchor_model(return_loss=False, img=[data['img'][imge_id]],
                                                  img_metas=[data['img_metas'][imge_id].data[0]])
@@ -154,7 +155,7 @@ def single_gpu_ours(model,
                     domains_detections["domain_conf"].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
             ######### domain resolution selector##################
-            if domains_detections["dm_reso_select_processed_frames"]>=0 and frame_passed%domains_detections["hp_k"]!=0: #and domains_detections["dm_reso_select_processed_frames"] < domains_detections["hp_k"]:
+            if domains_detections["dm_reso_select_processed_frames"]>=0 and not domain_shift_detection: #and domains_detections["dm_reso_select_processed_frames"] < domains_detections["hp_k"]:
                 result, probs, preds = anchor_model(return_loss=False, **data)
                 domains_detections["dm_reso_select_conf_info"][0].append(np.mean(probs[0])) # low reso conf
                 domains_detections["dm_reso_select_conf_info"][1].append(np.mean(probs[1])) # high reso conf
@@ -162,7 +163,7 @@ def single_gpu_ours(model,
                 domains_detections["dm_reso_select_processed_frames"]=domains_detections["dm_reso_select_processed_frames"]+1
 
             #########  after selecting the domain resolution, use teacher model for prediction
-            if domains_detections["dm_reso_select_processed_frames"] < 0 and frame_passed%domains_detections["hp_k"]!=0:
+            if domains_detections["dm_reso_select_processed_frames"] < 0 and not domain_shift_detection:
                 imge_id=0
                 if domains_detections["adaptation"]:
                     imge_id = domains_detections["imge_id"]
