@@ -173,8 +173,8 @@ def single_gpu_ours(model,
             #     else:
             #         domains_detections["pred_conf"][1].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
-                result, probs, preds = ema_model(return_loss=False, img=[data['img'][0]],
-                                                 img_metas=[data['img_metas'][0].data[0]])
+                result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
+                                                 img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
                 teacher_pred_conf.append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
         if isinstance(result, list):
             if len(data['img']) == 14:
