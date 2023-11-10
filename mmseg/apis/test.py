@@ -139,6 +139,7 @@ def single_gpu_ours(model,
                 imge_id = 0
                 result, probs, preds = anchor_model(return_loss=False, img=[data['img'][imge_id]],
                                                  img_metas=[data['img_metas'][imge_id].data[0]])
+                domain_distance=0.0
                 if len(domains_detections["domain_conf"])>1.5:
                     first_domain_mean = np.mean(domains_detections["domain_conf"])
                     first_domain_std = np.std(domains_detections["domain_conf"])
