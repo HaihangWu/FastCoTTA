@@ -195,19 +195,19 @@ def single_gpu_ours(model,
                                                                                  data['img_metas'][0].data[0]])
                     source_model_conf = np.mean(torch.amax(probs_source[0], 0).cpu().numpy())
                     if domains_detections["imge_id"] == 0:
-                        techer_model_conf_s=np.mean(probs[0])
+                        techer_model_conf_s=np.mean(torch.amax(probs[0], 0).cpu().numpy())
                     else:
                         result_TS, probs_TS, preds_TS = ema_model(return_loss=False, img=[data['img'][1]],
                                                                   img_metas=[data['img_metas'][1].data[0]])
-                        techer_model_conf_s = np.mean(probs_TS[0])
+                        techer_model_conf_s = np.mean(torch.amax(probs_TS[0], 0).cpu().numpy())
 
                     if (techer_model_conf_s - source_model_conf)<domains_detections["adat_ends"]:
                         domains_detections["adaptation"] = True
-                        techer_model_conf_L=np.mean(probs[0])
+                        techer_model_conf_L=np.mean(torch.amax(probs[0], 0).cpu().numpy())
                         if domains_detections["imge_id"] == 0:
                             result_TL, probs_TL, preds_TL = ema_model(return_loss=False, img=[data['img'][1]],
                                                                       img_metas=[data['img_metas'][1].data[0]])
-                            techer_model_conf_L=np.mean(probs_TL[0])
+                            techer_model_conf_L=np.mean(torch.amax(probs_TL[0], 0).cpu().numpy())
                             result = result_TL if techer_model_conf_L > techer_model_conf_s else result
                         else:
                             result = result_TS if techer_model_conf_L < techer_model_conf_s else result
@@ -216,7 +216,7 @@ def single_gpu_ours(model,
                         domains_detections["adaptation"] = False
                         domains_detections["imge_id"] = 0
                     print("adaptation decision:",domains_detections["adaptation"], domains_detections["imge_id"],
-                          techer_model_conf_s - source_model_conf,np.mean(probs_TL[0])-techer_model_conf_s )
+                          techer_model_conf_s - source_model_conf )
                         # print("teacher model conf:",techer_model_conf)
 
         if isinstance(result, list):
