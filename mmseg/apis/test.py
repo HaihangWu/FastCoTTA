@@ -395,7 +395,7 @@ def Efficient_adaptation(model,
                 img_id = 4 # The default size without flip
             result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
             entropy_pred=torch.mean(Categorical(probs = probs_[0].permute(1,2,0).view(-1, probs_.shape[1])).entropy())
-            print(probs_[0].permute(1,2,0).shape, probs_[0].permute(1,2,0).view(-1, probs_.shape[1]).shape)
+            print(probs_[0].permute(1,2,0).shape, probs_[0].permute(1,2,0).view(-1, probs_.shape[1]).shape,Categorical(probs = probs_[0].permute(1,2,0).view(-1, probs_.shape[1])).entropy().shape)
             if current_model_probs is None:
                 current_model_probs=copy.deepcopy(probs_[0].view(probs_.shape[1],-1))
                 print(current_model_probs.shape)
