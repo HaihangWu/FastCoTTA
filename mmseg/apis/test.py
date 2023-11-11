@@ -175,9 +175,6 @@ def single_gpu_ours(model,
             #         domains_detections["pred_conf"][1].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
                 if np.mean(domains_detections["conf_gain"])<domains_detections["adat_ends"]:
-                    result_source, probs_source, preds_source = anchor_model(return_loss=False, img=[data['img'][0]],
-                                                     img_metas=[data['img_metas'][0].data[0]])
-                    source_model_conf = np.mean(torch.amax(probs_source[0], 0).cpu().numpy())
                     # if frame_passed % domains_detections["hp_k"] == 0:
                     #     result_surce, probs_surce, preds_surce = anchor_model(return_loss=False, **data)
                     #     domains_detections["imge_id"]=0
@@ -196,13 +193,18 @@ def single_gpu_ours(model,
                         result = [result[0].astype(np.int64)]
                         techer_model_conf=np.mean(probs[0])
                         resolution_select.append(domains_detections["imge_id"])
+                        result_source, probs_source, preds_source = anchor_model(return_loss=False,
+                                                                                 img=[data['img'][0]],
+                                                                                 img_metas=[
+                                                                                     data['img_metas'][0].data[0]])
+                        source_model_conf = np.mean(torch.amax(probs_source[0], 0).cpu().numpy())
+                        domains_detections["conf_gain"].append(techer_model_conf - source_model_conf)
+                        conf_gain.append(techer_model_conf - source_model_conf)
                         # print("teacher model conf:",techer_model_conf)
                     else:
                         result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
                                                          img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
-                        techer_model_conf=np.mean(torch.amax(probs[0], 0).cpu().numpy())
-                    domains_detections["conf_gain"].append(techer_model_conf-source_model_conf)
-                    conf_gain.append(techer_model_conf-source_model_conf)
+                        #techer_model_conf=np.mean(torch.amax(probs[0], 0).cpu().numpy())
                 else:
                     result, probs, preds = ema_model(return_loss=False, img=[data['img'][0]],
                                                      img_metas=[data['img_metas'][0].data[0]])
