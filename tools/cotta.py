@@ -183,7 +183,9 @@ def main():
     #cfg.model.class_names=datasets[0].CLASSES
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
 
-    print(args.method +'_' + 'segformer' if 'segformer' in args.config else ('segnext' if 'segnext' else '') + '_'+ 'acdc' if 'acdc' in args.config else ('night' if 'night' else ''))
+    file_name=args.method +'_' + 'segformer' if 'segformer' in args.config else ('segnext' if 'segnext' else '')
+    file_name =file_name+ '_'+ 'acdc' if 'acdc' in args.config else ('night' if 'night' else '')
+    print(file_name)
 
     if 'TENT' in args.method:
         for name, param in model.named_parameters():
@@ -247,7 +249,7 @@ def main():
     # domains_detections["pred_conf"] = [[],[]] #deque(maxlen=(2*domains_detections["hp_k"]))
     # domains_detections["domain_conf"]=[]
     domains_detections["conf_gain"] = [0]
-    domains_detections["adat_ends"]=0.001
+    domains_detections["adat_ends"]=0.005
     domains_detections["hp_k"] = 20
     domains_detections["imge_id"] = 0
 
