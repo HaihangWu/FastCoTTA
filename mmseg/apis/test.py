@@ -369,8 +369,8 @@ def Efficient_adaptation(model,
     # prog_bar = mmcv.ProgressBar(len(dataset))
     param_list = []
     out_dir = "./Cotta/"+str(frame_passed)
-    E0=torch.tensor(0.05*math.log(19.0))
-    redundancy_epson=0.75
+    E0=torch.tensor(0.025*math.log(19.0))
+    redundancy_epson=0.8
     back_img_count=0
     for name, param in model.named_parameters():
         if param.requires_grad:
@@ -410,7 +410,7 @@ def Efficient_adaptation(model,
             # result = [(mask * result_L[0] + (1. - mask) * result_H[0]).astype(np.int64)]
 
             weight = torch.exp(E0 - entropy_pred)
-            print(entropy_pred<E0 and cosine_similarities.mean(0) < redundancy_epson, entropy_pred,E0, cosine_similarities.mean(0), redundancy_epson)
+            #print(entropy_pred<E0 and cosine_similarities.mean(0) < redundancy_epson, entropy_pred,E0, cosine_similarities.mean(0), redundancy_epson)
         if entropy_pred<E0 and cosine_similarities.mean(0) < redundancy_epson:
             back_img_count = back_img_count + 1
             mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
@@ -448,7 +448,7 @@ def Efficient_adaptation(model,
         #print("iter %d, teacher_pred: %.3f seconds; anchor_pred: %.3f;" % (i, teacher_pred, anchor_pred))
         #print("iter %d, teacher_pred: %.3f seconds; student_pred: %.3f; student_train: %.3f;model_update_time: %.3f;restoration_time: %.3f;" % (i,teacher_pred,student_pred,student_train,model_update_time,restoration_time))
     #print("pred_time: %.3f seconds;" % (pred_time/(i+1)))
-    print("reliable nd non-redundant samples", back_img_count)
+    print("reliable and non-redundant samples", back_img_count)
     return results,frame_passed
 
 def DPT(model,
