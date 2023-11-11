@@ -405,10 +405,6 @@ def Efficient_adaptation(model,
             # if torch.abs(cosine_similarities) > redundancy_epson:
             #     continue
 
-            mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
-            result, probs, preds = ema_model(return_loss=False, **data)
-
-            result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
 
             #result = [(mask * preds[0][0] + (1. - mask) * preds[1][0]).astype(np.int64)]
             # result_H, probs_H, preds_H = anchor_model(return_loss=False, img=[data['img'][1]],
@@ -418,23 +414,18 @@ def Efficient_adaptation(model,
             # result = [(mask * result_L[0] + (1. - mask) * result_H[0]).astype(np.int64)]
 
             weight = torch.exp(E0 - entropy_pred)
-        if isinstance(result, list):
-            if len(data['img'])==14:
-                img_id = 4 #The default size without flip
-            else:
-                img_id = 0
-            #student_begin = time.time()
-            if entropy_pred<E0:
-                back_img_count = back_img_count + 1
-                loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
-            #student_pred = time.time() - student_begin
-            if efficient_test:
-                result = [np2tmp(_) for _ in result]
-            results.extend(result)
+        if entropy_pred<E0:
+            back_img_count = back_img_count + 1
+            mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
+            result, probs, preds = ema_model(return_loss=False, **data)
+            result = [(mask * preds[img_id][0] + (1. - mask) * result[0]).astype(np.int64)]
+            loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
         else:
-            if efficient_test:
-                result = np2tmp(result)
-            results.append(result)
+            result, probs_, preds_ = ema_model(return_loss=False, img=[data['img'][img_id]],
+                                                  img_metas=[data['img_metas'][img_id].data[0]])
+        if efficient_test:
+            result = [np2tmp(_) for _ in result]
+        results.extend(result)
 
         if entropy_pred<E0:
             torch.mean(weight*loss["decode.loss_seg"]).backward()
