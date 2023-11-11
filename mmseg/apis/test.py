@@ -395,15 +395,18 @@ def Efficient_adaptation(model,
                 img_id = 4 # The default size without flip
             result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
             entropy_pred=torch.mean(Categorical(probs = probs_.view(-1, probs_.shape[-1])).entropy())
-            # if current_model_probs is None:
-            #     current_model_probs=copy.deepcopy(probs_.view(-1, probs_.shape[-1]).mean(0))
-            #     cosine_similarities = torch.tensor(1.0)
-            # else:
-            #     cosine_similarities = F.cosine_similarity(current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0),0)
-            #     print("redundant sample", i, cosine_similarities, redundancy_epson,current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0))
-            #     current_model_probs=copy.deepcopy(0.9 * current_model_probs + (1 - 0.9) * probs_.view(-1, probs_.shape[-1]).mean(0))
-            # if torch.abs(cosine_similarities) > redundancy_epson:
-            #     continue
+            if current_model_probs is None:
+                print(probs_.shape,probs_.shape[-1])
+                print(probs_.view(-1, probs_.shape[-1]).shape)
+                current_model_probs=copy.deepcopy(probs_.view(-1, probs_.shape[-1]).mean(0))
+                print(current_model_probs.shape)
+                cosine_similarities = torch.tensor(1.0)
+            else:
+                cosine_similarities = F.cosine_similarity(current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0),0)
+                print("redundant sample", i, cosine_similarities, redundancy_epson,current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0))
+                current_model_probs=copy.deepcopy(0.9 * current_model_probs + (1 - 0.9) * probs_.view(-1, probs_.shape[-1]).mean(0))
+            if torch.abs(cosine_similarities) > redundancy_epson:
+                continue
 
 
             #result = [(mask * preds[0][0] + (1. - mask) * preds[1][0]).astype(np.int64)]
