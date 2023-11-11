@@ -448,7 +448,7 @@ def Efficient_adaptation(model,
         #print("iter %d, teacher_pred: %.3f seconds; anchor_pred: %.3f;" % (i, teacher_pred, anchor_pred))
         #print("iter %d, teacher_pred: %.3f seconds; student_pred: %.3f; student_train: %.3f;model_update_time: %.3f;restoration_time: %.3f;" % (i,teacher_pred,student_pred,student_train,model_update_time,restoration_time))
     #print("pred_time: %.3f seconds;" % (pred_time/(i+1)))
-    print("reliable samples", back_img_count)
+    print("reliable nd non-redundant samples", back_img_count)
     return results,frame_passed
 
 def DPT(model,
