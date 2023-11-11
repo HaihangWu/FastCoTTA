@@ -195,7 +195,7 @@ def single_gpu_ours(model,
                         result = [result[0].astype(np.int64)]
                         techer_model_conf=np.mean(probs[0])
                         resolution_select.append(domains_detections["imge_id"])
-                        print("teacher model conf:",techer_model_conf)
+                        # print("teacher model conf:",techer_model_conf)
                     else:
                         result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
                                                          img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
