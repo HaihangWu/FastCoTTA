@@ -79,6 +79,7 @@ def single_gpu_ours(model,
     optimizer = torch.optim.Adam(param_list, lr=0.00006, betas=(0.9, 0.999))# for segformer, segnext
     pred_begin=time.time()
     resolution_select=[]
+    conf_gain=[]
     print("new domain starts,",frame_passed)
     for i, data in enumerate(data_loader):
         model.eval() # student model
@@ -201,6 +202,7 @@ def single_gpu_ours(model,
                                                          img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
                         techer_model_conf=np.mean(torch.amax(probs[0], 0).cpu().numpy())
                     domains_detections["conf_gain"].append(techer_model_conf-source_model_conf)
+                    conf_gain.append(techer_model_conf-source_model_conf)
                 else:
                     result, probs, preds = ema_model(return_loss=False, img=[data['img'][0]],
                                                      img_metas=[data['img_metas'][0].data[0]])
@@ -227,7 +229,7 @@ def single_gpu_ours(model,
             ema_model = update_ema_variables(ema_model=ema_model, model=model, alpha_teacher=0.999)  # teacher model
 
     pred_time = time.time() - pred_begin
-    print("average pred_time: %.3f seconds; average conf gain: %.4f; resolution select: %.2f" % (pred_time/(i+1),np.mean(domains_detections["conf_gain"]),np.mean(resolution_select)))
+    print("average pred_time: %.3f seconds; current gain: %.4f; average conf gain: %.4f; resolution select: %.2f" % (pred_time/(i+1),np.mean(conf_gain), np.mean(domains_detections["conf_gain"]),np.mean(resolution_select)))
     return results,frame_passed,domains_detections
 
 def single_gpu_cotta(model,
