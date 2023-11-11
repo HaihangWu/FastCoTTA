@@ -200,8 +200,8 @@ def single_gpu_ours(model,
                         techer_model_conf=np.mean(torch.amax(probs[0], 0).cpu().numpy())
                     domains_detections["conf_gain"].append(techer_model_conf-source_model_conf)
                 else:
-                    result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
-                                                     img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
+                    result, probs, preds = ema_model(return_loss=False, img=[data['img'][0]],
+                                                     img_metas=[data['img_metas'][0].data[0]])
         if isinstance(result, list):
             if len(data['img']) == 14:
                 img_id = 4  # The default size without flip
@@ -225,7 +225,7 @@ def single_gpu_ours(model,
             ema_model = update_ema_variables(ema_model=ema_model, model=model, alpha_teacher=0.999)  # teacher model
 
     pred_time = time.time() - pred_begin
-    print("average pred_time: %.3f seconds; average conf gain: %.3f" % (pred_time/(i+1),np.mean(domains_detections["conf_gain"])))
+    print("average pred_time: %.3f seconds; average conf gain: %.4f" % (pred_time/(i+1),np.mean(domains_detections["conf_gain"])))
     return results,frame_passed,domains_detections
 
 def single_gpu_cotta(model,
