@@ -184,9 +184,9 @@ def main():
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
 
     file_name=args.method
-    file_name =file_name+ '_' + 'segformer' if 'segformer' in args.config else ('segnext' if 'segnext' else '')
-    file_name =file_name+ '_'+ 'acdc' if 'acdc' in args.config else ('night' if 'night' else '')
-    print(file_name)
+    model_name='segformer' if 'segformer' in args.config else ('segnext' if 'segnext' in args.config else '')
+    dataset_name='acdc' if 'acdc' in args.config else ('night' if 'night' in args.config  else '')
+    print(file_name+ '_' + model_name+ '_'+ dataset_name)
 
     if 'TENT' in args.method:
         for name, param in model.named_parameters():
