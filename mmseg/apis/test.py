@@ -396,18 +396,14 @@ def Efficient_adaptation(model,
             result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
             entropy_pred=torch.mean(Categorical(probs = probs_.view(-1, probs_.shape[-1])).entropy())
             if current_model_probs is None:
-                print(probs_.shape,probs_.shape[-1])
-                print(probs_.view(-1, probs_.shape[-1]).shape)
-                current_model_probs=copy.deepcopy(probs_.view(-1, probs_.shape[-1]).mean(0))
+                current_model_probs=copy.deepcopy(probs_[0].view(probs_.shape[1],-1))
                 print(current_model_probs.shape)
                 cosine_similarities = torch.tensor(1.0)
             else:
-                cosine_similarities = F.cosine_similarity(current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0),0)
-                print("redundant sample", i, cosine_similarities, redundancy_epson,current_model_probs,probs_.view(-1, probs_.shape[-1]).mean(0))
-                current_model_probs=copy.deepcopy(0.9 * current_model_probs + (1 - 0.9) * probs_.view(-1, probs_.shape[-1]).mean(0))
-            if torch.abs(cosine_similarities) > redundancy_epson:
-                continue
-
+                cosine_similarities = F.cosine_similarity(current_model_probs,probs_[0].view(probs_.shape[1],-1),0)
+                print(cosine_similarities.shape)
+                current_model_probs=copy.deepcopy(0.9 * current_model_probs + (1 - 0.9) * probs_[0].view(probs_.shape[1],-1))
+            print(cosine_similarities.mean(0),cosine_similarities.mean(0) < redundancy_epson,cosine_similarities)
 
             #result = [(mask * preds[0][0] + (1. - mask) * preds[1][0]).astype(np.int64)]
             # result_H, probs_H, preds_H = anchor_model(return_loss=False, img=[data['img'][1]],
@@ -417,7 +413,7 @@ def Efficient_adaptation(model,
             # result = [(mask * result_L[0] + (1. - mask) * result_H[0]).astype(np.int64)]
 
             weight = torch.exp(E0 - entropy_pred)
-        if entropy_pred<E0:
+        if entropy_pred<E0 and cosine_similarities.mean(0) < redundancy_epson:
             back_img_count = back_img_count + 1
             mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
             result, probs, preds = ema_model(return_loss=False, **data)
