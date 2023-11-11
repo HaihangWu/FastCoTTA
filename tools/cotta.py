@@ -246,11 +246,11 @@ def main():
     # domains_detections["dm_shift"] = True
     # domains_detections["dm_reso_select_processed_frames"] = -1
     # domains_detections["dm_reso_select_conf_info"]=[[],[]]
-    # domains_detections["adaptation"] = True
+    domains_detections["adaptation"] = True
     # domains_detections["pred_conf"] = [[],[]] #deque(maxlen=(2*domains_detections["hp_k"]))
     # domains_detections["domain_conf"]=[]
-    domains_detections["conf_gain"] = [0]
-    domains_detections["adat_ends"]=100
+    #domains_detections["conf_gain"] = [0]
+    domains_detections["adat_ends"]=0.01
     domains_detections["hp_k"] = 20
     domains_detections["imge_id"] = 0
 

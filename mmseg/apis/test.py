@@ -174,7 +174,7 @@ def single_gpu_ours(model,
             #     else:
             #         domains_detections["pred_conf"][1].append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
 
-                if np.mean(domains_detections["conf_gain"])<domains_detections["adat_ends"]:
+                #if np.mean(domains_detections["conf_gain"])<domains_detections["adat_ends"]:
                     # if frame_passed % domains_detections["hp_k"] == 0:
                     #     result_surce, probs_surce, preds_surce = anchor_model(return_loss=False, **data)
                     #     domains_detections["imge_id"]=0
@@ -185,35 +185,46 @@ def single_gpu_ours(model,
                     #     result_source, probs_source, preds_source = anchor_model(return_loss=False, img=[data['img'][0]],
                     #                                      img_metas=[data['img_metas'][0].data[0]])
                     #     source_model_conf = np.mean(torch.amax(probs_source[0], 0).cpu().numpy())
-                    if frame_passed % domains_detections["hp_k"] == 0:
-                        result, probs, preds = ema_model(return_loss=False, **data)
-                        domains_detections["imge_id"]=0
-                        if np.mean(probs[0]) < np.mean(probs[1]):
-                            domains_detections["imge_id"] = 1
-                        result = [result[0].astype(np.int64)]
-                        techer_model_conf=np.mean(probs[0])
-                        resolution_select.append(domains_detections["imge_id"])
-                        result_source, probs_source, preds_source = anchor_model(return_loss=False,
-                                                                                 img=[data['img'][0]],
-                                                                                 img_metas=[
-                                                                                     data['img_metas'][0].data[0]])
-                        source_model_conf = np.mean(torch.amax(probs_source[0], 0).cpu().numpy())
-                        domains_detections["conf_gain"].append(techer_model_conf - source_model_conf)
-                        conf_gain.append(techer_model_conf - source_model_conf)
-                        # print("teacher model conf:",techer_model_conf)
+                result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
+                                                     img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
+
+                if frame_passed % domains_detections["hp_k"] == 0:
+                    result_source, probs_source, preds_source = anchor_model(return_loss=False,
+                                                                             img=[data['img'][0]],
+                                                                             img_metas=[
+                                                                                 data['img_metas'][0].data[0]])
+                    source_model_conf = np.mean(torch.amax(probs_source[0], 0).cpu().numpy())
+                    if domains_detections["imge_id"] == 0:
+                        techer_model_conf_s=np.mean(probs[0])
                     else:
-                        result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
-                                                         img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
-                        #techer_model_conf=np.mean(torch.amax(probs[0], 0).cpu().numpy())
-                else:
-                    result, probs, preds = ema_model(return_loss=False, img=[data['img'][0]],
-                                                     img_metas=[data['img_metas'][0].data[0]])
+                        result_TS, probs_TS, preds_TS = ema_model(return_loss=False, img=[data['img'][1]],
+                                                                  img_metas=[data['img_metas'][1].data[0]])
+                        techer_model_conf_s = np.mean(probs_TS[0])
+
+                    if (techer_model_conf_s - source_model_conf)<domains_detections["adat_ends"]:
+                        domains_detections["adaptation"] = True
+                        techer_model_conf_L=np.mean(probs[0])
+                        if domains_detections["imge_id"] == 0:
+                            result_TL, probs_TL, preds_TL = ema_model(return_loss=False, img=[data['img'][1]],
+                                                                      img_metas=[data['img_metas'][1].data[0]])
+                            techer_model_conf_L=np.mean(probs_TL[0])
+                            result = result_TL if techer_model_conf_L > techer_model_conf_s else result
+                        else:
+                            result = result_TS if techer_model_conf_L < techer_model_conf_s else result
+                        domains_detections["imge_id"] = 1 if techer_model_conf_L > techer_model_conf_s else 0
+                    else:
+                        domains_detections["adaptation"] = False
+                        domains_detections["imge_id"] = 0
+                    print("adaptation decision:",domains_detections["adaptation"], domains_detections["imge_id"],
+                          techer_model_conf_s - source_model_conf,np.mean(probs_TL[0])-techer_model_conf_s )
+                        # print("teacher model conf:",techer_model_conf)
+
         if isinstance(result, list):
             if len(data['img']) == 14:
                 img_id = 4  # The default size without flip
             else:
                 img_id = 0
-            if np.mean(domains_detections["conf_gain"])<domains_detections["adat_ends"]:
+            if domains_detections["adaptation"]:
                 loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0],
                                      gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
             if efficient_test:
@@ -224,14 +235,14 @@ def single_gpu_ours(model,
                 result = np2tmp(result)
             results.append(result)
 
-        if np.mean(domains_detections["conf_gain"])<domains_detections["adat_ends"]:
+        if domains_detections["adaptation"]:
             torch.mean(loss["decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
             ema_model = update_ema_variables(ema_model=ema_model, model=model, alpha_teacher=0.999)  # teacher model
 
     pred_time = time.time() - pred_begin
-    print("average pred_time: %.3f seconds; current gain: %.4f; average conf gain: %.4f; resolution select: %.2f" % (pred_time/(i+1),np.mean(conf_gain), np.mean(domains_detections["conf_gain"]),np.mean(resolution_select)))
+    print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
     return results,frame_passed,domains_detections
 
 def single_gpu_cotta(model,
