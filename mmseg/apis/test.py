@@ -369,7 +369,7 @@ def Efficient_adaptation(model,
     # prog_bar = mmcv.ProgressBar(len(dataset))
     param_list = []
     out_dir = "./Cotta/"+str(frame_passed)
-    E0=torch.tensor(0.025*math.log(19.0))
+    E0=torch.tensor(0.05*math.log(19.0))
     redundancy_epson=0.8
     back_img_count=0
     for name, param in model.named_parameters():
