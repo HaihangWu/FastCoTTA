@@ -211,8 +211,8 @@ def single_gpu_ours(model,
                             result = result_TL if techer_model_conf_L > techer_model_conf_s else result
                         else:
                             result = result_TS if techer_model_conf_L < techer_model_conf_s else result
-                        domains_detections["imge_id"] = 1 if techer_model_conf_L > techer_model_conf_s else 0
-                        #domains_detections["imge_id"] = 0
+                        #domains_detections["imge_id"] = 1 if techer_model_conf_L > techer_model_conf_s else 0
+                        domains_detections["imge_id"] = 1
                     else:
                         domains_detections["adaptation"] = False
                         domains_detections["imge_id"] = 0
