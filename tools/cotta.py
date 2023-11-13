@@ -225,7 +225,7 @@ def main():
     ema_model = create_ema_model(model) #?
     for name, param in anchor_model.named_parameters():
         if "DSP" in name or "DAP" in name:
-                param = torch.zeros_like(param)
+                param.data = torch.zeros_like(param)
     print([param.data for name, param in anchor_model.named_parameters() if "DSP" in name or "DAP" in name])
     frame_passed=0
     total_predict_time=0
@@ -253,7 +253,7 @@ def main():
     domains_detections["adat_ends"]=0.001
     domains_detections["hp_k"] = 20
     domains_detections["imge_id"] = 0
-
+    ldelta=0
 
     total_predict_time=0
     total_processed_frame=0
