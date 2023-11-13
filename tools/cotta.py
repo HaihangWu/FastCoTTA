@@ -268,7 +268,7 @@ def main():
                 outputs = single_model_update(model, data_loader, args, efficient_test)
             elif 'AuxAdapt'in args.method:
                 outputs=single_gpu_AuxAdapt(model,model_s,data_loader,efficient_test,frame_passed)
-            elif 'VDP'in args.method:
+            elif 'DPT'in args.method:
                 outputs, frame_passed, ldelta = DPT(model, data_loader, ldelta,
                                                     efficient_test, ema_model, anchor_model, frame_passed, i * 4 + j)
             elif 'ETA'in args.method:
