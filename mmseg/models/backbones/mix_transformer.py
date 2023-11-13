@@ -333,16 +333,12 @@ class MixVisionTransformer(nn.Module):
         outs = []
         if self.prompt_config is not None:
             N,C,H,W=x.shape
-            unchanged_part = torch.zeros(N*H * W-self.prompt_config.NUM_TOKENS*self.prompt_config.NUM_TOKENS, C).cuda()
-            print(unchanged_part.shape)
+            unchanged_part = torch.zeros(N*H*W-self.prompt_config.NUM_TOKENS, C).cuda()
             result_tensor_DSP=torch.cat((unchanged_part, self.DSP), dim=0)
-            print(result_tensor_DSP.shape)
             result_tensor_DAP=torch.cat((unchanged_part, self.DAP), dim=0)
             result_tensor_DSP = result_tensor_DSP[torch.randperm(result_tensor_DSP.size(0))]
-            print(result_tensor_DSP.shape)
             result_tensor_DAP = result_tensor_DAP[torch.randperm(result_tensor_DAP.size(0))]
             result_tensor_DSP = result_tensor_DSP.view(N,H,W,C).permute(0, 3, 1, 2)
-            print(result_tensor_DSP.shape)
             result_tensor_DAP = result_tensor_DAP.view(N,H,W,C).permute(0, 3, 1, 2)
             x=x+result_tensor_DSP+result_tensor_DAP
 
