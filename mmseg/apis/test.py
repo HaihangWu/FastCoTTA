@@ -520,13 +520,17 @@ def DPT(model,
             img_id = 0
             if len(data['img']) == 14:
                 img_id = 4 # The default size without flip
+            source_model_pred_time=time.time()
             result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
+            source_model_pred_time = time.time()-source_model_pred_time
             mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
+            teacher_model_pred_time = time.time()
             result, probs, preds = ema_model(return_loss=False, **data)
-
+            teacher_model_pred_time = time.time() - teacher_model_pred_time
             result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
 
             weight = 1.0
+        student_model_pred_time = time.time()
         if isinstance(result, list):
             if len(data['img'])==14:
                 img_id = 4 #The default size without flip
@@ -542,7 +546,9 @@ def DPT(model,
             if efficient_test:
                 result = np2tmp(result)
             results.append(result)
+        student_model_pred_time = time.time()-student_model_pred_time
 
+        backward_time = time.time()
         DAP_loss = 0
         if round>0.5 and student_DAP is not None:
             DAP_loss=torch.mean(alph*ldelta*(student_DAP-student_DAP_old_domain)**2)
@@ -550,11 +556,12 @@ def DPT(model,
         Total_loss.backward()
         optimizer.step()
         optimizer.zero_grad()
+        backward_time = time.time()-backward_time
 
+        loss_parameter_update_time = time.time()
         for [ema_name, ema_param], [name, param] in zip(ema_model.named_parameters(), model.named_parameters()):
             if ("DSP" in name and "DSP" in ema_name) or ("DAP" in name and "DAP" in ema_name):
                 ema_param.data[:] = 0.999 * ema_param[:].data[:] + (1 - 0.999) * param[:].data[:]
-                print(name)
             if "DAP" in name:
                 if round>0.5:
                     if i==0:
@@ -568,6 +575,8 @@ def DPT(model,
                     student_DAP=param
                 else:
                     ldelta=param.data-param.data
+        loss_parameter_update_time = time.time()-loss_parameter_update_time
+        print(source_model_pred_time,teacher_model_pred_time,student_model_pred_time,backward_time,loss_parameter_update_time)
 
         #ema_model = update_ema_variables(ema_model = ema_model, model = model, alpha_teacher=0.999) #teacher model
 
