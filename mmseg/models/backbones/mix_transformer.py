@@ -16,6 +16,7 @@ from mmseg.utils import get_root_logger
 from mmcv.runner import load_checkpoint
 import math
 import random
+import time
 
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
@@ -333,18 +334,25 @@ class MixVisionTransformer(nn.Module):
         if self.prompt_config is not None:
             N,C,H,W=x.shape
             mask = torch.zeros(N*H * W, C).cuda()
+            index_select_time = time.time()
             indices_to_replace_DSP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
             indices_to_replace_DAP = [i * H * W + k for i in range(N) for k in sorted(random.sample(range(H * W), self.prompt_config.NUM_TOKENS))]
+            index_select_time = time.time()-index_select_time
             # Create a list of tensors based on the conditions
+            tensor_creation_time = time.time()
             result_tensor_DSP = [self.DSP[indices_to_replace_DSP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DSP else mask[index, :]  for index in range(N * H * W)]
             result_tensor_DAP = [self.DAP[indices_to_replace_DAP.index(index) % self.prompt_config.NUM_TOKENS, :] if index in indices_to_replace_DAP else mask[index, :]  for index in range(N * H * W)]
+            tensor_creation_time = time.time()-tensor_creation_time
             # Reshape the result tensor if needed
+            tensor_reshape_time = time.time()
             result_tensor_DSP = torch.stack(result_tensor_DSP).cuda()
             result_tensor_DSP = result_tensor_DSP.view(N,H,W,C).permute(0, 3, 1, 2)
             result_tensor_DAP = torch.stack(result_tensor_DAP).cuda()
             result_tensor_DAP = result_tensor_DAP.view(N,H,W,C).permute(0, 3, 1, 2)
             #print("DAP,DSP",x.shape, result_tensor_DSP.shape, result_tensor_DAP.shape)
             x=x+result_tensor_DSP+result_tensor_DAP
+            tensor_reshape_time = time.time()-tensor_reshape_time
+            print("time in the model:",index_select_time,tensor_creation_time,tensor_reshape_time)
 
         # stage 1
         x, H, W = self.patch_embed1(x)
