@@ -38,7 +38,7 @@ model = dict(
 # data
 data = dict(samples_per_gpu=6)
 # evaluation = dict(interval=100, metric='mIoU')
-checkpoint_config = dict(by_epoch=False, interval=100)
+checkpoint_config = dict(by_epoch=False, interval=200)
 # optimizer
 optimizer = dict(_delete_=True, type='AdamW', lr=0.00006, betas=(0.9, 0.999), weight_decay=0.01,
                  paramwise_cfg=dict(custom_keys={'pos_block': dict(decay_mult=0.),
