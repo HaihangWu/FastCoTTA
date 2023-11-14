@@ -250,7 +250,7 @@ def main():
     # domains_detections["pred_conf"] = [[],[]] #deque(maxlen=(2*domains_detections["hp_k"]))
     # domains_detections["domain_conf"]=[]
     #domains_detections["conf_gain"] = [0]
-    domains_detections["adat_ends"]=0.0001
+    domains_detections["adat_ends"]=0.01
     domains_detections["hp_k"] = 20
     domains_detections["imge_id"] = 0
     ldelta=0
