@@ -201,21 +201,20 @@ def single_gpu_ours(model,
                                                                   img_metas=[data['img_metas'][1].data[0]])
                         techer_model_conf_s = np.mean(torch.amax(probs_TS[0], 0).cpu().numpy())
 
-                    if (techer_model_conf_s - source_model_conf)<domains_detections["adat_ends"]:
-                        domains_detections["adaptation"] = True
-                        techer_model_conf_L=np.mean(torch.amax(probs[0], 0).cpu().numpy())
-                        if domains_detections["imge_id"] == 0:
-                            result_TL, probs_TL, preds_TL = ema_model(return_loss=False, img=[data['img'][1]],
-                                                                      img_metas=[data['img_metas'][1].data[0]])
-                            techer_model_conf_L=np.mean(torch.amax(probs_TL[0], 0).cpu().numpy())
-                            result = result_TL if techer_model_conf_L > techer_model_conf_s else result
-                        else:
-                            result = result_TS if techer_model_conf_L < techer_model_conf_s else result
-                        #domains_detections["imge_id"] = 1 if techer_model_conf_L > techer_model_conf_s else 0
-                        domains_detections["imge_id"] = 1
+                    # if (techer_model_conf_s - source_model_conf)<domains_detections["adat_ends"]:
+                    domains_detections["adaptation"] = True
+                    techer_model_conf_L=np.mean(torch.amax(probs[0], 0).cpu().numpy())
+                    if domains_detections["imge_id"] == 0:
+                        result_TL, probs_TL, preds_TL = ema_model(return_loss=False, img=[data['img'][1]],
+                                                                  img_metas=[data['img_metas'][1].data[0]])
+                        techer_model_conf_L=np.mean(torch.amax(probs_TL[0], 0).cpu().numpy())
+                        result = result_TL if techer_model_conf_L > techer_model_conf_s else result
                     else:
-                        domains_detections["adaptation"] = False
-                        domains_detections["imge_id"] = 0
+                        result = result_TS if techer_model_conf_L < techer_model_conf_s else result
+                    domains_detections["imge_id"] = 1 if techer_model_conf_L > techer_model_conf_s else 0
+                    # else:
+                    #     domains_detections["adaptation"] = False
+                    #     domains_detections["imge_id"] = 0
                     print("adaptation decision:",domains_detections["adaptation"], domains_detections["imge_id"],
                           techer_model_conf_s - source_model_conf )
                         # print("teacher model conf:",techer_model_conf)
