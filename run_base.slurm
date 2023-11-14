@@ -55,7 +55,7 @@ bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.p
 #bash ./tools/dist_train.sh local_configs/ours/segnext.base.1024x1024.city.160k.py   work_dirs/DPTsgnext2500/ 1  | tee finetune_segnext2500.log
 
 
-bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.acdc.160k.py DPT 1 | tee Ours_segformer_acdc.log
+#bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.acdc.160k.py DPT 1 | tee Ours_segformer_acdc.log
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.night.160k.py DPT 1 | tee Ours_segformer_night.log
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segnext.base.1024x1024.acdc.160k.py DPT 1 | tee Ours_segnext_acdc.log
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segnext.base.1024x1024.night.160k.py DPT 1 | tee Ours_segnext_night.log
