@@ -46,9 +46,9 @@ echo "r$SLURM_NODEID Launching python script"
 
 
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.acdc.160k.py DPT 1 | tee DPT_segformer_acdc.log
-bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.night.160k.py DPT 1 | tee DPT_segformer_night.log
+#bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.night.160k.py DPT 1 | tee DPT_segformer_night.log
 
-#bash ./tools/dist_cotta.sh local_configs/ours/DPT_segnext.base.1024x1024.acdc.160k.py DPT 1 | tee DPT_segnext_acdc.log
+bash ./tools/dist_cotta.sh local_configs/ours/DPT_segnext.base.1024x1024.acdc.160k.py DPT 1 | tee DPT_segnext_acdc.log
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segnext.base.1024x1024.night.160k.py DPT 1 | tee DPT_segnext_night.log
 
 #bash ./tools/dist_train.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgf2500/ 1  | tee finetune_segformer2500.log
