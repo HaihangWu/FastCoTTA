@@ -9,10 +9,10 @@
 # --partition deeplearn
 # --qos gpgpudeeplearn
 
-#SBATCH --partition=feit-gpu-a100
-#SBATCH --qos=feit
+# --partition=feit-gpu-a100
+# --qos=feit
 
-# -p gpu-a100
+#SBATCH -p gpu-a100
 
 # Request different amount of resources for different nodes
 # --constraint=[dlg1|dlg2|dlg3]
@@ -28,7 +28,7 @@
 # --gpus-per-task=1  # number of gpus per task
 
 # The maximum running time of the job in days-hours:mins:sec
-#SBATCH --time=00-12:00:00
+#SBATCH --time=05-00:00:00
 
 module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
@@ -45,13 +45,13 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 
-bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.acdc.160k.py DPT 1 | tee DPT_segformer_acdc_lr.log
+#bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.acdc.160k.py DPT 1 | tee DPT_segformer_acdc_lr.log
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.night.160k.py DPT 1 | tee DPT_segformer_night.log
 
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segnext.base.1024x1024.acdc.160k.py DPT 1 | tee DPT_segnext_acdc.log
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segnext.base.1024x1024.night.160k.py DPT 1 | tee DPT_segnext_night.log
 
-#bash ./tools/dist_train.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgf2500/ 1  | tee finetune_segformer2500.log
+bash ./tools/dist_train.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgf2500/ 1  | tee finetune_segformer2500.log
 #bash ./tools/dist_train.sh local_configs/ours/segnext.base.1024x1024.city.160k.py   work_dirs/DPTsgnext2500/ 1  | tee finetune_segnext2500.log
 
 
