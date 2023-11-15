@@ -7,7 +7,7 @@ _base_ = [
 
 # model settings
 norm_cfg = dict(type='SyncBN', requires_grad=True)
-prompt_config=dict(NUM_TOKENS = 100,LOCATION = "random")
+prompt_config=dict(NUM_TOKENS = 2500,LOCATION = "random")
 find_unused_parameters = True
 model = dict(
     type='EncoderDecoder',
