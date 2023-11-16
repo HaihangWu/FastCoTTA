@@ -7,12 +7,12 @@ _base_ = [
 
 # model settings
 norm_cfg = dict(type='SyncBN', requires_grad=True)
-prompt_config=dict(NUM_TOKENS = 2500,LOCATION = "random")
+prompt_config=dict(NUM_TOKENS = 1000,LOCATION = "random")
 find_unused_parameters = True
 model = dict(
     type='EncoderDecoder',
     #pretrained='/data/gpfs/projects/punim0512/Haihangw-Projects/segformer/segformer.b5.1024x1024.city.160k.pth',
-    pretrained='work_dirs/DPTsgf2500/iter_100000.pth',
+    pretrained='work_dirs/DPTsgf1000/iter_100000.pth',
     backbone=dict(
         type='mit_b5',
         prompt_config=prompt_config,

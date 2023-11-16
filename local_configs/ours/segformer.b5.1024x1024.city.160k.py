@@ -7,7 +7,7 @@ _base_ = [
 
 # model settings
 norm_cfg = dict(type='SyncBN', requires_grad=True)
-prompt_config=dict(NUM_TOKENS = 4500,LOCATION = "random")
+prompt_config=dict(NUM_TOKENS = 6000,LOCATION = "random")
 find_unused_parameters = True
 model = dict(
     type='EncoderDecoder',
@@ -41,9 +41,9 @@ model = dict(
 # data
 data = dict(samples_per_gpu=1)
 evaluation = dict(interval=170000, metric='mIoU')
-checkpoint_config = dict(by_epoch=False, interval=5000)
+checkpoint_config = dict(by_epoch=False, interval=2000)
 # optimizer
-optimizer = dict(_delete_=True, type='AdamW', lr=0.00006/8, betas=(0.9, 0.999), weight_decay=0.01,
+optimizer = dict(_delete_=True, type='AdamW', lr=0.00006/6, betas=(0.9, 0.999), weight_decay=0.01,
                  paramwise_cfg=dict(custom_keys={'pos_block': dict(decay_mult=0.),
                                                  'norm': dict(decay_mult=0.),
                                                  'head': dict(lr_mult=10.)
