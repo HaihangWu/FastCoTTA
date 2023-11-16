@@ -257,9 +257,16 @@ class MSCAN(BaseModule):
         outs = []
         if self.prompt_config is not None:
             N,C,H,W=x.shape
-            unchanged_part = torch.zeros(N*H*W-self.prompt_config.NUM_TOKENS, C).cuda()
-            result_tensor_DSP=torch.cat((unchanged_part, self.DSP), dim=0)
-            result_tensor_DAP=torch.cat((unchanged_part, self.DAP), dim=0)
+            number_of_tokens=self.prompt_config.NUM_TOKENS
+            DSP = self.DSP
+            DAP = self.DAP
+            if N==1:
+                number_of_tokens=int(self.prompt_config.NUM_TOKENS/6)
+                DSP=self.DSP[:number_of_tokens,:]
+                DAP=self.DAP[:number_of_tokens,:]
+            unchanged_part = torch.zeros(N*H*W-number_of_tokens, C).cuda()
+            result_tensor_DSP=torch.cat((unchanged_part, DSP), dim=0)
+            result_tensor_DAP=torch.cat((unchanged_part, DAP), dim=0)
             result_tensor_DSP = result_tensor_DSP[torch.randperm(result_tensor_DSP.size(0))]
             result_tensor_DAP = result_tensor_DAP[torch.randperm(result_tensor_DAP.size(0))]
             result_tensor_DSP = result_tensor_DSP.view(N,H,W,C).permute(0, 3, 1, 2)

@@ -7,12 +7,12 @@ _base_ = [
 # model settings
 norm_cfg = dict(type='SyncBN', requires_grad=True)
 ham_norm_cfg = dict(type='GN', num_groups=32, requires_grad=True)
-prompt_config=dict(NUM_TOKENS = 1000,LOCATION = "random")
+prompt_config=dict(NUM_TOKENS = 6000,LOCATION = "random")
 find_unused_parameters = True
 model = dict(
     type='EncoderDecoder',
     #pretrained='/data/gpfs/projects/punim0512/Haihangw-Projects/segformer/segnext_base_1024x1024_city_160k.pth',
-    pretrained='work_dirs/DPTsgnext1000/iter_100000.pth',
+    pretrained='work_dirs/DPTsgnext1000/iter_10000.pth',
     backbone=dict(
         prompt_config=prompt_config,
         embed_dims=[64, 128, 320, 512],
