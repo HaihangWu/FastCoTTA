@@ -63,7 +63,7 @@ class FastCoTTA(nn.Module):
         self.optimizer = optimizer
         self.steps = steps
         self.adapt=True
-        self.epson=0.01
+        self.epson=0.025
         self.interval=5
         assert steps > 0, "cotta requires >= 1 step(s) to forward and update"
         self.episodic = episodic
