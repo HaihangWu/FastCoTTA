@@ -14,6 +14,6 @@ do
     CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/cotta/cotta$i.yaml
 #    CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/fastcotta/cotta$i.yaml
 done
-# Run Mean and AVG for TENT and CoTTA
+# Run Mean and AVG for TENT, CoTTA
 cd output
 python3 -u ../eval.py | tee result.log
