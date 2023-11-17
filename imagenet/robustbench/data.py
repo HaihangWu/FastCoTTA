@@ -159,6 +159,7 @@ def load_imagenetc(
     #  at once -- perhaps this is a cleaner solution)
 
     data_folder_path = Path(data_dir) / CORRUPTIONS_DIR_NAMES[BenchmarkDataset.imagenet] / corruptions[0] / str(severity)
+    print(data_dir, Path(data_dir), data_folder_path)
     imagenet = CustomImageFolder(data_folder_path, transforms_test)
 
     test_loader = data.DataLoader(imagenet, batch_size=n_examples,
