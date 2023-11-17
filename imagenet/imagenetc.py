@@ -11,8 +11,10 @@ from robustbench.utils import clean_accuracy as accuracy
 import tent
 import norm
 import cotta
+import fastcotta
 
 from conf import cfg, load_cfg_fom_args
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -35,8 +37,12 @@ def evaluate(description):
     if cfg.MODEL.ADAPTATION == "cotta":
         logger.info("test-time adaptation: CoTTA")
         model = setup_cotta(base_model)
+    if cfg.MODEL.ADAPTATION == "fastcotta":
+        logger.info("test-time adaptation: FastCoTTA")
+        model = setup_fastcotta(base_model)
     # evaluate on each severity and type of corruption in turn
     prev_ct = "x0"
+    pred_time=0
     for ii, severity in enumerate(cfg.CORRUPTION.SEVERITY):
         for i_x, corruption_type in enumerate(cfg.CORRUPTION.TYPE):
             # reset adaptation for each combination of corruption x severity
@@ -53,9 +59,13 @@ def evaluate(description):
                                            severity, cfg.DATA_DIR, False,
                                            [corruption_type])
             x_test, y_test = x_test.cuda(), y_test.cuda()
+            pred_begin = time.time()
             acc = accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE)
+            pred_begin = time.time()-pred_begin
+            pred_time=pred_time+pred_begin
             err = 1. - acc
             logger.info(f"error % [{corruption_type}{severity}]: {err:.2%}")
+    print("total pred time for this round:%.3f seconds; " % (pred_time))
 
 
 def setup_source(model):
@@ -141,6 +151,24 @@ def setup_cotta(model):
     logger.info(f"params for adaptation: %s", param_names)
     logger.info(f"optimizer for adaptation: %s", optimizer)
     return cotta_model
+
+def setup_fastcotta(model):
+    """Set up tent adaptation.
+
+    Configure the model for training + feature modulation by batch statistics,
+    collect the parameters for feature modulation by gradient optimization,
+    set up the optimizer, and then tent the model.
+    """
+    model = fastcotta.configure_model(model)
+    params, param_names = fastcotta.collect_params(model)
+    optimizer = setup_optimizer(params)
+    fastcotta_model = fastcotta.FastCoTTA(model, optimizer,
+                           steps=cfg.OPTIM.STEPS,
+                           episodic=cfg.MODEL.EPISODIC)
+    logger.info(f"model for adaptation: %s", model)
+    logger.info(f"params for adaptation: %s", param_names)
+    logger.info(f"optimizer for adaptation: %s", optimizer)
+    return fastcotta_model
 
 
 if __name__ == '__main__':
