@@ -62,6 +62,9 @@ class FastCoTTA(nn.Module):
         self.model = model
         self.optimizer = optimizer
         self.steps = steps
+        self.adapt=True
+        self.epson=0.001
+        self.interval=20
         assert steps > 0, "cotta requires >= 1 step(s) to forward and update"
         self.episodic = episodic
 
@@ -69,12 +72,12 @@ class FastCoTTA(nn.Module):
             copy_model_and_optimizer(self.model, self.optimizer)
         self.transform = get_tta_transforms()    
 
-    def forward(self, x):
+    def forward(self, x, passed_batches):
         if self.episodic:
             self.reset()
 
         for _ in range(self.steps):
-            outputs = self.forward_and_adapt(x, self.model, self.optimizer)
+            outputs = self.forward_and_adapt(x, self.model, self.optimizer, passed_batches)
 
         return outputs
 
@@ -90,41 +93,52 @@ class FastCoTTA(nn.Module):
 
 
     @torch.enable_grad()  # ensure grads in possible no grad context for testing
-    def forward_and_adapt(self, x, model, optimizer):
-        outputs = self.model(x)
+    def forward_and_adapt(self, x, model, optimizer,passed_batches):
         self.model_ema.train()
         # Teacher Prediction
-        anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
         standard_ema = self.model_ema(x)
+        outputs_ema = standard_ema
+        if passed_batches%self.interval==0:
+            anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
+            ema_prob = torch.nn.functional.softmax(self.standard_ema, dim=1).max(1)[0]
+            if (ema_prob.mean(0)-anchor_prob.mean(0))> self.epson:
+                self.adapt = False
+            else:
+                self.adapt = True
+            print("fastcotta infor:",self.adapt, ema_prob.mean(0)-anchor_prob.mean(0))
+        # anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
+
         # Augmentation-averaged Prediction
-        N = 32
-        outputs_emas = []
-        to_aug = anchor_prob.mean(0)<0.1
-        if to_aug: 
-            for i in range(N):
-                outputs_  = self.model_ema(self.transform(x)).detach()
-                outputs_emas.append(outputs_)
+        # N = 32
+        # outputs_emas = []
+        # to_aug = anchor_prob.mean(0)<0.1
+        # if to_aug:
+        #     for i in range(N):
+        #         outputs_  = self.model_ema(self.transform(x)).detach()
+        #         outputs_emas.append(outputs_)
         # Threshold choice discussed in supplementary
-        if to_aug:
-            outputs_ema = torch.stack(outputs_emas).mean(0)
-        else:
-            outputs_ema = standard_ema
+        # if to_aug:
+        #     outputs_ema = torch.stack(outputs_emas).mean(0)
+        # else:
+        #     outputs_ema = standard_ema
         # Augmentation-averaged Prediction
         # Student update
-        loss = (softmax_entropy(outputs, outputs_ema.detach())).mean(0) 
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-        # Teacher update
-        self.model_ema = update_ema_variables(ema_model = self.model_ema, model = self.model, alpha_teacher=0.999)
+        if self.adapt:
+            outputs = self.model(x)
+            loss = (softmax_entropy(outputs, outputs_ema.detach())).mean(0)
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+            # Teacher update
+            self.model_ema = update_ema_variables(ema_model = self.model_ema, model = self.model, alpha_teacher=0.999)
         # Stochastic restore
-        if True:
-            for nm, m  in self.model.named_modules():
-                for npp, p in m.named_parameters():
-                    if npp in ['weight', 'bias'] and p.requires_grad:
-                        mask = (torch.rand(p.shape)<0.001).float().cuda() 
-                        with torch.no_grad():
-                            p.data = self.model_state[f"{nm}.{npp}"] * mask + p * (1.-mask)
+        # if True:
+        #     for nm, m  in self.model.named_modules():
+        #         for npp, p in m.named_parameters():
+        #             if npp in ['weight', 'bias'] and p.requires_grad:
+        #                 mask = (torch.rand(p.shape)<0.001).float().cuda()
+        #                 with torch.no_grad():
+        #                     p.data = self.model_state[f"{nm}.{npp}"] * mask + p * (1.-mask)
         return outputs_ema
 
 

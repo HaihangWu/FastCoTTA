@@ -75,7 +75,7 @@ def load_cifar100(
 
 def load_imagenet(
         n_examples: Optional[int] = 5000,
-        data_dir: str = './data',
+        data_dir: str = '/data/gpfs/projects/punim0512/data/imagenet-c/images',
         prepr: str = 'Res256Crop224') -> Tuple[torch.Tensor, torch.Tensor]:
     transforms_test = PREPROCESSINGS[prepr]
     imagenet = CustomImageFolder(data_dir + '/val', transforms_test)

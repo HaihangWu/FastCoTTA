@@ -8,9 +8,12 @@
 #CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch --nproc_per_node=$GPUS --master_port=$PORT \
 #    $(dirname "$0")/cotta.py $CONFIG  --launcher pytorch --method $Method ${@:4}
 
+CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/source.yaml
+CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/norm.yaml
+
 for i in {0..9}
 do
-#    CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/tent/tent$i.yaml
+    CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/tent/tent$i.yaml
     CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/cotta/cotta$i.yaml
 #    CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/fastcotta/cotta$i.yaml
 done

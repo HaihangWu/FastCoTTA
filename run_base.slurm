@@ -28,7 +28,7 @@
 # --gpus-per-task=1  # number of gpus per task
 
 # The maximum running time of the job in days-hours:mins:sec
-#SBATCH --time=00-20:00:00
+#SBATCH --time=00-23:00:00
 
 module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
@@ -44,7 +44,7 @@ export MASTER_ADDR=$master_addr
 echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
-bash ./imagenet/dist_cotta.sh
+bash ./imagenet/dist_cotta.sh  | tee imagenetc.log
 
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.acdc.160k.py DPT 1 | tee Ours_segformer_acdc_imgpyramid.log
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.night.160k.py DPT 1 | tee DPT_segformer_night.log
