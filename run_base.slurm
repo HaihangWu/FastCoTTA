@@ -6,11 +6,11 @@
 # --job-name="example.py"
 
 # Partition for the job:
-# --partition deeplearn
-# --qos gpgpudeeplearn
+#SBATCH --partition deeplearn
+#SBATCH --qos gpgpudeeplearn
 
-#SBATCH --partition=feit-gpu-a100
-#SBATCH --qos=feit
+# --partition=feit-gpu-a100
+# --qos=feit
 
 # -p gpu-a100
 
