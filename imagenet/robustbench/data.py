@@ -146,7 +146,7 @@ def load_cifar100c(
 def load_imagenetc(
     n_examples: Optional[int] = 5000,
     severity: int = 5,
-    data_dir: str = './data',
+    data_dir: str = '/data/gpfs/projects/punim0512/data/imagenet-c/images',
     shuffle: bool = False,
     corruptions: Sequence[str] = CORRUPTIONS,
     prepr: str = 'Res256Crop224'
