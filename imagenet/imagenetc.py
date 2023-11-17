@@ -44,6 +44,8 @@ def evaluate(description):
     # evaluate on each severity and type of corruption in turn
     prev_ct = "x0"
     pred_time=0
+    average_err=0
+    dataset_count=0
     for ii, severity in enumerate(cfg.CORRUPTION.SEVERITY):
         for i_x, corruption_type in enumerate(cfg.CORRUPTION.TYPE):
             # reset adaptation for each combination of corruption x severity
@@ -68,8 +70,10 @@ def evaluate(description):
             pred_begin = time.time()-pred_begin
             pred_time=pred_time+pred_begin
             err = 1. - acc
+            average_err = average_err+err
+            dataset_count = dataset_count+1
             logger.info(f"error % [{corruption_type}{severity}]: {err:.2%}")
-    print("total pred time for this round:%.3f seconds; " % (pred_time))
+    print("method:%s; average err: %.3f;total pred time:%.3f seconds; " % (cfg.MODEL.ADAPTATION,average_err/dataset_count, pred_time))
 
 
 def setup_source(model):
