@@ -160,7 +160,7 @@ def load_imagenetc(
 
     data_dir='/data/gpfs/projects/punim0512/data/imagenet-c'
     data_folder_path = Path(data_dir) / CORRUPTIONS_DIR_NAMES[BenchmarkDataset.imagenet] / corruptions[0] / str(severity)
-    print(data_dir, Path(data_dir), data_folder_path)
+    # print(data_dir, Path(data_dir), data_folder_path)
     imagenet = CustomImageFolder(data_folder_path, transforms_test)
 
     test_loader = data.DataLoader(imagenet, batch_size=n_examples,
