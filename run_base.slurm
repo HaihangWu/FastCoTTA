@@ -44,6 +44,7 @@ export MASTER_ADDR=$master_addr
 echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
+bash ./imagenet/dist_cotta.sh
 
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.acdc.160k.py DPT 1 | tee Ours_segformer_acdc_imgpyramid.log
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segformer.b5.1024x1024.night.160k.py DPT 1 | tee DPT_segformer_night.log
