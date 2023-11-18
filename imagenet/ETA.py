@@ -41,7 +41,7 @@ class EATA(nn.Module):
         self.model_state, self.optimizer_state = \
             copy_model_and_optimizer(self.model, self.optimizer)
 
-    def forward(self, x):
+    def forward(self, x, passed_batches):
         if self.episodic:
             self.reset()
         if self.steps > 0:
