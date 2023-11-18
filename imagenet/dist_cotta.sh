@@ -17,7 +17,8 @@ for i in {0..9}
 do
 #    CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/tent/tent$i.yaml
 #    CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/cotta/cotta$i.yaml
-    CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/fastcotta/cotta$i.yaml
+#    CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/fastcotta/cotta$i.yaml
+    CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/ETA/cotta$i.yaml
 done
 # Run Mean and AVG for TENT, CoTTA
 cd output
