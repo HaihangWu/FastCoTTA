@@ -14,4 +14,4 @@ from .mscan import MSCAN
 
 __all__ = [
     'ResNet', 'ResNetV1c', 'ResNetV1d', 'ResNeXt', 'HRNet', 'FastSCNN',
-    'ResNeSt', 'MobileNetV2', 'UNet', 'CGNet', 'MobileNetV3','CLIPTextEncoder','VisionTransformer','MSCAN']
+    'ResNeSt', 'MobileNetV2', 'UNet', 'CGNet', 'MobileNetV3','VisionTransformer','MSCAN']
