@@ -200,7 +200,9 @@ def main():
     pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
     #print(pretrained_dict['state_dict'].keys())
     #print("I'm printing the model",model.state_dict().keys())
-    model.load_state_dict(pretrained_dict['state_dict'])
+    print(pretrained_dict)
+    #model.load_state_dict(pretrained_dict['state_dict'])
+    model.load_state_dict(pretrained_dict)
     # if hasattr(model, 'text_encoder'):
     #     model.text_encoder.init_weights()
     model.CLASSES = datasets[0].CLASSES
