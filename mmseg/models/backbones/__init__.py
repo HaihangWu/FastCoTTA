@@ -7,7 +7,7 @@ from .resnest import ResNeSt
 from .resnet import ResNet, ResNetV1c, ResNetV1d
 from .resnext import ResNeXt
 from .unet import UNet
-from .segclip_text_encoder import CLIPTextEncoder
+#from .segclip_text_encoder import CLIPTextEncoder
 from .vit import VisionTransformer
 from .mix_transformer import *
 from .mscan import MSCAN
