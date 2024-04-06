@@ -198,8 +198,8 @@ def main():
     # model.CLASSES = checkpoint['meta']['CLASSES']
     # model.PALETTE = checkpoint['meta']['PALETTE']
     pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
-    print(pretrained_dict.keys())
-    print("I'm printing the model",model.state_dict().keys())
+    #print(pretrained_dict.keys())
+    #print("I'm printing the model",model.state_dict().keys())
     model.load_state_dict(pretrained_dict['state_dict'])
     # if hasattr(model, 'text_encoder'):
     #     model.text_encoder.init_weights()
