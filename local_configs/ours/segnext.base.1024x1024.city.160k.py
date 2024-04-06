@@ -11,7 +11,7 @@ prompt_config=dict(NUM_TOKENS = 12000,LOCATION = "random")
 find_unused_parameters = True
 model = dict(
     type='EncoderDecoder',
-    pretrained='/data/gpfs/projects/punim0512/Haihangw-Projects/segformer/segnext_base_1024x1024_city_160k.pth',
+    pretrained='/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/segnext_base_1024x1024_city_160k.pth',
     backbone=dict(
         prompt_config=prompt_config,
         embed_dims=[64, 128, 320, 512],
