@@ -139,7 +139,7 @@ def main():
                 if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
                     cfg.data.test.test_cases[i].pipeline[1].img_ratios = [1.0]
                     cfg.data.test.test_cases[i].pipeline[1].flip = False
-                elif 'AuxAdapt' in args.method:# or 'Ours' in args.method:
+                elif 'AuxAdapt' in args.method: #or 'Ours' in args.method:
                     cfg.data.test.test_cases[i].pipeline[1].img_ratios = [1.0, 2.0]
                     cfg.data.test.test_cases[i].pipeline[1].flip = False
 
