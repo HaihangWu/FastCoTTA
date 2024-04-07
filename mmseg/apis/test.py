@@ -140,8 +140,9 @@ def single_gpu_ours(model,
                         # result_TS, probs_TS, preds_TS = ema_model(return_loss=False, img=[data['img'][1]],
                         #                                           img_metas=[data['img_metas'][1].data[0]])
                         print("num of probs:",len(probs))
-                        print(probs)
-                        techer_model_conf_s = np.mean(torch.amax(probs[4], 0).cpu().numpy())
+                        print(probs[4].shape)
+                        print(np.mean(probs[4]))
+                        techer_model_conf_s = np.mean(probs[4])
 
                     if (techer_model_conf_s - source_model_conf)<domains_detections["adat_ends"]:
                         domains_detections["adaptation"] = True
