@@ -116,9 +116,9 @@ def single_gpu_ours(model,
                         #     result = result_TS if techer_model_conf_L < techer_model_conf_s else result
                         # domains_detections["imge_id"] = 1 if techer_model_conf_L > techer_model_conf_s else 0
                         result_source_L, probs_source_L, preds_source_L = anchor_model(return_loss=False,
-                                                                                 img=[data['img'][0]],
+                                                                                 img=[data['img'][1]],
                                                                                  img_metas=[
-                                                                                     data['img_metas'][0].data[0]])
+                                                                                     data['img_metas'][1].data[0]])
                         source_model_conf_L = np.mean(torch.amax(probs_source_L[0], 0).cpu().numpy())
                         domains_detections["imge_id"] = 1 if source_model_conf_L > source_model_conf_s else 0
                     else:
