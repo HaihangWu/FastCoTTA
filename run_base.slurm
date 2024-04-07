@@ -46,8 +46,8 @@ echo "r$SLURM_NODEID Launching python script"
 
 #bash ./imagenet/dist_cotta.sh  | tee imagenetc.log
 
-bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py Ours 1 | tee Ours_segformer_acdc.log
-#bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.night.160k.py Ours 1 | tee Ours_segformer_night.log
+#bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py Ours 1 | tee Ours_segformer_acdc.log
+bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.night.160k.py Ours 1 | tee Ours_segformer_night.log
 
 #bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py Ours 1 | tee Ours_segnext_acdc.log
 #bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.night.160k.py Ours 1 | tee Ours_segnext_night.log
