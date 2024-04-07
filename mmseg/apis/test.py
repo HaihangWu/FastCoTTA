@@ -133,8 +133,8 @@ def single_gpu_ours(model,
                                                      img_metas=[data['img_metas'][0].data[0]])
                 else:
                     result, probs, preds = ema_model(return_loss=False,
-                                                     img=[data['img'][0]],
-                                                     img_metas=[data['img_metas'][0].data[0]])
+                                                     img=[data['img'][1]],
+                                                     img_metas=[data['img_metas'][1].data[0]])
 
                 if frame_passed % domains_detections["hp_k"] == 0:
                     result_source, probs_source, preds_source = anchor_model(return_loss=False,
@@ -146,7 +146,11 @@ def single_gpu_ours(model,
                     if not domains_detections["adaptation"]:
                         techer_model_conf_s=np.mean(torch.amax(probs[0], 0).cpu().numpy())
                     else:
-                        techer_model_conf_s=np.mean(torch.amax(probs[0], 0).cpu().numpy())
+                        result_s, probs_s, preds_s = ema_model(return_loss=False,
+                                                         img=[data['img'][0]],
+                                                         img_metas=[data['img_metas'][0].data[0]])
+
+                        techer_model_conf_s=np.mean(torch.amax(probs_s[0], 0).cpu().numpy())
 
                     if (techer_model_conf_s - source_model_conf)<domains_detections["adat_ends"]:
                         domains_detections["adaptation"] = True
