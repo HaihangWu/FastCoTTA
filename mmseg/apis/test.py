@@ -132,17 +132,25 @@ def single_gpu_ours(model,
 
                     if domains_detections["imge_id"] == 0: # small image
                         techer_model_conf_s=np.mean(torch.amax(probs[0], 0).cpu().numpy())
+                        techer_model_conf_highest=techer_model_conf_s #np.mean(torch.amax(probs[0], 0).cpu().numpy())
+                        image_id_highest=domains_detections["imge_id"]
+                        result_highest=result
                     else: #large image
                         result_TS, probs_TS, preds_TS = ema_model(return_loss=False, img=[data['img'][0]],
                                                                   img_metas=[data['img_metas'][0].data[0]])
                         techer_model_conf_s = np.mean(torch.amax(probs_TS[0], 0).cpu().numpy())
+                        techer_model_conf_highest=np.mean(torch.amax(probs[0], 0).cpu().numpy())
+                        if techer_model_conf_s > techer_model_conf_highest:
+                            techer_model_conf_highest = techer_model_conf_s
+                            result_highest = result_TS
+                            image_id_highest = 0
+                        else:
+                            image_id_highest=domains_detections["imge_id"]
+                            result_highest=result
 
                     if (techer_model_conf_s - source_model_conf_s)<domains_detections["adat_ends"]:
                         domains_detections["adaptation"] = True
-                        techer_model_conf_highest=np.mean(torch.amax(probs[0], 0).cpu().numpy())
-                        image_id_highest=domains_detections["imge_id"]
-                        result_highest=result
-                        for i in range(0, 3):
+                        for i in range(1, 3):
                             if i!=domains_detections["imge_id"]:
                                 result_current, probs_current, preds_current = ema_model(return_loss=False, img=[data['img'][i]],
                                                                           img_metas=[data['img_metas'][i].data[0]])
