@@ -258,14 +258,14 @@ def main():
     total_predict_time=0
     total_processed_frame=0
     current_model_probs=None
-    for i in range(10):
+    for i in range(1):
         print("revisit times:",i)
         j=0
         for dataset, data_loader in zip(datasets, data_loaders):
             j=j+1
             pred_begin = time.time()
             if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
-                outputs = single_model_update(model, data_loader, args, efficient_test)
+                outputs = single_model_update(model, data_loader, args, efficient_test,frame_passed)
             elif 'AuxAdapt'in args.method:
                 outputs=single_gpu_AuxAdapt(model,model_s,data_loader,efficient_test,frame_passed)
             elif 'DPT'in args.method:

@@ -732,7 +732,8 @@ def single_gpu_AuxAdapt(model_l,
 def single_model_update(model,
                     data_loader,
                         args,
-                    efficient_test=False):
+                    efficient_test=False,
+                    frame_passed=0):
     """Test with single GPU.
 
     Args:
@@ -764,6 +765,7 @@ def single_model_update(model,
     optimizer = torch.optim.Adam(param_list, lr=0.00006/8, betas=(0.9, 0.999)) # for segformer,segnext
     pred_time=0
     for i, data in enumerate(data_loader):
+        frame_passed=frame_passed+1
         pred_begin=time.time()
         with torch.no_grad():
             result, probs, preds = model(return_loss=False, **data)
@@ -773,7 +775,7 @@ def single_model_update(model,
             mask_image = Image.fromarray(mask * 255)  # Scale to 0-255 for image
 
             # Save the mask image
-            mask_image.save('/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/'+str(i)+'.png')
+            mask_image.save('/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/'+str(frame_passed)+'.png')
 
             # mask = (pixel_conf < 0.93).float()
             # # Convert the mask tensor to a PIL Image
