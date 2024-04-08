@@ -7,7 +7,7 @@ from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from mmcv.runner import get_dist_info, init_dist, load_checkpoint
 from mmcv.utils import DictAction
 
-from mmseg.apis import single_model_update, single_gpu_cotta,Efficient_adaptation,DPT,single_gpu_ours,single_gpu_AuxAdapt
+from mmseg.apis import single_model_update, single_gpu_cotta,Efficient_adaptation,DPT,single_gpu_ours,single_gpu_AuxAdapt, single_gpu_RDumb
 from mmseg.datasets import build_dataloader, build_dataset
 from mmseg.models import build_segmentor
 from IPython import embed
@@ -87,7 +87,7 @@ def parse_args():
         help='job launcher')
     parser.add_argument(
         '--method',
-        choices=['Source', 'BN', 'TENT', 'AuxAdapt', 'DPT', 'ETA', 'CoTTA', 'Ours'],
+        choices=['Source', 'BN', 'TENT', 'AuxAdapt', 'DPT', 'ETA', 'CoTTA', 'Ours','RDumb'],
         default='none',
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
@@ -277,6 +277,10 @@ def main():
             elif 'CoTTA'in args.method:
                 outputs,frame_passed = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
                                           efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
+            elif 'RDumb'in args.method:
+                outputs,frame_passed = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
+                                          efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
+
             elif 'Ours'in args.method:
                 outputs,frame_passed,domains_detections = single_gpu_ours(model, data_loader, args.show, args.show_dir,
                                           efficient_test,anchor, ema_model, anchor_model,frame_passed, domains_detections,i*4+j)

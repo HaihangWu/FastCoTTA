@@ -173,7 +173,7 @@ def single_gpu_ours(model,
             torch.mean(loss["decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
-            ema_model = update_ema_variables(ema_model=ema_model, model=model, alpha_teacher=0.9999)  # teacher model
+            ema_model = update_ema_variables(ema_model=ema_model, model=model, alpha_teacher=0.999)  # teacher model
 
     pred_time = time.time() - pred_begin
     print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
@@ -284,6 +284,99 @@ def single_gpu_cotta(model,
         #print("iter %d, teacher_pred: %.3f seconds; anchor_pred: %.3f;" % (i, teacher_pred, anchor_pred))
         #print("iter %d, teacher_pred: %.3f seconds; student_pred: %.3f; student_train: %.3f;model_update_time: %.3f;restoration_time: %.3f;" % (i,teacher_pred,student_pred,student_train,model_update_time,restoration_time))
     #print("pred_time: %.3f seconds;" % (pred_time/(i+1)))
+    return results,frame_passed
+
+
+def single_gpu_RDumb(model,
+                    data_loader,
+                    show=False,
+                    out_dir=None,
+                    efficient_test=False,
+                    anchor=None,
+                    ema_model=None,
+                    anchor_model=None,
+                     frame_passed =0,
+                     round=-1):
+    """Test with single GPU.
+    Args:
+        model (nn.Module): Model to be tested.
+        data_loader (utils.data.Dataloader): Pytorch data loader.
+        show (bool): Whether show results during infernece. Default: False.
+        out_dir (str, optional): If specified, the results will be dumped into
+            the directory to save output results.
+        efficient_test (bool): Whether save the results as local numpy files to
+            save CPU memory during evaluation. Default: False.
+
+    Returns:
+        list: The prediction results.
+    """
+
+    model.eval()
+    anchor_model.eval()
+    results = []
+    dataset = data_loader.dataset
+    # prog_bar = mmcv.ProgressBar(len(dataset))
+    param_list = []
+    out_dir = "./Cotta/"+str(frame_passed)
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            param_list.append(param)
+            #print(name)
+        else:
+            param.requires_grad=False
+    optimizer = torch.optim.Adam(param_list, lr=0.00006/8, betas=(0.9, 0.999))# for segformer
+    #optimizer = torch.optim.SGD(param_list, lr=0.01 / 8)  # for SETR
+    pred_time=0
+    for i, data in enumerate(data_loader):
+        model.eval() # student model
+        ema_model.eval() # teacher model
+        anchor_model.eval() # source model
+        #pred_begin=time.time()
+        # if i==0:
+        #     ema_model.load_state_dict(anchor)
+        frame_passed=frame_passed +1
+        with torch.no_grad():
+            img_id = 0
+            if len(data['img']) == 14:
+                img_id = 4  # The default size without flip
+            result, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])#**data)
+            mask = (torch.amax(probs_[0], 0).cpu().numpy() > 0.69).astype(np.int64)
+            result, probs, preds = ema_model(return_loss=False, **data)
+
+            result = [(mask*preds[img_id][0] + (1.-mask)*result[0]).astype(np.int64)]
+
+            weight = 1.
+        if isinstance(result, list):
+            if len(data['img'])==14:
+                img_id = 4 #The default size without flip
+            else:
+                img_id = 0
+            #student_begin = time.time()
+            loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
+            #student_pred = time.time() - student_begin
+            if efficient_test:
+                result = [np2tmp(_) for _ in result]
+            results.extend(result)
+        else:
+            if efficient_test:
+                result = np2tmp(result)
+            results.append(result)
+
+        torch.mean(weight*loss["decode.loss_seg"]).backward()
+        optimizer.step()
+        optimizer.zero_grad()
+
+        ema_model = update_ema_variables(ema_model = ema_model, model = model, alpha_teacher=0.999) #teacher model
+
+        #full restoration
+        if frame_passed%50==0:
+            for nm, m  in model.named_modules():
+                for npp, p in m.named_parameters():
+                    if npp in ['weight', 'bias'] and p.requires_grad:
+                        # mask = (torch.rand(p.shape)<0.01).float().cuda()
+                        with torch.no_grad():
+                            p.data = anchor[f"{nm}.{npp}"] #* mask + p * (1.-mask)
+
     return results,frame_passed
 
 def Efficient_adaptation(model,
