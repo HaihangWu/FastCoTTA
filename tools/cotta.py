@@ -278,7 +278,7 @@ def main():
                 outputs,frame_passed = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
                                           efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
             elif 'RDumb'in args.method:
-                outputs,frame_passed = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
+                outputs,frame_passed = single_gpu_RDumb(model, data_loader, args.show, args.show_dir,
                                           efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
 
             elif 'Ours'in args.method:
