@@ -770,7 +770,7 @@ def single_model_update(model,
         with torch.no_grad():
             result, probs, preds = model(return_loss=False, **data)
             pixel_conf=torch.amax(probs[0], 0).cpu().numpy()
-            mask = (pixel_conf < 0.92).astype(np.uint8)
+            mask = (pixel_conf < 0.7).astype(np.uint8)
             # Convert the mask array to a PIL Image
             mask_image = Image.fromarray(mask * 255)  # Scale to 0-255 for image
 
