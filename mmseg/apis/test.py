@@ -21,6 +21,7 @@ from scipy.stats import wasserstein_distance
 from scipy.special import expit
 import copy
 import math
+import torchvision.transforms.functional as TF
 
 
 def update_ema_variables(ema_model, model, alpha_teacher, iteration=None):
@@ -90,39 +91,6 @@ def single_gpu_ours(model,
                 result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
                                                      img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
 
-                # if frame_passed % domains_detections["hp_k"] == 0:
-                #     result_source_s, probs_source_s, preds_source_s = anchor_model(return_loss=False,
-                #                                                              img=[data['img'][0]],
-                #                                                              img_metas=[
-                #                                                                  data['img_metas'][0].data[0]])
-                #     source_model_conf_s = np.mean(torch.amax(probs_source_s[0], 0).cpu().numpy())
-                #
-                #     if domains_detections["imge_id"] == 0: # small image
-                #         techer_model_conf_s=np.mean(torch.amax(probs[0], 0).cpu().numpy())
-                #     else: #large image
-                #         result_TS, probs_TS, preds_TS = ema_model(return_loss=False, img=[data['img'][0]],
-                #                                                   img_metas=[data['img_metas'][0].data[0]])
-                #         techer_model_conf_s = np.mean(torch.amax(probs_TS[0], 0).cpu().numpy())
-                #
-                #     if (techer_model_conf_s - source_model_conf_s)<domains_detections["adat_ends"]:
-                #         domains_detections["adaptation"] = True
-                #         techer_model_conf_L=np.mean(torch.amax(probs[0], 0).cpu().numpy())
-                #         if domains_detections["imge_id"] == 0: # small image
-                #             result_TL, probs_TL, preds_TL = ema_model(return_loss=False, img=[data['img'][1]],
-                #                                                       img_metas=[data['img_metas'][1].data[0]])
-                #             techer_model_conf_L=np.mean(torch.amax(probs_TL[0], 0).cpu().numpy())
-                #             result = result_TL if techer_model_conf_L > techer_model_conf_s else result
-                #         else:
-                #             result = result_TS if techer_model_conf_L < techer_model_conf_s else result
-                #         domains_detections["imge_id"] = 1 if techer_model_conf_L > techer_model_conf_s else 0
-                #     else:
-                #         domains_detections["adaptation"] = False
-                #         domains_detections["imge_id"] = 0
-                #     print("adaptation decision:",domains_detections["adaptation"], domains_detections["imge_id"],
-                #           techer_model_conf_s - source_model_conf_s )
-
-
-
                 if frame_passed % domains_detections["hp_k"] == 0:
                     result_source_s, probs_source_s, preds_source_s = anchor_model(return_loss=False,
                                                                              img=[data['img'][0]],
@@ -132,43 +100,76 @@ def single_gpu_ours(model,
 
                     if domains_detections["imge_id"] == 0: # small image
                         techer_model_conf_s=np.mean(torch.amax(probs[0], 0).cpu().numpy())
-                        techer_model_conf_highest=techer_model_conf_s #np.mean(torch.amax(probs[0], 0).cpu().numpy())
-                        image_id_highest=domains_detections["imge_id"]
-                        result_highest=result
                     else: #large image
                         result_TS, probs_TS, preds_TS = ema_model(return_loss=False, img=[data['img'][0]],
                                                                   img_metas=[data['img_metas'][0].data[0]])
                         techer_model_conf_s = np.mean(torch.amax(probs_TS[0], 0).cpu().numpy())
-                        techer_model_conf_highest=np.mean(torch.amax(probs[0], 0).cpu().numpy())
-                        if techer_model_conf_s > techer_model_conf_highest:
-                            techer_model_conf_highest = techer_model_conf_s
-                            result_highest = result_TS
-                            image_id_highest = 0
-                        else:
-                            image_id_highest=domains_detections["imge_id"]
-                            result_highest=result
 
                     if (techer_model_conf_s - source_model_conf_s)<domains_detections["adat_ends"]:
                         domains_detections["adaptation"] = True
-                        for ij in range(1, 6):
-                            if ij!=domains_detections["imge_id"]:
-                                result_current, probs_current, preds_current = ema_model(return_loss=False, img=[data['img'][ij]],
-                                                                          img_metas=[data['img_metas'][ij].data[0]])
-                                teacher_model_conf_current = np.mean(torch.amax(probs_current[0], 0).cpu().numpy())
-                                print(ij, teacher_model_conf_current, techer_model_conf_highest,image_id_highest)
-                                if teacher_model_conf_current > techer_model_conf_highest:
-                                    techer_model_conf_highest = teacher_model_conf_current
-                                    result_highest = result_current
-                                    image_id_highest = ij
-                                else:
-                                    pass
-
-                        result=result_highest
-                        domains_detections["imge_id"] = image_id_highest
+                        techer_model_conf_L=np.mean(torch.amax(probs[0], 0).cpu().numpy())
+                        if domains_detections["imge_id"] == 0: # small image
+                            result_TL, probs_TL, preds_TL = ema_model(return_loss=False, img=[data['img'][1]],
+                                                                      img_metas=[data['img_metas'][1].data[0]])
+                            techer_model_conf_L=np.mean(torch.amax(probs_TL[0], 0).cpu().numpy())
+                            result = result_TL if techer_model_conf_L > techer_model_conf_s else result
+                        else:
+                            result = result_TS if techer_model_conf_L < techer_model_conf_s else result
+                        domains_detections["imge_id"] = 1 if techer_model_conf_L > techer_model_conf_s else 0
                     else:
                         domains_detections["adaptation"] = False
                         domains_detections["imge_id"] = 0
-                    print("adaptation decision:",domains_detections["adaptation"], domains_detections["imge_id"])
+                    print("adaptation decision:",domains_detections["adaptation"], domains_detections["imge_id"],
+                          techer_model_conf_s - source_model_conf_s )
+
+
+
+                # if frame_passed % domains_detections["hp_k"] == 0:
+                #     result_source_s, probs_source_s, preds_source_s = anchor_model(return_loss=False,
+                #                                                              img=[data['img'][0]],
+                #                                                              img_metas=[
+                #                                                                  data['img_metas'][0].data[0]])
+                #     source_model_conf_s = np.mean(torch.amax(probs_source_s[0], 0).cpu().numpy())
+                #
+                #     if domains_detections["imge_id"] == 0: # small image
+                #         techer_model_conf_s=np.mean(torch.amax(probs[0], 0).cpu().numpy())
+                #         techer_model_conf_highest=techer_model_conf_s #np.mean(torch.amax(probs[0], 0).cpu().numpy())
+                #         image_id_highest=domains_detections["imge_id"]
+                #         result_highest=result
+                #     else: #large image
+                #         result_TS, probs_TS, preds_TS = ema_model(return_loss=False, img=[data['img'][0]],
+                #                                                   img_metas=[data['img_metas'][0].data[0]])
+                #         techer_model_conf_s = np.mean(torch.amax(probs_TS[0], 0).cpu().numpy())
+                #         techer_model_conf_highest=np.mean(torch.amax(probs[0], 0).cpu().numpy())
+                #         if techer_model_conf_s > techer_model_conf_highest:
+                #             techer_model_conf_highest = techer_model_conf_s
+                #             result_highest = result_TS
+                #             image_id_highest = 0
+                #         else:
+                #             image_id_highest=domains_detections["imge_id"]
+                #             result_highest=result
+                #
+                #     if (techer_model_conf_s - source_model_conf_s)<domains_detections["adat_ends"]:
+                #         domains_detections["adaptation"] = True
+                #         for ij in range(1, 6):
+                #             if ij!=domains_detections["imge_id"]:
+                #                 result_current, probs_current, preds_current = ema_model(return_loss=False, img=[data['img'][ij]],
+                #                                                           img_metas=[data['img_metas'][ij].data[0]])
+                #                 teacher_model_conf_current = np.mean(torch.amax(probs_current[0], 0).cpu().numpy())
+                #                 print(ij, teacher_model_conf_current, techer_model_conf_highest,image_id_highest)
+                #                 if teacher_model_conf_current > techer_model_conf_highest:
+                #                     techer_model_conf_highest = teacher_model_conf_current
+                #                     result_highest = result_current
+                #                     image_id_highest = ij
+                #                 else:
+                #                     pass
+                #
+                #         result=result_highest
+                #         domains_detections["imge_id"] = image_id_highest
+                #     else:
+                #         domains_detections["adaptation"] = False
+                #         domains_detections["imge_id"] = 0
+                #     print("adaptation decision:",domains_detections["adaptation"], domains_detections["imge_id"])
 
 
 
@@ -765,7 +766,14 @@ def single_model_update(model,
         pred_begin=time.time()
         with torch.no_grad():
             result, probs, preds = model(return_loss=False, **data)
-            pred_conf.append(np.mean(torch.amax(probs[0], 0).cpu().numpy()))
+            pixel_conf=torch.amax(probs[0], 0).cpu().numpy()
+            print(pixel_conf.size())
+            mask = (pixel_conf < 0.93).float()
+            # Convert the mask tensor to a PIL Image
+            mask_image = TF.to_pil_image(mask.unsqueeze(0))  # Unsqueeze to add batch dimension
+            # Save the image
+            mask_image.save('/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA、'+str(i)+'.png')
+            pred_conf.append(np.mean(pixel_conf))
 
         img_id = 0
         if isinstance(result, list):
