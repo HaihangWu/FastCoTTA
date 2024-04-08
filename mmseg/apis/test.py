@@ -173,7 +173,7 @@ def single_gpu_ours(model,
             torch.mean(loss["decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
-            ema_model = update_ema_variables(ema_model=ema_model, model=model, alpha_teacher=0.999)  # teacher model
+            ema_model = update_ema_variables(ema_model=ema_model, model=model, alpha_teacher=0.99)  # teacher model
 
     pred_time = time.time() - pred_begin
     print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
