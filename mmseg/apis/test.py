@@ -809,4 +809,4 @@ def single_model_update(model,
             for _ in range(batch_size):
                 prog_bar.update()
     print("pred_time: %.3f seconds; confidence: %.3f " % (pred_time/(i+1),np.mean(pred_conf)))
-    return results
+    return results,frame_passed
