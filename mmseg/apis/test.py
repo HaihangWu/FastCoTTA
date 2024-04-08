@@ -150,7 +150,7 @@ def single_gpu_ours(model,
 
                     if (techer_model_conf_s - source_model_conf_s)<domains_detections["adat_ends"]:
                         domains_detections["adaptation"] = True
-                        for ij in range(1, 3):
+                        for ij in range(1, 6):
                             if ij!=domains_detections["imge_id"]:
                                 result_current, probs_current, preds_current = ema_model(return_loss=False, img=[data['img'][ij]],
                                                                           img_metas=[data['img_metas'][ij].data[0]])
