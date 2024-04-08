@@ -15,7 +15,7 @@ model = dict(
     #pretrained='work_dirs/Lsegformer.b5.1024x1024.city.160k/iter_160000.pth',
     backbone=dict(
         type='mit_b5',
-        prompt_config=prompt_config,
+        #prompt_config=prompt_config,
         style='pytorch'),
     decode_head=dict(
         type='SegFormerHead',
@@ -39,7 +39,7 @@ model = dict(
 )
 
 # data
-data = dict(samples_per_gpu=6)
+data = dict(samples_per_gpu=1)
 evaluation = dict(interval=170000, metric='mIoU')
 checkpoint_config = dict(by_epoch=False, interval=2000)
 # optimizer
