@@ -140,7 +140,7 @@ def main():
                     cfg.data.test.test_cases[i].pipeline[1].img_ratios = [1.0]
                     cfg.data.test.test_cases[i].pipeline[1].flip = False
                 elif 'AuxAdapt' in args.method or 'Ours' in args.method:
-                    cfg.data.test.test_cases[i].pipeline[1].img_ratios = [1.0, 2.0, 1.5]
+                    cfg.data.test.test_cases[i].pipeline[1].img_ratios = [1.0, 2.0, 1.5, 0.5]
                     cfg.data.test.test_cases[i].pipeline[1].flip = False
 
             elif cfg.data.test.test_cases[i].type == 'ADE20KDataset':

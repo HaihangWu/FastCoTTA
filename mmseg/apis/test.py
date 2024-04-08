@@ -150,16 +150,16 @@ def single_gpu_ours(model,
 
                     if (techer_model_conf_s - source_model_conf_s)<domains_detections["adat_ends"]:
                         domains_detections["adaptation"] = True
-                        for i in range(1, 3):
-                            if i!=domains_detections["imge_id"]:
-                                result_current, probs_current, preds_current = ema_model(return_loss=False, img=[data['img'][i]],
-                                                                          img_metas=[data['img_metas'][i].data[0]])
+                        for ij in range(1, 4):
+                            if ij!=domains_detections["imge_id"]:
+                                result_current, probs_current, preds_current = ema_model(return_loss=False, img=[data['img'][ij]],
+                                                                          img_metas=[data['img_metas'][ij].data[0]])
                                 teacher_model_conf_current = np.mean(torch.amax(probs_current[0], 0).cpu().numpy())
-                                print(i, teacher_model_conf_current, techer_model_conf_highest,image_id_highest)
+                                print(ij, teacher_model_conf_current, techer_model_conf_highest,image_id_highest)
                                 if teacher_model_conf_current > techer_model_conf_highest:
                                     techer_model_conf_highest = teacher_model_conf_current
                                     result_highest = result_current
-                                    image_id_highest = i
+                                    image_id_highest = ij
                                 else:
                                     pass
 
