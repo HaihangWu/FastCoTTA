@@ -51,9 +51,10 @@ data = dict(
         img_dir='leftImg8bit/val',
         ann_dir='gtFine/val',
         pipeline=test_pipeline),
-    test=dict(
+    test=dict(test_cases=([dict(
         type=dataset_type,
         data_root=data_root,
         img_dir='leftImg8bit/val',
         ann_dir='gtFine/val',
-        pipeline=test_pipeline))
+        pipeline=test_pipeline)]))
+)
