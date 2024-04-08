@@ -22,6 +22,7 @@ from scipy.special import expit
 import copy
 import math
 import torchvision.transforms.functional as TF
+from PIL import Image
 
 
 def update_ema_variables(ema_model, model, alpha_teacher, iteration=None):
@@ -767,13 +768,18 @@ def single_model_update(model,
         with torch.no_grad():
             result, probs, preds = model(return_loss=False, **data)
             pixel_conf=torch.amax(probs[0], 0).cpu().numpy()
-            print(pixel_conf)
-            #print(pixel_conf.type())
-            mask = (pixel_conf < 0.93).float()
-            # Convert the mask tensor to a PIL Image
-            mask_image = TF.to_pil_image(mask.unsqueeze(0))  # Unsqueeze to add batch dimension
-            # Save the image
+            mask = (pixel_conf < 0.92).astype(np.uint8)
+            # Convert the mask array to a PIL Image
+            mask_image = Image.fromarray(mask * 255)  # Scale to 0-255 for image
+
+            # Save the mask image
             mask_image.save('/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA、'+str(i)+'.png')
+
+            # mask = (pixel_conf < 0.93).float()
+            # # Convert the mask tensor to a PIL Image
+            # mask_image = TF.to_pil_image(mask.unsqueeze(0))  # Unsqueeze to add batch dimension
+            # # Save the image
+            # mask_image.save('/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA、'+str(i)+'.png')
             pred_conf.append(np.mean(pixel_conf))
 
         img_id = 0
