@@ -265,7 +265,7 @@ def main():
             j=j+1
             pred_begin = time.time()
             if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
-                outputs, frame_passe = single_model_update(model, data_loader, args, efficient_test,frame_passed)
+                outputs, frame_passed = single_model_update(model, data_loader, args, efficient_test,frame_passed)
             elif 'AuxAdapt'in args.method:
                 outputs=single_gpu_AuxAdapt(model,model_s,data_loader,efficient_test,frame_passed)
             elif 'DPT'in args.method:
