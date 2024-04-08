@@ -768,7 +768,7 @@ def single_model_update(model,
             result, probs, preds = model(return_loss=False, **data)
             pixel_conf=torch.amax(probs[0], 0).cpu().numpy()
             print(pixel_conf)
-            print(pixel_conf.size())
+            print(pixel_conf.type())
             mask = (pixel_conf < 0.93).float()
             # Convert the mask tensor to a PIL Image
             mask_image = TF.to_pil_image(mask.unsqueeze(0))  # Unsqueeze to add batch dimension
