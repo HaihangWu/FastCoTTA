@@ -1,7 +1,7 @@
 # dataset settings
 dataset_type = 'ACDCDataset'
-#data_root = '/data/gpfs/projects/punim0512/data/data_acdc/'
-data_root =  '/data/gpfs/projects/punim0512/data/test/acdc/'
+data_root = '/data/gpfs/projects/punim0512/data/data_acdc/'
+#data_root =  '/data/gpfs/projects/punim0512/data/test/acdc/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 crop_size = (1024, 1024)
