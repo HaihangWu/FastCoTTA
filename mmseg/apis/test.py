@@ -147,9 +147,14 @@ def single_gpu_ours(model,
                                 result_current, probs_current, preds_current = ema_model(return_loss=False, img=[data['img'][i]],
                                                                           img_metas=[data['img_metas'][i].data[0]])
                                 teacher_model_conf_current = np.mean(torch.amax(probs_current[0], 0).cpu().numpy())
-                                techer_model_conf_highest=teacher_model_conf_current if teacher_model_conf_current > techer_model_conf_highest else techer_model_conf_highest
-                                result_highest= result_current if teacher_model_conf_current > techer_model_conf_highest else result_highest
-                                image_id_highest=i if teacher_model_conf_current > techer_model_conf_highest else image_id_highest
+                                print(i, teacher_model_conf_current, techer_model_conf_highest,image_id_highest)
+                                if teacher_model_conf_current > techer_model_conf_highest:
+                                    techer_model_conf_highest = teacher_model_conf_current
+                                    result_highest = result_current
+                                    image_id_highest = i
+                                else:
+                                    pass
+
                         result=result_highest
                         domains_detections["imge_id"] = image_id_highest
                     else:
