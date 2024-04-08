@@ -139,20 +139,23 @@ def single_gpu_ours(model,
 
                     if (techer_model_conf_s - source_model_conf_s)<domains_detections["adat_ends"]:
                         domains_detections["adaptation"] = True
-                        techer_model_conf_L=np.mean(torch.amax(probs[0], 0).cpu().numpy())
-                        if domains_detections["imge_id"] == 0: # small image
-                            result_TL, probs_TL, preds_TL = ema_model(return_loss=False, img=[data['img'][1]],
-                                                                      img_metas=[data['img_metas'][1].data[0]])
-                            techer_model_conf_L=np.mean(torch.amax(probs_TL[0], 0).cpu().numpy())
-                            result = result_TL if techer_model_conf_L > techer_model_conf_s else result
-                        else:
-                            result = result_TS if techer_model_conf_L < techer_model_conf_s else result
-                        domains_detections["imge_id"] = 1 if techer_model_conf_L > techer_model_conf_s else 0
+                        techer_model_conf_highest=np.mean(torch.amax(probs[0], 0).cpu().numpy())
+                        image_id_highest=domains_detections["imge_id"]
+                        result_highest=result
+                        for i in range(0, len(3)):
+                            if i!=image_id_highest:
+                                result_current, probs_current, preds_current = ema_model(return_loss=False, img=[data['img'][i]],
+                                                                          img_metas=[data['img_metas'][i].data[0]])
+                                teacher_model_conf_current = np.mean(torch.amax(probs_current[0], 0).cpu().numpy())
+                                techer_model_conf_highest=teacher_model_conf_current if teacher_model_conf_current > techer_model_conf_highest else techer_model_conf_highest
+                                result_highest= result_current if teacher_model_conf_current > techer_model_conf_highest else result_highest
+                                image_id_highest=i if teacher_model_conf_current > techer_model_conf_highest else image_id_highest
+                        result=result_highest
+                        domains_detections["imge_id"] = image_id_highest
                     else:
                         domains_detections["adaptation"] = False
                         domains_detections["imge_id"] = 0
-                    print("adaptation decision:",domains_detections["adaptation"], domains_detections["imge_id"],
-                          techer_model_conf_s - source_model_conf_s )
+                    print("adaptation decision:",domains_detections["adaptation"], domains_detections["imge_id"])
 
 
 
