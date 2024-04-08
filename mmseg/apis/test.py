@@ -142,8 +142,8 @@ def single_gpu_ours(model,
                         techer_model_conf_highest=np.mean(torch.amax(probs[0], 0).cpu().numpy())
                         image_id_highest=domains_detections["imge_id"]
                         result_highest=result
-                        for i in range(0, 4):
-                            if i!=image_id_highest:
+                        for i in range(0, 3):
+                            if i!=domains_detections["imge_id"]:
                                 result_current, probs_current, preds_current = ema_model(return_loss=False, img=[data['img'][i]],
                                                                           img_metas=[data['img_metas'][i].data[0]])
                                 teacher_model_conf_current = np.mean(torch.amax(probs_current[0], 0).cpu().numpy())
