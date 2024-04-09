@@ -72,6 +72,7 @@ def single_gpu_ours(model,
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     param_list = []
+    pred_conf = []
     out_dir = "./Cotta/"+str(frame_passed)
     for name, param in model.named_parameters():
         if param.requires_grad:
@@ -91,6 +92,11 @@ def single_gpu_ours(model,
         with torch.no_grad():
                 result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
                                                      img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
+
+                result_student, probs_student, preds_student = ema_model(return_loss=False, img=[data['img'][0]],
+                                                     img_metas=[data['img_metas'][0].data[0]])
+
+                pred_conf.append(np.mean(torch.amax(probs_student[0], 0).cpu().numpy()))
 
                 if frame_passed % domains_detections["hp_k"] == 0:
                     result_source_s, probs_source_s, preds_source_s = anchor_model(return_loss=False,
@@ -116,9 +122,9 @@ def single_gpu_ours(model,
                             result = result_TL if techer_model_conf_L > techer_model_conf_s else result
                         else:
                             result = result_TS if techer_model_conf_L < techer_model_conf_s else result
-                        domains_detections["imge_id"] = 1 if techer_model_conf_L > techer_model_conf_s else 0
+                        domains_detections["imge_id"] = 0 #if techer_model_conf_L > techer_model_conf_s else 0
                     else:
-                        domains_detections["adaptation"] = False
+                        domains_detections["adaptation"] = True
                         domains_detections["imge_id"] = 0
                     print("adaptation decision:",domains_detections["adaptation"], domains_detections["imge_id"],
                           techer_model_conf_s - source_model_conf_s )
@@ -230,6 +236,7 @@ def single_gpu_ours(model,
 
     pred_time = time.time() - pred_begin
     print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
+    print("student model confidence: %.3f" % ())
     return results,frame_passed,domains_detections
 
 def single_gpu_cotta(model,
@@ -770,12 +777,9 @@ def single_model_update(model,
         with torch.no_grad():
             result, probs, preds = model(return_loss=False, **data)
             pixel_conf=torch.amax(probs[0], 0).cpu().numpy()
-            mask = (pixel_conf < 0.8).astype(np.uint8)
-            # Convert the mask array to a PIL Image
-            mask_image = Image.fromarray(mask * 255)  # Scale to 0-255 for image
-
-            # Save the mask image
-            mask_image.save('/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/'+str(frame_passed)+'.png')
+            # mask = (pixel_conf < 0.8).astype(np.uint8)
+            # mask_image = Image.fromarray(mask * 255)  # Scale to 0-255 for image
+            # mask_image.save('/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/'+str(frame_passed)+'.png')
 
             # mask = (pixel_conf < 0.93).float()
             # # Convert the mask tensor to a PIL Image
