@@ -236,7 +236,7 @@ def single_gpu_ours(model,
 
     pred_time = time.time() - pred_begin
     print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
-    print("student model confidence: %.3f" % ())
+    print("student model confidence: %.3f" % (sum(pred_conf) / len(pred_conf)))
     return results,frame_passed,domains_detections
 
 def single_gpu_cotta(model,
