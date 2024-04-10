@@ -110,17 +110,17 @@ class FastCoTTA(nn.Module):
                 self.adapt = False
             print("fastcotta inform:",self.adapt, ema_prob.mean(0)-anchor_prob.mean(0))
 
-        # Augmentation-averaged Prediction
-        # N = 32
-        # outputs_emas = []
-        # for i in range(N):
-        #     outputs_  = self.model_ema(self.transform(x)).detach()
-        #     outputs_emas.append(outputs_)
-        # # Threshold choice discussed in supplementary
-        # if anchor_prob.mean(0)<self.ap:
-        #     outputs_ema = torch.stack(outputs_emas).mean(0)
-        # else:
-        #     outputs_ema = standard_ema
+            # Augmentation decision
+            # N = 32
+            # outputs_emas = []
+            # for i in range(N):
+            #     outputs_  = self.model_ema(self.transform(x)).detach()
+            #     outputs_emas.append(outputs_)
+            # # Threshold choice discussed in supplementary
+            # if anchor_prob.mean(0)<self.ap:
+            #     outputs_ema = torch.stack(outputs_emas).mean(0)
+            # else:
+            #     outputs_ema = standard_ema
 
         # Student update
         if self.adapt:
