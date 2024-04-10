@@ -10,6 +10,7 @@ import my_transforms as my_transforms
 from time import time
 import logging
 
+logger = logging.getLogger(__name__)
 
 def get_tta_transforms(gaussian_std: float=0.005, soft=False, clip_inputs=False):
     img_shape = (32, 32, 3)
@@ -64,7 +65,7 @@ class FastCoTTA(nn.Module):
         self.steps = steps
         self.adapt = True
         self.interval=20
-        self.epson = 0.001
+        self.epson = 0.1
 
         assert steps > 0, "cotta requires >= 1 step(s) to forward and update"
         self.episodic = episodic
@@ -108,6 +109,7 @@ class FastCoTTA(nn.Module):
                 self.adapt = True
             else:
                 self.adapt = False
+            logger.info(f"conf dif % [{self.adapt}]: {ema_prob.mean(0)-anchor_prob.mean(0):.2%}")
             print("fastcotta inform:",self.adapt, ema_prob.mean(0)-anchor_prob.mean(0))
 
             # Augmentation decision
