@@ -8,7 +8,7 @@
 #CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch --nproc_per_node=$GPUS --master_port=$PORT \
 #    $(dirname "$0")/cotta.py $CONFIG  --launcher pytorch --method $Method ${@:4}
 
-cd cifar
+cd cifar10
 
 #CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/source.yaml
 #CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/norm.yaml
