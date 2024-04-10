@@ -20,7 +20,7 @@ def get_tta_transforms(gaussian_std: float=0.005, soft=False, clip_inputs=False)
     p_hflip = 0.5
 
     tta_transforms = transforms.Compose([
-        my_transforms.Clip(0.0, 1.0), 
+        my_transforms.Clip(0.0, 1.0),
         my_transforms.ColorJitterPro(
             brightness=[0.8, 1.2] if soft else [0.6, 1.4],
             contrast=[0.85, 1.15] if soft else [0.7, 1.3],
@@ -28,14 +28,14 @@ def get_tta_transforms(gaussian_std: float=0.005, soft=False, clip_inputs=False)
             hue=[-0.03, 0.03] if soft else [-0.06, 0.06],
             gamma=[0.85, 1.15] if soft else [0.7, 1.3]
         ),
-        transforms.Pad(padding=int(n_pixels / 2), padding_mode='edge'),  
+        transforms.Pad(padding=int(n_pixels / 2), padding_mode='edge'),
         transforms.RandomAffine(
             degrees=[-8, 8] if soft else [-15, 15],
             translate=(1/16, 1/16),
             scale=(0.95, 1.05) if soft else (0.9, 1.1),
             shear=None,
-            resample=PIL.Image.BILINEAR,
-            fillcolor=None
+            # resample=PIL.Image.BILINEAR,
+            # fillcolor=None
         ),
         transforms.GaussianBlur(kernel_size=5, sigma=[0.001, 0.25] if soft else [0.001, 0.5]),
         transforms.CenterCrop(size=n_pixels),
@@ -64,10 +64,10 @@ class CoTTA(nn.Module):
         self.steps = steps
         assert steps > 0, "cotta requires >= 1 step(s) to forward and update"
         self.episodic = episodic
-        
+
         self.model_state, self.optimizer_state, self.model_ema, self.model_anchor = \
             copy_model_and_optimizer(self.model, self.optimizer)
-        self.transform = get_tta_transforms()    
+        self.transform = get_tta_transforms()
         self.mt = mt_alpha
         self.rst = rst_m
         self.ap = ap
@@ -98,7 +98,7 @@ class CoTTA(nn.Module):
         anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
         standard_ema = self.model_ema(x)
         # Augmentation-averaged Prediction
-        N = 32 
+        N = 32
         outputs_emas = []
         for i in range(N):
             outputs_  = self.model_ema(self.transform(x)).detach()
@@ -109,7 +109,7 @@ class CoTTA(nn.Module):
         else:
             outputs_ema = standard_ema
         # Student update
-        loss = (softmax_entropy(outputs, outputs_ema)).mean(0) 
+        loss = (softmax_entropy(outputs, outputs_ema)).mean(0)
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
@@ -120,7 +120,7 @@ class CoTTA(nn.Module):
             for nm, m  in self.model.named_modules():
                 for npp, p in m.named_parameters():
                     if npp in ['weight', 'bias'] and p.requires_grad:
-                        mask = (torch.rand(p.shape)<self.rst).float().cuda() 
+                        mask = (torch.rand(p.shape)<self.rst).float().cuda()
                         with torch.no_grad():
                             p.data = self.model_state[f"{nm}.{npp}"] * mask + p * (1.-mask)
         return outputs_ema
@@ -142,7 +142,7 @@ def collect_params(model):
     params = []
     names = []
     for nm, m in model.named_modules():
-        if True:#isinstance(m, nn.BatchNorm2d): collect all 
+        if True:#isinstance(m, nn.BatchNorm2d): collect all
             for np, p in m.named_parameters():
                 if np in ['weight', 'bias'] and p.requires_grad:
                     params.append(p)
