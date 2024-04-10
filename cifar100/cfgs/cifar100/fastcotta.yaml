@@ -1,5 +1,5 @@
 MODEL:
-  ADAPTATION: cotta
+  ADAPTATION: fastcotta
   ARCH: Hendrycks2020AugMix_ResNeXt 
 TEST:
   BATCH_SIZE: 200
