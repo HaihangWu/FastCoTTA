@@ -1,5 +1,5 @@
 MODEL:
-  ADAPTATION: tent
+  ADAPTATION: ETA
   ARCH: Hendrycks2020AugMix_ResNeXt 
 TEST:
   BATCH_SIZE: 200

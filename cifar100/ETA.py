@@ -18,7 +18,7 @@ class EATA(nn.Module):
     """EATA adapts a model by entropy minimization during testing.
     Once EATAed, a model adapts itself by updating on every forward.
     """
-    def __init__(self, model, optimizer, fishers=None, fisher_alpha=2000.0, steps=1, episodic=False, e_margin=0.4*math.log(1000), d_margin=0.05):
+    def __init__(self, model, optimizer, fishers=None, fisher_alpha=2000.0, steps=1, episodic=False, e_margin=0.4*math.log(100), d_margin=0.4):
         super().__init__()
         self.model = model
         self.optimizer = optimizer
@@ -28,13 +28,13 @@ class EATA(nn.Module):
 
         self.num_samples_update_1 = 0  # number of samples after First filtering, exclude unreliable samples
         self.num_samples_update_2 = 0  # number of samples after Second filtering, exclude both unreliable and redundant samples
-        self.e_margin = e_margin # hyper-parameter E_0 (Eqn. 3)
-        self.d_margin = d_margin # hyper-parameter \epsilon for consine simlarity thresholding (Eqn. 5)
+        self.e_margin = e_margin # hyper-parameter E_0 (Eqn. 3) ticked
+        self.d_margin = d_margin # hyper-parameter \epsilon for consine simlarity thresholding (Eqn. 5) ticked
 
         self.current_model_probs = None # the moving average of probability vector (Eqn. 4)
 
-        self.fishers = fishers # fisher regularizer items for anti-forgetting, need to be calculated pre model adaptation (Eqn. 9)
-        self.fisher_alpha = fisher_alpha # trade-off \beta for two losses (Eqn. 8)
+        self.fishers = fishers # fisher regularizer items for anti-forgetting, need to be calculated pre model adaptation (Eqn. 9) No need
+        self.fisher_alpha = fisher_alpha # trade-off \beta for two losses (Eqn. 8) No need
 
         # note: if the model is never reset, like for continual adaptation,
         # then skipping the state copy would save memory

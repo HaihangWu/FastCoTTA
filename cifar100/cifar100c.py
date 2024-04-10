@@ -12,6 +12,7 @@ import tent
 import norm
 import cotta
 import time
+import ETA
 
 from conf import cfg, load_cfg_fom_args
 
