@@ -192,4 +192,4 @@ def setup_optimizer(params):
 
 
 if __name__ == '__main__':
-    evaluate('"CIFAR-10-C evaluation.')
+    evaluate('"CIFAR-100-C evaluation.')
