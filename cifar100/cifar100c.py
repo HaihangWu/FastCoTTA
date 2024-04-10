@@ -55,6 +55,7 @@ def evaluate(description):
             x_test, y_test = load_cifar100c(cfg.CORRUPTION.NUM_EX,
                                            severity, cfg.DATA_DIR, False,
                                            [corruption_type])
+            pred_begin = time.time()
             x_test, y_test = x_test.cuda(), y_test.cuda()
             acc = accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE)
             err = 1. - acc
