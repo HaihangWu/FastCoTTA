@@ -36,6 +36,12 @@ def evaluate(description):
     if cfg.MODEL.ADAPTATION == "cotta":
         logger.info("test-time adaptation: CoTTA")
         model = setup_cotta(base_model)
+    if cfg.MODEL.ADAPTATION == "fastcotta":
+        logger.info("test-time adaptation: FastCoTTA")
+        model = setup_fastcotta(base_model)
+    if cfg.MODEL.ADAPTATION == "ETA":
+        logger.info("test-time adaptation: ETA")
+        model = setup_ETA(base_model)
     # evaluate on each severity and type of corruption in turn
     prev_ct = "x0"
     pred_time=0
@@ -131,6 +137,30 @@ def setup_cotta(model):
     logger.info(f"params for adaptation: %s", param_names)
     logger.info(f"optimizer for adaptation: %s", optimizer)
     return cotta_model
+
+def setup_fastcotta(model):
+    """Set up tent adaptation.
+
+    Configure the model for training + feature modulation by batch statistics,
+    collect the parameters for feature modulation by gradient optimization,
+    set up the optimizer, and then tent the model.
+    """
+
+def setup_ETA(model):
+    """Set up tent adaptation.
+
+    Configure the model for training + feature modulation by batch statistics,
+    collect the parameters for feature modulation by gradient optimization,
+    set up the optimizer, and then tent the model.
+    """
+    model = ETA.configure_model(model)
+    params, param_names = ETA.collect_params(model)
+    optimizer = setup_optimizer(params)
+    ETA_model = ETA.EATA(model, optimizer, steps=cfg.OPTIM.STEPS,episodic=cfg.MODEL.EPISODIC)
+    logger.info(f"model for adaptation: %s", model)
+    logger.info(f"params for adaptation: %s", param_names)
+    logger.info(f"optimizer for adaptation: %s", optimizer)
+    return ETA_model
 
 
 def setup_optimizer(params):
