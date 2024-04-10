@@ -109,8 +109,7 @@ class FastCoTTA(nn.Module):
                 self.adapt = True
             else:
                 self.adapt = False
-            logger.info(f"conf dif % [{self.adapt}]: {ema_prob.mean(0)-anchor_prob.mean(0):.2%}")
-            print("fastcotta inform:",self.adapt, ema_prob.mean(0)-anchor_prob.mean(0))
+            #logger.info(f"conf dif % [{ema_prob.mean(0)}{self.adapt}]: {ema_prob.mean(0)-anchor_prob.mean(0):.2%}")
 
             # Augmentation decision
             # N = 32
