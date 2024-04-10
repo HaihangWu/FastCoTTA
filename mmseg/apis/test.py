@@ -93,10 +93,6 @@ def single_gpu_ours(model,
                 result, probs, preds = ema_model(return_loss=False, img=[data['img'][domains_detections["imge_id"]]],
                                                      img_metas=[data['img_metas'][domains_detections["imge_id"]].data[0]])
 
-                result_student, probs_student, preds_student = ema_model(return_loss=False, img=[data['img'][0]],
-                                                     img_metas=[data['img_metas'][0].data[0]])
-
-                pred_conf.append(np.mean(torch.amax(probs_student[0], 0).cpu().numpy()))
 
                 if frame_passed % domains_detections["hp_k"] == 0:
                     result_source_s, probs_source_s, preds_source_s = anchor_model(return_loss=False,
@@ -122,9 +118,9 @@ def single_gpu_ours(model,
                             result = result_TL if techer_model_conf_L > techer_model_conf_s else result
                         else:
                             result = result_TS if techer_model_conf_L < techer_model_conf_s else result
-                        domains_detections["imge_id"] = 0 #if techer_model_conf_L > techer_model_conf_s else 0
+                        domains_detections["imge_id"] = 1 if techer_model_conf_L > techer_model_conf_s else 0
                     else:
-                        domains_detections["adaptation"] = True
+                        domains_detections["adaptation"] = False
                         domains_detections["imge_id"] = 0
                     print("adaptation decision:",domains_detections["adaptation"], domains_detections["imge_id"],
                           techer_model_conf_s - source_model_conf_s )
@@ -236,7 +232,7 @@ def single_gpu_ours(model,
 
     pred_time = time.time() - pred_begin
     print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
-    print("student model confidence: %.3f" % (sum(pred_conf) / len(pred_conf)))
+    #print("student model confidence: %.3f" % ())
     return results,frame_passed,domains_detections
 
 def single_gpu_cotta(model,
