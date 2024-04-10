@@ -45,9 +45,7 @@ def evaluate(description):
     logger.info("resetting model")
     for i in range(10):
         for severity in cfg.CORRUPTION.SEVERITY:
-            print(severity)
             for i_c, corruption_type in enumerate(cfg.CORRUPTION.TYPE):
-                print(corruption_type)
                 # continual adaptation for all corruption
                 # if i_c == 0:
                 #     try:
