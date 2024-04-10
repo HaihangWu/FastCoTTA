@@ -116,13 +116,13 @@ _C.DESC = ""
 _C.RNG_SEED = 1
 
 # Output directory
-_C.SAVE_DIR = "./output"
+_C.SAVE_DIR = "/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/output"
 
 # Data directory
 _C.DATA_DIR = "/data/gpfs/projects/punim0512/data/CIFAR-10-C"
 
 # Weight directory
-_C.CKPT_DIR = "./ckpt"
+_C.CKPT_DIR = "/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA"
 
 # Log destination (in SAVE_DIR)
 _C.LOG_DEST = "log.txt"
