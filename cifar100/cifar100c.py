@@ -11,6 +11,7 @@ from robustbench.utils import clean_accuracy as accuracy
 import tent
 import norm
 import cotta
+import time
 
 from conf import cfg, load_cfg_fom_args
 
@@ -37,6 +38,9 @@ def evaluate(description):
         model = setup_cotta(base_model)
     # evaluate on each severity and type of corruption in turn
     prev_ct = "x0"
+    pred_time=0
+    average_err=0
+    dataset_count=0
     for severity in cfg.CORRUPTION.SEVERITY:
         for i_c, corruption_type in enumerate(cfg.CORRUPTION.TYPE):
             # continual adaptation for all corruption 
@@ -54,7 +58,13 @@ def evaluate(description):
             x_test, y_test = x_test.cuda(), y_test.cuda()
             acc = accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE)
             err = 1. - acc
+            pred_begin = time.time() - pred_begin
+            pred_time = pred_time + pred_begin
+            average_err = average_err + err
+            dataset_count = dataset_count + 1
             logger.info(f"error % [{corruption_type}{severity}]: {err:.2%}")
+    print("method:%s; average err: %.3f;total pred time:%.3f seconds; " % (
+    cfg.MODEL.ADAPTATION, average_err / dataset_count, pred_time))
 
 
 def setup_source(model):
