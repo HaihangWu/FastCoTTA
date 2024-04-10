@@ -16,6 +16,8 @@ import ETA
 import fastcotta
 
 from conf import cfg, load_cfg_fom_args
+from torch import nn
+import math
 
 
 logger = logging.getLogger(__name__)
@@ -68,7 +70,7 @@ def evaluate(description):
                                                [corruption_type])
                 pred_begin = time.time()
                 x_test, y_test = x_test.cuda(), y_test.cuda()
-                acc = accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE)
+                acc = my_accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE, cfg.MODEL.ADAPTATION)
                 err = 1. - acc
                 pred_begin = time.time() - pred_begin
                 pred_time = pred_time + pred_begin
@@ -203,6 +205,33 @@ def setup_optimizer(params):
                    nesterov=cfg.OPTIM.NESTEROV)
     else:
         raise NotImplementedError
+
+
+def my_accuracy(model: nn.Module,
+                   x: torch.Tensor,
+                   y: torch.Tensor,
+                   batch_size: int = 100,
+                   adaptation_method=None,
+                   device: torch.device = None):
+    if device is None:
+        device = x.device
+    acc = 0.
+    n_batches = math.ceil(x.shape[0] / batch_size)
+    passed_batches=0
+    with torch.no_grad():
+        for counter in range(n_batches):
+            passed_batches = passed_batches+1
+            x_curr = x[counter * batch_size:(counter + 1) *
+                       batch_size].to(device)
+            y_curr = y[counter * batch_size:(counter + 1) *
+                       batch_size].to(device)
+            if adaptation_method == "fastcotta":
+                output = model(x_curr, passed_batches)
+            else:
+                output = model(x_curr)
+            acc += (output.max(1)[1] == y_curr).float().sum()
+    return acc.item() / x.shape[0]
+
 
 
 if __name__ == '__main__':
