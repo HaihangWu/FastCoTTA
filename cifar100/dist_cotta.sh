@@ -19,8 +19,9 @@ do
 #  CUDA_VISIBLE_DEVICES=0 python cifar100c.py --cfg cfgs/cifar100/norm.yaml
 #  CUDA_VISIBLE_DEVICES=0 python cifar100c.py --cfg cfgs/cifar100/tent.yaml
 #  CUDA_VISIBLE_DEVICES=0 python cifar100c.py --cfg cfgs/cifar100/cotta.yaml
-  CUDA_VISIBLE_DEVICES=0 python  cifar100c.py --cfg cfgs/cifar100/ETA.yaml
-#  CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/fastcotta/cotta$i.yaml
+#  CUDA_VISIBLE_DEVICES=0 python  cifar100c.py --cfg cfgs/cifar100/ETA.yaml
+   CUDA_VISIBLE_DEVICES=0 python  cifar100c.py --cfg cfgs/cifar100/fastcotta.yaml
+
 done
 
 

@@ -13,6 +13,7 @@ import norm
 import cotta
 import time
 import ETA
+import fastcotta
 
 from conf import cfg, load_cfg_fom_args
 
@@ -146,6 +147,19 @@ def setup_fastcotta(model):
     collect the parameters for feature modulation by gradient optimization,
     set up the optimizer, and then tent the model.
     """
+    model = cotta.configure_model(model)
+    params, param_names = cotta.collect_params(model)
+    optimizer = setup_optimizer(params)
+    fastcotta_model = fastcotta.FastCoTTA(model, optimizer,
+                           steps=cfg.OPTIM.STEPS,
+                           episodic=cfg.MODEL.EPISODIC,
+                           mt_alpha=cfg.OPTIM.MT,
+                           rst_m=cfg.OPTIM.RST,
+                           ap=cfg.OPTIM.AP)
+    logger.info(f"model for adaptation: %s", model)
+    logger.info(f"params for adaptation: %s", param_names)
+    logger.info(f"optimizer for adaptation: %s", optimizer)
+    return fastcotta_model
 
 def setup_ETA(model):
     """Set up tent adaptation.
