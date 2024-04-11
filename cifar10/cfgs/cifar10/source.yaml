@@ -1,6 +1,6 @@
 MODEL:
   ADAPTATION: source
-  ARCH: Standard_R26
+  ARCH: Hendrycks2020AugMix_WRN
 TEST:
   BATCH_SIZE: 200
 CORRUPTION:
