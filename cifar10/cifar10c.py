@@ -74,9 +74,9 @@ def evaluate(description):
                 err = 1. - acc
                 pred_begin = time.time() - pred_begin
                 pred_time = pred_time + pred_begin
-                average_acc = average_acc+err
+                average_acc = average_acc+acc
                 dataset_count = dataset_count+1
-            logger.info(f"error % [{corruption_type}{severity}]: {err:.2%}")
+                logger.info(f"error % [{corruption_type}{severity}]: {err:.2%}")
     print("method:%s; average accuracy: %.3f;total pred time:%.3f seconds; " % (
     cfg.MODEL.ADAPTATION, average_acc / dataset_count, pred_time))
 
