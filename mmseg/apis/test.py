@@ -768,7 +768,7 @@ def single_model_update(model,
     optimizer = torch.optim.Adam(param_list, lr=0.00006/8, betas=(0.9, 0.999)) # for segformer,segnext
     pred_time=0
     out_dir='/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/'
-    show=True
+    show=False
     for i, data in enumerate(data_loader):
         frame_passed=frame_passed+1
         pred_begin=time.time()
