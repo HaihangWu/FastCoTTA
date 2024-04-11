@@ -51,8 +51,8 @@ def evaluate(description):
     pred_time=0
     average_acc=0
     dataset_count=0
-    model.reset()
-    logger.info("resetting model")
+    # model.reset()
+    # logger.info("resetting model")
     for severity in cfg.CORRUPTION.SEVERITY:
         for i_c, corruption_type in enumerate(cfg.CORRUPTION.TYPE):
             # continual adaptation for all corruption 
