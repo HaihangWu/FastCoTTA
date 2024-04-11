@@ -1,6 +1,6 @@
 MODEL:
   ADAPTATION: source
-  ARCH: Standard_R50
+  ARCH: Standard
 TEST:
   BATCH_SIZE: 200
 CORRUPTION:
