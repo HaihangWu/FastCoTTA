@@ -16,11 +16,11 @@ cd cifar10
 for i in {0..0}
 do
   CUDA_VISIBLE_DEVICES=0 python cifar10c.py --cfg cfgs/cifar10/source.yaml
-  CUDA_VISIBLE_DEVICES=0 python cifar10c.py --cfg cfgs/cifar10/norm.yaml
-  CUDA_VISIBLE_DEVICES=0 python cifar10c.py --cfg cfgs/cifar10/tent.yaml
-  CUDA_VISIBLE_DEVICES=0 python cifar10c.py --cfg cfgs/cifar10/cotta.yaml
-#  CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/ETA/cotta$i.yaml
-#  CUDA_VISIBLE_DEVICES=0 python -u imagenetc.py --cfg cfgs/10orders/fastcotta/cotta$i.yaml
+#  CUDA_VISIBLE_DEVICES=0 python cifar10c.py --cfg cfgs/cifar10/norm.yaml
+#  CUDA_VISIBLE_DEVICES=0 python cifar10c.py --cfg cfgs/cifar10/tent.yaml
+#  CUDA_VISIBLE_DEVICES=0 python cifar10c.py --cfg cfgs/cifar10/cotta.yaml
+#  CUDA_VISIBLE_DEVICES=0 python  cifar10c.py --cfg cfgs/cifar10/ETA.yaml
+#   CUDA_VISIBLE_DEVICES=0 python  cifar10c.py --cfg cfgs/cifar10/fastcotta.yaml
 done
 
 

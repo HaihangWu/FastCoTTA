@@ -12,8 +12,12 @@ import tent
 import norm
 import cotta
 import time
+import ETA
+import fastcotta
 
 from conf import cfg, load_cfg_fom_args
+from torch import nn
+import math
 
 
 logger = logging.getLogger(__name__)
@@ -36,6 +40,12 @@ def evaluate(description):
     if cfg.MODEL.ADAPTATION == "cotta":
         logger.info("test-time adaptation: CoTTA")
         model = setup_cotta(base_model)
+    if cfg.MODEL.ADAPTATION == "fastcotta":
+        logger.info("test-time adaptation: FastCoTTA")
+        model = setup_fastcotta(base_model)
+    if cfg.MODEL.ADAPTATION == "ETA":
+        logger.info("test-time adaptation: ETA")
+        model = setup_ETA(base_model)
     # evaluate on each severity and type of corruption in turn
     prev_ct = "x0"
     pred_time=0
@@ -156,6 +166,68 @@ def setup_optimizer(params):
     else:
         raise NotImplementedError
 
+def setup_ETA(model):
+    """Set up tent adaptation.
+
+    Configure the model for training + feature modulation by batch statistics,
+    collect the parameters for feature modulation by gradient optimization,
+    set up the optimizer, and then tent the model.
+    """
+    model = ETA.configure_model(model)
+    params, param_names = ETA.collect_params(model)
+    optimizer = setup_optimizer(params)
+    ETA_model = ETA.EATA(model, optimizer, steps=cfg.OPTIM.STEPS,episodic=cfg.MODEL.EPISODIC)
+    logger.info(f"model for adaptation: %s", model)
+    logger.info(f"params for adaptation: %s", param_names)
+    logger.info(f"optimizer for adaptation: %s", optimizer)
+    return ETA_model
+
+def setup_fastcotta(model):
+    """Set up tent adaptation.
+
+    Configure the model for training + feature modulation by batch statistics,
+    collect the parameters for feature modulation by gradient optimization,
+    set up the optimizer, and then tent the model.
+    """
+    model = cotta.configure_model(model)
+    params, param_names = cotta.collect_params(model)
+    optimizer = setup_optimizer(params)
+    fastcotta_model = fastcotta.FastCoTTA(model, optimizer,
+                           steps=cfg.OPTIM.STEPS,
+                           episodic=cfg.MODEL.EPISODIC,
+                           mt_alpha=cfg.OPTIM.MT,
+                           rst_m=cfg.OPTIM.RST,
+                           ap=cfg.OPTIM.AP)
+    logger.info(f"model for adaptation: %s", model)
+    logger.info(f"params for adaptation: %s", param_names)
+    logger.info(f"optimizer for adaptation: %s", optimizer)
+    return fastcotta_model
+
+
+def my_accuracy(model: nn.Module,
+                   x: torch.Tensor,
+                   y: torch.Tensor,
+                   batch_size: int = 100,
+                   adaptation_method=None,
+                   device: torch.device = None):
+    if device is None:
+        device = x.device
+    acc = 0.
+    n_batches = math.ceil(x.shape[0] / batch_size)
+    passed_batches=0
+    with torch.no_grad():
+        for counter in range(n_batches):
+            passed_batches = passed_batches+1
+            x_curr = x[counter * batch_size:(counter + 1) *
+                       batch_size].to(device)
+            y_curr = y[counter * batch_size:(counter + 1) *
+                       batch_size].to(device)
+            if adaptation_method == "fastcotta":
+                output = model(x_curr, passed_batches)
+            else:
+                output = model(x_curr)
+            acc += (output.max(1)[1] == y_curr).float().sum()
+    return acc.item() / x.shape[0]
 
 if __name__ == '__main__':
     evaluate('"CIFAR-10-C evaluation.')
