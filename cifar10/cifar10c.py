@@ -53,28 +53,29 @@ def evaluate(description):
     dataset_count=0
     # model.reset()
     # logger.info("resetting model")
-    for severity in cfg.CORRUPTION.SEVERITY:
-        for i_c, corruption_type in enumerate(cfg.CORRUPTION.TYPE):
-            # continual adaptation for all corruption 
-            # if i_c == 0:
-            #     try:
-            #         model.reset()
-            #         logger.info("resetting model")
-            #     except:
-            #         logger.warning("not resetting model")
-            # else:
-            #     logger.warning("not resetting model")
-            x_test, y_test = load_cifar10c(cfg.CORRUPTION.NUM_EX,
-                                           severity, cfg.DATA_DIR, False,
-                                           [corruption_type])
-            pred_begin = time.time()
-            x_test, y_test = x_test.cuda(), y_test.cuda()
-            acc = accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE)
-            err = 1. - acc
-            pred_begin = time.time() - pred_begin
-            pred_time = pred_time + pred_begin
-            average_acc = average_acc+err
-            dataset_count = dataset_count+1
+    for i in range(10):
+        for severity in cfg.CORRUPTION.SEVERITY:
+            for i_c, corruption_type in enumerate(cfg.CORRUPTION.TYPE):
+                # continual adaptation for all corruption
+                # if i_c == 0:
+                #     try:
+                #         model.reset()
+                #         logger.info("resetting model")
+                #     except:
+                #         logger.warning("not resetting model")
+                # else:
+                #     logger.warning("not resetting model")
+                x_test, y_test = load_cifar10c(cfg.CORRUPTION.NUM_EX,
+                                               severity, cfg.DATA_DIR, False,
+                                               [corruption_type])
+                pred_begin = time.time()
+                x_test, y_test = x_test.cuda(), y_test.cuda()
+                acc = accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE)
+                err = 1. - acc
+                pred_begin = time.time() - pred_begin
+                pred_time = pred_time + pred_begin
+                average_acc = average_acc+err
+                dataset_count = dataset_count+1
             logger.info(f"error % [{corruption_type}{severity}]: {err:.2%}")
     print("method:%s; average accuracy: %.3f;total pred time:%.3f seconds; " % (
     cfg.MODEL.ADAPTATION, average_acc / dataset_count, pred_time))

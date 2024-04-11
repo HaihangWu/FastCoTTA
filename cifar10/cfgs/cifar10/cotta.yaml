@@ -1,6 +1,6 @@
 MODEL:
   ADAPTATION: cotta
-  ARCH: Standard_R50
+  ARCH: Hendrycks2020AugMix_WRN
 TEST:
   BATCH_SIZE: 200
 CORRUPTION:
