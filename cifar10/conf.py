@@ -119,7 +119,7 @@ _C.RNG_SEED = 1
 _C.SAVE_DIR = "/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/output"
 
 # Data directory
-_C.DATA_DIR = "/data/gpfs/projects/punim0512/data/CIFAR-10-C"
+_C.DATA_DIR = "/data/gpfs/projects/punim0512/data"
 
 # Weight directory
 _C.CKPT_DIR = "/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA"
