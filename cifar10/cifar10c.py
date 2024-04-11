@@ -70,7 +70,7 @@ def evaluate(description):
                                                [corruption_type])
                 pred_begin = time.time()
                 x_test, y_test = x_test.cuda(), y_test.cuda()
-                acc = accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE)
+                acc = my_accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE, cfg.MODEL.ADAPTATION)
                 err = 1. - acc
                 pred_begin = time.time() - pred_begin
                 pred_time = pred_time + pred_begin
