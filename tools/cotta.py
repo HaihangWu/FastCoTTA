@@ -258,7 +258,7 @@ def main():
     total_predict_time=0
     total_processed_frame=0
     current_model_probs=None
-    for i in range(10):
+    for i in range(1):
         print("revisit times:",i)
         j=0
         for dataset, data_loader in zip(datasets, data_loaders):

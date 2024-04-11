@@ -767,6 +767,8 @@ def single_model_update(model,
             param_list.append(param)
     optimizer = torch.optim.Adam(param_list, lr=0.00006/8, betas=(0.9, 0.999)) # for segformer,segnext
     pred_time=0
+    out_dir='/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/'
+    show=True
     for i, data in enumerate(data_loader):
         frame_passed=frame_passed+1
         pred_begin=time.time()
@@ -783,6 +785,31 @@ def single_model_update(model,
             # # Save the image
             # mask_image.save('/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA、'+str(i)+'.png')
             pred_conf.append(np.mean(pixel_conf))
+
+            if True:
+                img_tensor = data['img'][0]
+                img_metas = data['img_metas'][0].data[0]
+                imgs = tensor2imgs(img_tensor, **img_metas[0]['img_norm_cfg'])
+                assert len(imgs) == len(img_metas)
+
+                for img, img_meta in zip(imgs, img_metas):
+                    h, w, _ = img_meta['img_shape']
+                    img_show = img[:h, :w, :]
+
+                    ori_h, ori_w = img_meta['ori_shape'][:-1]
+                    img_show = mmcv.imresize(img_show, (ori_w, ori_h))
+
+                    if out_dir:
+                        out_file = osp.join(out_dir, img_meta['ori_filename'])
+                    else:
+                        out_file = None
+
+                    model.module.show_result(
+                        img_show,
+                        result,
+                        palette=dataset.PALETTE,
+                        show=show,
+                        out_file=out_file)
 
         img_id = 0
         if isinstance(result, list):
