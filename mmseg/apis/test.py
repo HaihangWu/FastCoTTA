@@ -779,11 +779,9 @@ def single_model_update(model,
             mask_image = Image.fromarray(mask * 255)  # Scale to 0-255 for image
             mask_image.save('/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/'+str(frame_passed)+'.png')
 
-            mask = (pixel_conf < 0.93).float()
-            # Convert the mask tensor to a PIL Image
-            mask_image = TF.to_pil_image(mask.unsqueeze(0))  # Unsqueeze to add batch dimension
-            # Save the image
-            mask_image.save('/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA、'+str(i)+'.png')
+            # mask = (pixel_conf < 0.93).float()
+            # mask_image = TF.to_pil_image(mask.unsqueeze(0))  # Unsqueeze to add batch dimension
+            # mask_image.save('/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA、'+str(i)+'.png')
             pred_conf.append(np.mean(pixel_conf))
 
             # if True:
