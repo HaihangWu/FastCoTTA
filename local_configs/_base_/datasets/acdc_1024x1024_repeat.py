@@ -58,18 +58,18 @@ data = dict(
         # img_dir= 'rgb_anon/fog/train',
         # ann_dir= 'gt/fog/train',
         # pipeline=test_pipeline),
-        # dict(
-        # type=dataset_type,
-        # data_root=data_root,
-        # img_dir='rgb_anon/night/train',
-        # ann_dir='gt/night/train',
-        # pipeline=test_pipeline),
         dict(
         type=dataset_type,
         data_root=data_root,
-        img_dir='rgb_anon/rain/train',
-        ann_dir='gt/rain/train',
+        img_dir='rgb_anon/night/train',
+        ann_dir='gt/night/train',
         pipeline=test_pipeline)
+        # ,dict(
+        # type=dataset_type,
+        # data_root=data_root,
+        # img_dir='rgb_anon/rain/train',
+        # ann_dir='gt/rain/train',
+        # pipeline=test_pipeline)
         # ,dict(
         # type=dataset_type,
         # data_root=data_root,
