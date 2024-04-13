@@ -14,6 +14,7 @@ import cotta
 import time
 import ETA
 import fastcotta
+import rdumb
 
 from conf import cfg, load_cfg_fom_args
 from torch import nn
@@ -40,6 +41,9 @@ def evaluate(description):
     if cfg.MODEL.ADAPTATION == "cotta":
         logger.info("test-time adaptation: CoTTA")
         model = setup_cotta(base_model)
+    if cfg.MODEL.ADAPTATION == "rdumb":
+        logger.info("test-time adaptation: rdumb")
+        model = setup_rdumb(base_model)
     if cfg.MODEL.ADAPTATION == "fastcotta":
         logger.info("test-time adaptation: FastCoTTA")
         model = setup_fastcotta(base_model)
@@ -169,6 +173,28 @@ def setup_optimizer(params):
     else:
         raise NotImplementedError
 
+
+def setup_rdumb(model):
+    """Set up tent adaptation.
+
+    Configure the model for training + feature modulation by batch statistics,
+    collect the parameters for feature modulation by gradient optimization,
+    set up the optimizer, and then tent the model.
+    """
+    model = cotta.configure_model(model)
+    params, param_names = rdumb.collect_params(model)
+    optimizer = setup_optimizer(params)
+    cotta_model = rdumb.RDumb(model, optimizer,
+                           steps=cfg.OPTIM.STEPS,
+                           episodic=cfg.MODEL.EPISODIC,
+                           mt_alpha=cfg.OPTIM.MT,
+                           rst_m=cfg.OPTIM.RST,
+                           ap=cfg.OPTIM.AP)
+    logger.info(f"model for adaptation: %s", model)
+    logger.info(f"params for adaptation: %s", param_names)
+    logger.info(f"optimizer for adaptation: %s", optimizer)
+    return cotta_model
+
 def setup_ETA(model):
     """Set up tent adaptation.
 
@@ -225,7 +251,7 @@ def my_accuracy(model: nn.Module,
                        batch_size].to(device)
             y_curr = y[counter * batch_size:(counter + 1) *
                        batch_size].to(device)
-            if adaptation_method == "fastcotta":
+            if adaptation_method == "fastcotta" or adaptation_method == "rdumb":
                 output = model(x_curr, passed_batches)
             else:
                 output = model(x_curr)

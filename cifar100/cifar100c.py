@@ -42,7 +42,7 @@ def evaluate(description):
         logger.info("test-time adaptation: CoTTA")
         model = setup_cotta(base_model)
     if cfg.MODEL.ADAPTATION == "rdumb":
-        logger.info("test-time adaptation: CoTTA")
+        logger.info("test-time adaptation: rdumb")
         model = setup_rdumb(base_model)
     if cfg.MODEL.ADAPTATION == "fastcotta":
         logger.info("test-time adaptation: FastCoTTA")
