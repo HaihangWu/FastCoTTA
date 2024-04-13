@@ -61,3 +61,5 @@ bash ./cifar100/dist_cotta.sh  | tee cifar100.log
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segnext.base.1024x1024.acdc.160k.py DPT 1 | tee Ours_segnext_acdc.log
 #bash ./tools/dist_cotta.sh local_configs/ours/DPT_segnext.base.1024x1024.night.160k.py DPT 1 | tee Ours_segnext_night.log
 #bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py Source 1 | tee Ours_segformer_city.log
+
+
