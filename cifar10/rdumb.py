@@ -72,7 +72,7 @@ class RDumb(nn.Module):
         self.rst = rst_m
         self.ap = ap
 
-    def forward(self, x):
+    def forward(self, x, passed_batches):
         if self.episodic:
             self.reset()
 
