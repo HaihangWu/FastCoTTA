@@ -100,13 +100,6 @@ class OSTTA(nn.Module):
         outputs_prob_dist=torch.nn.functional.softmax(outputs, dim=1)
         outputs_prob_at_anchor = outputs_prob_dist[torch.arange(outputs_prob_dist.size(0)), anchor_class]
         Mask= (outputs_prob_at_anchor >= anchor_prob).float()
-        # outputs_prob, outputs_class = .max(1)
-        print(anchor_prob)
-        print(outputs_prob_at_anchor)
-        print(Mask)
-        # print(outputs_prob,outputs_class)
-        # mask wrong output
-
         # adapt
         loss = (softmax_entropy(outputs)*Mask).mean(0)
         loss.backward()
