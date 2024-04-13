@@ -29,7 +29,7 @@ class OSTTA(nn.Module):
             self.reset()
 
         for _ in range(self.steps):
-            outputs = forward_and_adapt(x, self.model, self.optimizer)
+            outputs = forward_and_adapt(self, x, self.model, self.optimizer)
 
         return outputs
 
