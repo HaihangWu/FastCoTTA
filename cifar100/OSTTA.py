@@ -97,16 +97,18 @@ class OSTTA(nn.Module):
         outputs = model(x)
         outputs_anchor=self.model_anchor(x)
         anchor_prob,anchor_class = torch.nn.functional.softmax(outputs_anchor, dim=1).max(1)
-        outputs_prob, outputs_class = torch.nn.functional.softmax(outputs, dim=1).max(1)
-        print(outputs)
-        print(outputs_anchor)
+        outputs_prob_dist=torch.nn.functional.softmax(outputs, dim=1)
+        outputs_prob_at_anchor = outputs_prob_dist[torch.arange(outputs_prob_dist.size(0)), anchor_class]
+        Mask= (outputs_prob_at_anchor>anchor_prob).float()
+        # outputs_prob, outputs_class = .max(1)
         print(anchor_prob)
-        print(anchor_class)
-        print(outputs_prob,outputs_class)
+        print(outputs_prob_at_anchor)
+        print(Mask)
+        # print(outputs_prob,outputs_class)
         # mask wrong output
 
         # adapt
-        loss = softmax_entropy(outputs).mean(0)
+        loss = (softmax_entropy(outputs)*Mask).mean(0)
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
@@ -146,9 +148,9 @@ class OSTTA(nn.Module):
 
 
 @torch.jit.script
-def softmax_entropy(x, x_ema):# -> torch.Tensor:
+def softmax_entropy(x: torch.Tensor) -> torch.Tensor:
     """Entropy of softmax distribution from logits."""
-    return -(x_ema.softmax(1) * x.log_softmax(1)).sum(1)
+    return -(x.softmax(1) * x.log_softmax(1)).sum(1)
 
 def collect_params(model):
     """Collect all trainable parameters.
