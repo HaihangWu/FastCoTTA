@@ -99,7 +99,7 @@ class OSTTA(nn.Module):
         anchor_prob,anchor_class = torch.nn.functional.softmax(outputs_anchor, dim=1).max(1)
         outputs_prob_dist=torch.nn.functional.softmax(outputs, dim=1)
         outputs_prob_at_anchor = outputs_prob_dist[torch.arange(outputs_prob_dist.size(0)), anchor_class]
-        Mask= (outputs_prob_at_anchor>anchor_prob).float()
+        Mask= (outputs_prob_at_anchor >= anchor_prob).float()
         # outputs_prob, outputs_class = .max(1)
         print(anchor_prob)
         print(outputs_prob_at_anchor)
