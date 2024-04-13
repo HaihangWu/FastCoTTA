@@ -15,6 +15,7 @@ import time
 import ETA
 import fastcotta
 import rdumb
+import OSTTA
 
 from conf import cfg, load_cfg_fom_args
 from torch import nn
@@ -44,6 +45,9 @@ def evaluate(description):
     if cfg.MODEL.ADAPTATION == "rdumb":
         logger.info("test-time adaptation: rdumb")
         model = setup_rdumb(base_model)
+    if cfg.MODEL.ADAPTATION == "ostta":
+        logger.info("test-time adaptation: OSTTA")
+        model = setup_ostta(base_model)
     if cfg.MODEL.ADAPTATION == "fastcotta":
         logger.info("test-time adaptation: FastCoTTA")
         model = setup_fastcotta(base_model)
@@ -153,8 +157,8 @@ def setup_fastcotta(model):
     collect the parameters for feature modulation by gradient optimization,
     set up the optimizer, and then tent the model.
     """
-    model = cotta.configure_model(model)
-    params, param_names = cotta.collect_params(model)
+    model = fastcotta.configure_model(model)
+    params, param_names = fastcotta.collect_params(model)
     optimizer = setup_optimizer(params)
     fastcotta_model = fastcotta.FastCoTTA(model, optimizer,
                            steps=cfg.OPTIM.STEPS,
@@ -174,10 +178,10 @@ def setup_rdumb(model):
     collect the parameters for feature modulation by gradient optimization,
     set up the optimizer, and then tent the model.
     """
-    model = cotta.configure_model(model)
+    model = rdumb.configure_model(model)
     params, param_names = rdumb.collect_params(model)
     optimizer = setup_optimizer(params)
-    cotta_model = rdumb.RDumb(model, optimizer,
+    rdumb_model = rdumb.RDumb(model, optimizer,
                            steps=cfg.OPTIM.STEPS,
                            episodic=cfg.MODEL.EPISODIC,
                            mt_alpha=cfg.OPTIM.MT,
@@ -186,7 +190,28 @@ def setup_rdumb(model):
     logger.info(f"model for adaptation: %s", model)
     logger.info(f"params for adaptation: %s", param_names)
     logger.info(f"optimizer for adaptation: %s", optimizer)
-    return cotta_model
+    return rdumb_model
+
+def setup_ostta(model):
+    """Set up tent adaptation.
+
+    Configure the model for training + feature modulation by batch statistics,
+    collect the parameters for feature modulation by gradient optimization,
+    set up the optimizer, and then tent the model.
+    """
+    model = OSTTA.configure_model(model)
+    params, param_names = OSTTA.collect_params(model)
+    optimizer = setup_optimizer(params)
+    OSTTA_model = OSTTA.OSTTA(model, optimizer,
+                           steps=cfg.OPTIM.STEPS,
+                           episodic=cfg.MODEL.EPISODIC,
+                           mt_alpha=cfg.OPTIM.MT,
+                           rst_m=cfg.OPTIM.RST,
+                           ap=cfg.OPTIM.AP)
+    logger.info(f"model for adaptation: %s", model)
+    logger.info(f"params for adaptation: %s", param_names)
+    logger.info(f"optimizer for adaptation: %s", optimizer)
+    return OSTTA_model
 
 def setup_ETA(model):
     """Set up tent adaptation.

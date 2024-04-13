@@ -20,7 +20,8 @@ do
 #  CUDA_VISIBLE_DEVICES=0 python cifar100c.py --cfg cfgs/cifar100/tent.yaml
 #  CUDA_VISIBLE_DEVICES=0 python cifar100c.py --cfg cfgs/cifar100/cotta.yaml
 #  CUDA_VISIBLE_DEVICES=0 python  cifar100c.py --cfg cfgs/cifar100/ETA.yaml
-  CUDA_VISIBLE_DEVICES=0 python cifar100c.py --cfg cfgs/cifar100/rdumb.yaml
+#  CUDA_VISIBLE_DEVICES=0 python cifar100c.py --cfg cfgs/cifar100/rdumb.yaml
+  CUDA_VISIBLE_DEVICES=0 python cifar100c.py --cfg cfgs/cifar100/OSTTA.yaml
 #   CUDA_VISIBLE_DEVICES=0 python  cifar100c.py --cfg cfgs/cifar100/fastcotta.yaml
 
 done
