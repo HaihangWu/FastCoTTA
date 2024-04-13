@@ -102,8 +102,8 @@ class OSTTA(nn.Module):
         Mask= (outputs_prob_at_anchor >= anchor_prob).float()
         # adapt
         loss = (softmax_entropy(outputs)*0.0).mean(0)
-        print(softmax_entropy(outputs))
-        print(softmax_entropy(outputs)*Mask)
+        # print(softmax_entropy(outputs))
+        # print(softmax_entropy(outputs)*Mask)
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
