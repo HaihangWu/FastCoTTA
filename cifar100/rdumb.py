@@ -77,7 +77,7 @@ class RDumb(nn.Module):
             self.reset()
 
         for _ in range(self.steps):
-            outputs = self.forward_and_adapt(x, self.model, self.optimizer)
+            outputs = self.forward_and_adapt(x, self.model, self.optimizer,passed_batches)
 
         return outputs
 
