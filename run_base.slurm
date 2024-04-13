@@ -45,9 +45,9 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 #bash ./cifar10/dist_cotta.sh  | tee cifar10.log
-#bash ./cifar100/dist_cotta.sh  | tee cifar100.log
+bash ./cifar100/dist_cotta.sh  | tee cifar100.log
 
-bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py Source 1 | tee Ours_segformer_rain_HR.log
+#bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py Source 1 | tee Ours_segformer_rain_HR.log
 #bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.night.160k.py Ours 1 | tee Ours_segformer_night.log
 
 #bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py Ours 1 | tee Ours_segnext_acdc.log
