@@ -211,24 +211,18 @@ def setup_ostta(model):
     # logger.info(f"model for adaptation: %s", model)
     # logger.info(f"params for adaptation: %s", param_names)
     # logger.info(f"optimizer for adaptation: %s", optimizer)
-    def setup_tent(model):
-        """Set up tent adaptation.
 
-        Configure the model for training + feature modulation by batch statistics,
-        collect the parameters for feature modulation by gradient optimization,
-        set up the optimizer, and then tent the model.
-        """
-        model = OSTTA.configure_model(model)
-        params, param_names = OSTTA.collect_params(model)
-        optimizer = setup_optimizer(params)
-        OSTTA_model = OSTTA.OSTTA(model, optimizer,
-                               steps=cfg.OPTIM.STEPS,
-                               episodic=cfg.MODEL.EPISODIC)
-        logger.info(f"model for adaptation: %s", model)
-        logger.info(f"params for adaptation: %s", param_names)
-        logger.info(f"optimizer for adaptation: %s", optimizer)
+    model = OSTTA.configure_model(model)
+    params, param_names = OSTTA.collect_params(model)
+    optimizer = setup_optimizer(params)
+    OSTTA_model = OSTTA.OSTTA(model, optimizer,
+                           steps=cfg.OPTIM.STEPS,
+                           episodic=cfg.MODEL.EPISODIC)
+    logger.info(f"model for adaptation: %s", model)
+    logger.info(f"params for adaptation: %s", param_names)
+    logger.info(f"optimizer for adaptation: %s", optimizer)
 
-        return OSTTA_model
+    return OSTTA_model
 
 def setup_ETA(model):
     """Set up tent adaptation.
