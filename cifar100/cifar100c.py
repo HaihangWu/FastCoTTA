@@ -45,7 +45,7 @@ def evaluate(description):
     if cfg.MODEL.ADAPTATION == "rdumb":
         logger.info("test-time adaptation: rdumb")
         model = setup_rdumb(base_model)
-    if cfg.MODEL.ADAPTATION == "ostta":
+    if cfg.MODEL.ADAPTATION == "OSTTA":
         logger.info("test-time adaptation: OSTTA")
         model = setup_ostta(base_model)
     if cfg.MODEL.ADAPTATION == "fastcotta":
