@@ -93,43 +93,26 @@ class CoTTA(nn.Module):
 
     @torch.enable_grad()  # ensure grads in possible no grad context for testing
     def forward_and_adapt(self, x, model, optimizer):
-        outputs = self.model(x)
-        # Teacher Prediction
-        anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
-        standard_ema = self.model_ema(x)
-        # Augmentation-averaged Prediction
-        N = 32
-        outputs_emas = []
-        for i in range(N):
-            outputs_  = self.model_ema(self.transform(x)).detach()
-            outputs_emas.append(outputs_)
-        # Threshold choice discussed in supplementary
-        if anchor_prob.mean(0)<self.ap:
-            outputs_ema = torch.stack(outputs_emas).mean(0)
-        else:
-            outputs_ema = standard_ema
-        # Student update
-        loss = (softmax_entropy(outputs, outputs_ema)).mean(0)
+        # forward
+        outputs = model(x)
+        outputs_anchor=self.model_anchor(x)
+        anchor_prob,anchor_class = torch.nn.functional.softmax(outputs_anchor, dim=1).max(1)
+        outputs_prob_dist=torch.nn.functional.softmax(outputs, dim=1)
+        outputs_prob_at_anchor = outputs_prob_dist[torch.arange(outputs_prob_dist.size(0)), anchor_class]
+        Mask= (outputs_prob_at_anchor >= anchor_prob).float()
+        # adapt
+        loss = (softmax_entropy(outputs)*Mask).mean(0)
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
-        # Teacher update
-        self.model_ema = update_ema_variables(ema_model = self.model_ema, model = self.model, alpha_teacher=self.mt)
-        # Stochastic restore
-        if True:
-            for nm, m  in self.model.named_modules():
-                for npp, p in m.named_parameters():
-                    if npp in ['weight', 'bias'] and p.requires_grad:
-                        mask = (torch.rand(p.shape)<self.rst).float().cuda()
-                        with torch.no_grad():
-                            p.data = self.model_state[f"{nm}.{npp}"] * mask + p * (1.-mask)
-        return outputs_ema
+        return outputs
+
 
 
 @torch.jit.script
-def softmax_entropy(x, x_ema):# -> torch.Tensor:
+def softmax_entropy(x: torch.Tensor) -> torch.Tensor:
     """Entropy of softmax distribution from logits."""
-    return -(x_ema.softmax(1) * x.log_softmax(1)).sum(1)
+    return -(x.softmax(1) * x.log_softmax(1)).sum(1)
 
 def collect_params(model):
     """Collect all trainable parameters.
