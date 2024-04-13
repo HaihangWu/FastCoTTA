@@ -4,80 +4,32 @@ import torch
 import torch.nn as nn
 import torch.jit
 
-import PIL
-import torchvision.transforms as transforms
-import my_transforms as my_transforms
-from time import time
-import logging
 
-
-def get_tta_transforms(gaussian_std: float=0.005, soft=False, clip_inputs=False):
-    img_shape = (32, 32, 3)
-    n_pixels = img_shape[0]
-
-    clip_min, clip_max = 0.0, 1.0
-
-    p_hflip = 0.5
-
-    tta_transforms = transforms.Compose([
-        my_transforms.Clip(0.0, 1.0),
-        my_transforms.ColorJitterPro(
-            brightness=[0.8, 1.2] if soft else [0.6, 1.4],
-            contrast=[0.85, 1.15] if soft else [0.7, 1.3],
-            saturation=[0.75, 1.25] if soft else [0.5, 1.5],
-            hue=[-0.03, 0.03] if soft else [-0.06, 0.06],
-            gamma=[0.85, 1.15] if soft else [0.7, 1.3]
-        ),
-        transforms.Pad(padding=int(n_pixels / 2), padding_mode='edge'),
-        transforms.RandomAffine(
-            degrees=[-8, 8] if soft else [-15, 15],
-            translate=(1/16, 1/16),
-            scale=(0.95, 1.05) if soft else (0.9, 1.1),
-            shear=None,
-            # resample=PIL.Image.BILINEAR,
-            # fillcolor=None
-        ),
-        transforms.GaussianBlur(kernel_size=5, sigma=[0.001, 0.25] if soft else [0.001, 0.5]),
-        transforms.CenterCrop(size=n_pixels),
-        transforms.RandomHorizontalFlip(p=p_hflip),
-        my_transforms.GaussianNoise(0, gaussian_std),
-        my_transforms.Clip(clip_min, clip_max)
-    ])
-    return tta_transforms
-
-
-def update_ema_variables(ema_model, model, alpha_teacher):
-    for ema_param, param in zip(ema_model.parameters(), model.parameters()):
-        ema_param.data[:] = alpha_teacher * ema_param[:].data[:] + (1 - alpha_teacher) * param[:].data[:]
-    return ema_model
-
-
-class CoTTA(nn.Module):
-    """CoTTA adapts a model by entropy minimization during testing.
+class OSTTA(nn.Module):
+    """Tent adapts a model by entropy minimization during testing.
 
     Once tented, a model adapts itself by updating on every forward.
     """
-    def __init__(self, model, optimizer, steps=1, episodic=False, mt_alpha=0.99, rst_m=0.1, ap=0.9):
+    def __init__(self, model, optimizer, steps=1, episodic=False):
         super().__init__()
         self.model = model
         self.optimizer = optimizer
         self.steps = steps
-        assert steps > 0, "cotta requires >= 1 step(s) to forward and update"
+        assert steps > 0, "tent requires >= 1 step(s) to forward and update"
         self.episodic = episodic
 
-        self.model_state, self.optimizer_state, self.model_ema, self.model_anchor = \
+        # note: if the model is never reset, like for continual adaptation,
+        # then skipping the state copy would save memory
+
+        self.model_state, self.optimizer_state, self.model_anchor = \
             copy_model_and_optimizer(self.model, self.optimizer)
-        self.transform = get_tta_transforms()
-        self.mt = mt_alpha
-        self.rst = rst_m
-        self.ap = ap
 
     def forward(self, x):
         if self.episodic:
             self.reset()
 
         for _ in range(self.steps):
-            outputs = self.forward_and_adapt(x, self.model, self.optimizer)
+            outputs = forward_and_adapt(self, x, self.model, self.optimizer)
 
         return outputs
 
@@ -86,27 +38,6 @@ class CoTTA(nn.Module):
             raise Exception("cannot reset without saved model/optimizer state")
         load_model_and_optimizer(self.model, self.optimizer,
                                  self.model_state, self.optimizer_state)
-        # Use this line to also restore the teacher model                         
-        self.model_state, self.optimizer_state, self.model_ema, self.model_anchor = \
-            copy_model_and_optimizer(self.model, self.optimizer)
-
-
-    @torch.enable_grad()  # ensure grads in possible no grad context for testing
-    def forward_and_adapt(self, x, model, optimizer):
-        # forward
-        outputs = model(x)
-        outputs_anchor=self.model_anchor(x)
-        anchor_prob,anchor_class = torch.nn.functional.softmax(outputs_anchor, dim=1).max(1)
-        outputs_prob_dist=torch.nn.functional.softmax(outputs, dim=1)
-        outputs_prob_at_anchor = outputs_prob_dist[torch.arange(outputs_prob_dist.size(0)), anchor_class]
-        Mask= (outputs_prob_at_anchor >= anchor_prob).float()
-        # adapt
-        loss = (softmax_entropy(outputs)*Mask).mean(0)
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-        return outputs
-
 
 
 @torch.jit.script
@@ -114,10 +45,33 @@ def softmax_entropy(x: torch.Tensor) -> torch.Tensor:
     """Entropy of softmax distribution from logits."""
     return -(x.softmax(1) * x.log_softmax(1)).sum(1)
 
-def collect_params(model):
-    """Collect all trainable parameters.
 
-    Walk the model's modules and collect all parameters.
+@torch.enable_grad()  # ensure grads in possible no grad context for testing
+def forward_and_adapt(self, x, model, optimizer):
+    """Forward and adapt model on batch of data.
+
+    Measure entropy of the model prediction, take gradients, and update params.
+    """
+    outputs = model(x)
+    outputs_anchor = self.model_anchor(x)
+    anchor_prob, anchor_class = torch.nn.functional.softmax(outputs_anchor, dim=1).max(1)
+    outputs_prob_dist = torch.nn.functional.softmax(outputs, dim=1)
+    outputs_prob_at_anchor = outputs_prob_dist[torch.arange(outputs_prob_dist.size(0)), anchor_class]
+    Mask = (outputs_prob_at_anchor >= anchor_prob).float()
+    # adapt
+    loss = (softmax_entropy(outputs) * Mask).mean(0)
+    # print(softmax_entropy(outputs))
+    # print(softmax_entropy(outputs)*Mask)
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+    return outputs
+
+
+def collect_params(model):
+    """Collect the affine scale + shift parameters from batch norms.
+
+    Walk the model's modules and collect all batch normalization parameters.
     Return the parameters and their names.
 
     Note: other choices of parameterization are possible!
@@ -125,12 +79,11 @@ def collect_params(model):
     params = []
     names = []
     for nm, m in model.named_modules():
-        if True:#isinstance(m, nn.BatchNorm2d): collect all
+        if isinstance(m, nn.BatchNorm2d):
             for np, p in m.named_parameters():
-                if np in ['weight', 'bias'] and p.requires_grad:
+                if np in ['weight', 'bias']:  # weight is scale, bias is shift
                     params.append(p)
                     names.append(f"{nm}.{np}")
-                    print(nm, np)
     return params, names
 
 
@@ -139,10 +92,7 @@ def copy_model_and_optimizer(model, optimizer):
     model_state = deepcopy(model.state_dict())
     model_anchor = deepcopy(model)
     optimizer_state = deepcopy(optimizer.state_dict())
-    ema_model = deepcopy(model)
-    for param in ema_model.parameters():
-        param.detach_()
-    return model_state, optimizer_state, ema_model, model_anchor
+    return model_state, optimizer_state, model_anchor
 
 
 def load_model_and_optimizer(model, optimizer, model_state, optimizer_state):
@@ -155,9 +105,9 @@ def configure_model(model):
     """Configure model for use with tent."""
     # train mode, because tent optimizes the model to minimize entropy
     model.train()
-    # disable grad, to (re-)enable only what we update
+    # disable grad, to (re-)enable only what tent updates
     model.requires_grad_(False)
-    # enable all trainable
+    # configure norm for tent updates: enable grad + force batch statisics
     for m in model.modules():
         if isinstance(m, nn.BatchNorm2d):
             m.requires_grad_(True)
@@ -165,8 +115,6 @@ def configure_model(model):
             m.track_running_stats = False
             m.running_mean = None
             m.running_var = None
-        else:
-            m.requires_grad_(True)
     return model
 
 

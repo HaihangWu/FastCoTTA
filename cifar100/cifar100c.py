@@ -199,18 +199,6 @@ def setup_ostta(model):
     collect the parameters for feature modulation by gradient optimization,
     set up the optimizer, and then tent the model.
     """
-    # model = OSTTA.configure_model(model)
-    # params, param_names = OSTTA.collect_params(model)
-    # optimizer = setup_optimizer(params)
-    # OSTTA_model = OSTTA.OSTTA(model, optimizer,
-    #                        steps=cfg.OPTIM.STEPS,
-    #                        episodic=cfg.MODEL.EPISODIC,
-    #                        mt_alpha=cfg.OPTIM.MT,
-    #                        rst_m=cfg.OPTIM.RST,
-    #                        ap=cfg.OPTIM.AP)
-    # logger.info(f"model for adaptation: %s", model)
-    # logger.info(f"params for adaptation: %s", param_names)
-    # logger.info(f"optimizer for adaptation: %s", optimizer)
 
     model = OSTTA.configure_model(model)
     params, param_names = OSTTA.collect_params(model)
