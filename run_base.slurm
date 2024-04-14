@@ -44,7 +44,7 @@ export MASTER_ADDR=$master_addr
 echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
-bash ./cifar10/dist_cotta.sh  | tee cifar10_ours_2.log
+bash ./cifar10/dist_cotta.sh  | tee cifar10_ours_3.log
 #bash ./cifar100/dist_cotta.sh  | tee cifar100.log
 
 #bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py Source 1 | tee Ours_segformer_rain_HR.log
