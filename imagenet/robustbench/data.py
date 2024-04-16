@@ -75,7 +75,7 @@ def load_cifar100(
 
 def load_imagenet(
         n_examples: Optional[int] = 5000,
-        data_dir: str = '/data/gpfs/projects/punim0512/data/imagenet-c/images',
+        data_dir: str = './data',
         prepr: str = 'Res256Crop224') -> Tuple[torch.Tensor, torch.Tensor]:
     transforms_test = PREPROCESSINGS[prepr]
     imagenet = CustomImageFolder(data_dir + '/val', transforms_test)
@@ -146,7 +146,7 @@ def load_cifar100c(
 def load_imagenetc(
     n_examples: Optional[int] = 5000,
     severity: int = 5,
-    data_dir: str = '/data/gpfs/projects/punim0512/data/imagenet-c',
+        data_dir: str = './data',
     shuffle: bool = False,
     corruptions: Sequence[str] = CORRUPTIONS,
     prepr: str = 'Res256Crop224'
@@ -158,7 +158,6 @@ def load_imagenetc(
     #  or alternatively creating yet another CustomImageFolder class that fetches images from multiple corruption types
     #  at once -- perhaps this is a cleaner solution)
 
-    data_dir='/data/gpfs/projects/punim0512/data/imagenet-c'
     data_folder_path = Path(data_dir) / CORRUPTIONS_DIR_NAMES[BenchmarkDataset.imagenet] / corruptions[0] / str(severity)
     # print(data_dir, Path(data_dir), data_folder_path)
     imagenet = CustomImageFolder(data_folder_path, transforms_test)
