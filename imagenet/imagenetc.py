@@ -48,20 +48,22 @@ def evaluate(description):
     # evaluate on each severity and type of corruption in turn
     prev_ct = "x0"
     pred_time=0
-    average_err=0
+    average_acc=0
     dataset_count=0
+    model.reset()
+    logger.info("resetting model")
     for ii, severity in enumerate(cfg.CORRUPTION.SEVERITY):
         for i_x, corruption_type in enumerate(cfg.CORRUPTION.TYPE):
             # reset adaptation for each combination of corruption x severity
             # note: for evaluation protocol, but not necessarily needed
-            try:
-                if i_x == 0:
-                    model.reset()
-                    logger.info("resetting model")
-                else:
-                    logger.warning("not resetting model")
-            except:
-                logger.warning("not resetting model")
+            # try:
+            #     if i_x == 0:
+            #         model.reset()
+            #         logger.info("resetting model")
+            #     else:
+            #         logger.warning("not resetting model")
+            # except:
+            #     logger.warning("not resetting model")
             x_test, y_test = load_imagenetc(cfg.CORRUPTION.NUM_EX,
                                            severity, cfg.DATA_DIR, False,
                                            [corruption_type])
@@ -74,10 +76,11 @@ def evaluate(description):
             pred_begin = time.time()-pred_begin
             pred_time=pred_time+pred_begin
             err = 1. - acc
-            average_err = average_err+err
+            average_acc = average_acc + acc
             dataset_count = dataset_count+1
-            logger.info(f"error % [{corruption_type}{severity}]: {err:.2%}")
-    print("method:%s; average err: %.3f;total pred time:%.3f seconds; " % (cfg.MODEL.ADAPTATION,average_err/dataset_count, pred_time))
+            logger.info(f"acc % [{corruption_type}{severity}]: {acc:.2%}")
+        print("method:%s; average accuracy: %.3f;total pred time:%.3f seconds; " % (
+            cfg.MODEL.ADAPTATION, average_acc / dataset_count, pred_time))
 
 
 def setup_source(model):
