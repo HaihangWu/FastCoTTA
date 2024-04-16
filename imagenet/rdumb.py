@@ -69,12 +69,12 @@ class CoTTA(nn.Module):
             copy_model_and_optimizer(self.model, self.optimizer)
         self.transform = get_tta_transforms()    
 
-    def forward(self, x):
+    def forward(self, x, passed_batches):
         if self.episodic:
             self.reset()
 
         for _ in range(self.steps):
-            outputs = self.forward_and_adapt(x, self.model, self.optimizer)
+            outputs = self.forward_and_adapt(x, self.model, self.optimizer,passed_batches)
 
         return outputs
 
@@ -90,7 +90,7 @@ class CoTTA(nn.Module):
 
 
     @torch.enable_grad()  # ensure grads in possible no grad context for testing
-    def forward_and_adapt(self, x, model, optimizer):
+    def forward_and_adapt(self, x, model, optimizer,passed_batches):
         outputs = self.model(x)
         self.model_ema.train()
         # Teacher Prediction
@@ -118,13 +118,13 @@ class CoTTA(nn.Module):
         # Teacher update
         self.model_ema = update_ema_variables(ema_model = self.model_ema, model = self.model, alpha_teacher=0.999)
         # Stochastic restore
-        if True:
+        if passed_batches%50==0:
             for nm, m  in self.model.named_modules():
                 for npp, p in m.named_parameters():
                     if npp in ['weight', 'bias'] and p.requires_grad:
-                        mask = (torch.rand(p.shape)<0.001).float().cuda() 
+                        # mask = (torch.rand(p.shape)<self.rst).float().cuda()
                         with torch.no_grad():
-                            p.data = self.model_state[f"{nm}.{npp}"] * mask + p * (1.-mask)
+                            p.data = self.model_state[f"{nm}.{npp}"] #* mask + p * (1.-mask)
         return outputs_ema
 
 
