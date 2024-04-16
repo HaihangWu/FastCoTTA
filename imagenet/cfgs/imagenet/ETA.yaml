@@ -19,7 +19,7 @@ CORRUPTION:
   - pixelate
   - jpeg_compression
 MODEL:
-  ADAPTATION: tent
+  ADAPTATION: ETA
   ARCH: Standard_R50
 OPTIM:
   BETA: 0.9
