@@ -13,6 +13,7 @@ import norm
 import cotta
 import fastcotta
 import ETA
+import rdumb
 
 from conf import cfg, load_cfg_fom_args
 import time
@@ -39,6 +40,9 @@ def evaluate(description):
     if cfg.MODEL.ADAPTATION == "cotta":
         logger.info("test-time adaptation: CoTTA")
         model = setup_cotta(base_model)
+    if cfg.MODEL.ADAPTATION == "rdumb":
+        logger.info("test-time adaptation: rdumb")
+        model = setup_rdumb(base_model)
     if cfg.MODEL.ADAPTATION == "fastcotta":
         logger.info("test-time adaptation: FastCoTTA")
         model = setup_fastcotta(base_model)
@@ -70,10 +74,7 @@ def evaluate(description):
                                                [corruption_type])
                 x_test, y_test = x_test.cuda(), y_test.cuda()
                 pred_begin = time.time()
-                if cfg.MODEL.ADAPTATION == "fastcotta" or cfg.MODEL.ADAPTATION == "ETA":
-                    acc = my_accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE)
-                else:
-                    acc = accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE)
+                acc = my_accuracy(model, x_test, y_test, cfg.TEST.BATCH_SIZE, cfg.MODEL.ADAPTATION)
                 pred_begin = time.time()-pred_begin
                 pred_time=pred_time+pred_begin
                 err = 1. - acc
@@ -168,6 +169,28 @@ def setup_cotta(model):
     logger.info(f"optimizer for adaptation: %s", optimizer)
     return cotta_model
 
+def setup_rdumb(model):
+    """Set up tent adaptation.
+
+    Configure the model for training + feature modulation by batch statistics,
+    collect the parameters for feature modulation by gradient optimization,
+    set up the optimizer, and then tent the model.
+    """
+    model = rdumb.configure_model(model)
+    params, param_names = rdumb.collect_params(model)
+    optimizer = setup_optimizer(params)
+    rdumb_model = rdumb.RDumb(model, optimizer,
+                           steps=cfg.OPTIM.STEPS,
+                           episodic=cfg.MODEL.EPISODIC,
+                           mt_alpha=cfg.OPTIM.MT,
+                           rst_m=cfg.OPTIM.RST,
+                           ap=cfg.OPTIM.AP)
+    logger.info(f"model for adaptation: %s", model)
+    logger.info(f"params for adaptation: %s", param_names)
+    logger.info(f"optimizer for adaptation: %s", optimizer)
+    return rdumb_model
+
+
 def setup_fastcotta(model):
     """Set up tent adaptation.
 
@@ -206,6 +229,7 @@ def my_accuracy(model: nn.Module,
                    x: torch.Tensor,
                    y: torch.Tensor,
                    batch_size: int = 100,
+                   adaptation_method=None,
                    device: torch.device = None):
     if device is None:
         device = x.device
@@ -219,7 +243,10 @@ def my_accuracy(model: nn.Module,
                        batch_size].to(device)
             y_curr = y[counter * batch_size:(counter + 1) *
                        batch_size].to(device)
-            output = model(x_curr,passed_batches)
+            if adaptation_method == "fastcotta" or adaptation_method == "rdumb" or cfg.MODEL.ADAPTATION == "ETA":
+                output = model(x_curr, passed_batches)
+            else:
+                output = model(x_curr)
             acc += (output.max(1)[1] == y_curr).float().sum()
 
     return acc.item() / x.shape[0]
