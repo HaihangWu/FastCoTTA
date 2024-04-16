@@ -58,8 +58,8 @@ class CustomDatasetFolder(VisionDataset):
         self.transform = transform
         self.target_transform = target_transform
         classes, class_to_idx = self._find_classes(self.root)
-        samples = make_custom_dataset(self.root, '/data/gpfs/projects/punim0512/Haihangw-Projects/segformer/imagenet/robustbench/data/imagenet_test_image_ids.txt',
-                                      '/data/gpfs/projects/punim0512/Haihangw-Projects/segformer/imagenet/robustbench/data/imagenet_class_to_id_map.json')
+        samples = make_custom_dataset(self.root, '/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/imagenet/robustbench/data/imagenet_test_image_ids.txt',
+                                      '/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/imagenet/robustbench/data/imagenet_class_to_id_map.json')
         if len(samples) == 0:
             raise (RuntimeError("Found 0 files in subfolders of: " + self.root + "\n"
                                 "Supported extensions are: " + ",".join(extensions)))

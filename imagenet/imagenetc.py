@@ -54,21 +54,17 @@ def evaluate(description):
     pred_time=0
     average_acc=0
     dataset_count=0
-    model.reset()
-    logger.info("resetting model")
+    try:
+        model.reset()
+        logger.info("resetting model")
+    except:
+        logger.warning("not resetting model")
+
     for i in range(10):
         for ii, severity in enumerate(cfg.CORRUPTION.SEVERITY):
             for i_x, corruption_type in enumerate(cfg.CORRUPTION.TYPE):
                 # reset adaptation for each combination of corruption x severity
                 # note: for evaluation protocol, but not necessarily needed
-                # try:
-                #     if i_x == 0:
-                #         model.reset()
-                #         logger.info("resetting model")
-                #     else:
-                #         logger.warning("not resetting model")
-                # except:
-                #     logger.warning("not resetting model")
                 x_test, y_test = load_imagenetc(cfg.CORRUPTION.NUM_EX,
                                                severity, cfg.DATA_DIR, False,
                                                [corruption_type])
