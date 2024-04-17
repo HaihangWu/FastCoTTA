@@ -27,8 +27,5 @@ OPTIM:
   METHOD: SGD
   STEPS: 1
   WD: 0.0
-  MT: 0.999
-  RST: 0.01
-  AP: 0.72
 TEST:
   BATCH_SIZE: 64

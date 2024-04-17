@@ -177,10 +177,7 @@ def setup_rdumb(model):
     optimizer = setup_optimizer(params)
     rdumb_model = rdumb.RDumb(model, optimizer,
                            steps=cfg.OPTIM.STEPS,
-                           episodic=cfg.MODEL.EPISODIC,
-                           mt_alpha=cfg.OPTIM.MT,
-                           rst_m=cfg.OPTIM.RST,
-                           ap=cfg.OPTIM.AP)
+                           episodic=cfg.MODEL.EPISODIC)
     logger.info(f"model for adaptation: %s", model)
     logger.info(f"params for adaptation: %s", param_names)
     logger.info(f"optimizer for adaptation: %s", optimizer)
