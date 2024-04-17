@@ -110,11 +110,11 @@ class FastCoTTA(nn.Module):
             anchor_mean_conf=anchor_prob.mean(0)
             adaptive_epson=1/(1+math.exp(anchor_mean_conf.item()*self.adapt_coef))
             # if (ema_prob.mean(0)-anchor_prob.mean(0))< self.epson:
-            if (ema_prob.mean(0) - anchor_mean_conf) < adaptive_epson:
+            if (ema_prob.mean(0) - anchor_mean_conf) < 0.95: #adaptive_epson:
                 self.adapt = True
             else:
                 self.adapt = False
-            logger.info(f"conf dif % [{self.adapt}{adaptive_epson}]: {ema_prob.mean(0)-anchor_mean_conf:.2%}")
+            logger.info(f"conf dif % [{self.adapt}{adaptive_epson}], {anchor_mean_conf}, {ema_prob.mean(0)}, {ema_prob.mean(0)-anchor_mean_conf}")
 
             # Augmentation decision
             # N = 32
