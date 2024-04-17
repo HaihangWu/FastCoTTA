@@ -106,7 +106,6 @@ class FastCoTTA(nn.Module):
         if passed_batches%self.interval==0:
             anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
             ema_prob = torch.nn.functional.softmax(standard_ema, dim=1).max(1)[0]
-            ema_prob = torch.nn.functional.softmax(standard_ema, dim=1).max(1)[0]
             anchor_mean_conf=anchor_prob.mean(0)
             adaptive_epson=1/(1+math.exp(anchor_mean_conf.item()*self.adapt_coef))
             # if (ema_prob.mean(0)-anchor_prob.mean(0))< self.epson:
@@ -114,7 +113,7 @@ class FastCoTTA(nn.Module):
                 self.adapt = True
             else:
                 self.adapt = False
-            #logger.info(f"conf dif % [{ema_prob.mean(0)}{self.adapt}]: {ema_prob.mean(0)-anchor_prob.mean(0):.2%}")
+            logger.info(f"conf dif % [{self.adapt}{adaptive_epson}]: {ema_prob.mean(0)-anchor_mean_conf:.2%}")
 
             # Augmentation decision
             # N = 32
