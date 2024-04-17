@@ -9,6 +9,7 @@ import torchvision.transforms as transforms
 import my_transforms as my_transforms
 from time import time
 import logging
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ class FastCoTTA(nn.Module):
         self.adapt = True
         self.interval=20
         self.epson = 0.1
-
+        self.adapt_coef=5.0
         assert steps > 0, "cotta requires >= 1 step(s) to forward and update"
         self.episodic = episodic
         
@@ -105,7 +106,11 @@ class FastCoTTA(nn.Module):
         if passed_batches%self.interval==0:
             anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
             ema_prob = torch.nn.functional.softmax(standard_ema, dim=1).max(1)[0]
-            if (ema_prob.mean(0)-anchor_prob.mean(0))< self.epson:
+            ema_prob = torch.nn.functional.softmax(standard_ema, dim=1).max(1)[0]
+            anchor_mean_conf=anchor_prob.mean(0)
+            adaptive_epson=1/(1+math.exp(anchor_mean_conf.item()*self.adapt_coef))
+            # if (ema_prob.mean(0)-anchor_prob.mean(0))< self.epson:
+            if (ema_prob.mean(0) - anchor_mean_conf) < adaptive_epson:
                 self.adapt = True
             else:
                 self.adapt = False

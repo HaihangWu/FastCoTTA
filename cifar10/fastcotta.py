@@ -9,6 +9,7 @@ import torchvision.transforms as transforms
 import my_transforms as my_transforms
 from time import time
 import logging
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,7 @@ class FastCoTTA(nn.Module):
         self.optimizer = optimizer
         self.steps = steps
         self.adapt = True
+        self.adapt_coef=5.0
         self.interval=20
         self.epson = 0.1
 
