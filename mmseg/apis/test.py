@@ -108,7 +108,8 @@ def single_gpu_ours(model,
                                                                   img_metas=[data['img_metas'][0].data[0]])
                         techer_model_conf_s = np.mean(torch.amax(probs_TS[0], 0).cpu().numpy())
 
-                    if (techer_model_conf_s - source_model_conf_s)<domains_detections["adat_ends"]:
+
+                    if (techer_model_conf_s - source_model_conf_s)<((1.0-source_model_conf_s)**2.0): #domains_detections["adat_ends"]:
                         domains_detections["adaptation"] = True
                         techer_model_conf_L=np.mean(torch.amax(probs[0], 0).cpu().numpy())
                         if domains_detections["imge_id"] == 0: # small image
