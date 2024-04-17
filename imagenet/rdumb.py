@@ -52,12 +52,12 @@ def update_ema_variables(ema_model, model, alpha_teacher):#, iteration):
     return ema_model
 
 
-class Rdumb(nn.Module):
+class RDumb(nn.Module):
     """CoTTA adapts a model by entropy minimization during testing.
 
     Once tented, a model adapts itself by updating on every forward.
     """
-    def __init__(self, model, optimizer, steps=1, episodic=False, mt_alpha=0.99, rst_m=0.1, ap=0.9):
+    def __init__(self, model, optimizer, steps=1, episodic=False):
         super().__init__()
         self.model = model
         self.optimizer = optimizer
