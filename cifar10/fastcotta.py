@@ -108,9 +108,9 @@ class FastCoTTA(nn.Module):
             anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
             ema_prob = torch.nn.functional.softmax(standard_ema, dim=1).max(1)[0]
             anchor_mean_conf=anchor_prob.mean(0)
-            adaptive_epson=1/(1+math.exp(anchor_mean_conf.item()*self.adapt_coef))
+            adaptive_epson=(1-anchor_mean_conf.item())**2.0 #1/(1+math.exp(anchor_mean_conf.item()*self.adapt_coef))
             # if (ema_prob.mean(0)-anchor_prob.mean(0))< self.epson:
-            if (ema_prob.mean(0) - anchor_mean_conf) < 0.95: #adaptive_epson:
+            if (ema_prob.mean(0) - anchor_mean_conf) < adaptive_epson:
                 self.adapt = True
             else:
                 self.adapt = False
