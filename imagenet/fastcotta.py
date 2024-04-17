@@ -100,12 +100,15 @@ class FastCoTTA(nn.Module):
         outputs_ema = standard_ema
         if passed_batches%self.interval==0:
             anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
+            print(torch.nn.functional.softmax(self.model_anchor(x), dim=1))
+            print(torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1))
+            print(anchor_prob)
             ema_prob = torch.nn.functional.softmax(standard_ema, dim=1).max(1)[0]
             if (ema_prob.mean(0)-anchor_prob.mean(0))> self.epson:
                 self.adapt = False
             else:
                 self.adapt = True
-            print("fastcotta infor:",self.adapt, ema_prob.mean(0)-anchor_prob.mean(0))
+            #print("fastcotta infor:",self.adapt, ema_prob.mean(0)-anchor_prob.mean(0))
         # anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
 
         # Augmentation-averaged Prediction
