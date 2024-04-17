@@ -9,6 +9,7 @@ import torchvision.transforms as transforms
 import my_transforms as my_transforms
 from time import time
 import logging
+import math
 
 
 def get_tta_transforms(gaussian_std: float=0.005, soft=False, clip_inputs=False):
@@ -64,6 +65,7 @@ class FastCoTTA(nn.Module):
         self.steps = steps
         self.adapt=True
         self.epson=0.1
+        self.adapt_coef=5.0
         self.interval=20
         assert steps > 0, "cotta requires >= 1 step(s) to forward and update"
         self.episodic = episodic
@@ -101,11 +103,13 @@ class FastCoTTA(nn.Module):
         if passed_batches%self.interval==0:
             anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
             ema_prob = torch.nn.functional.softmax(standard_ema, dim=1).max(1)[0]
-            if (ema_prob.mean(0)-anchor_prob.mean(0))> self.epson:
+            adaptive_epson=1/(1+math.exp(anchor_prob.mean(0).item()*self.adapt_coef))
+            #if (ema_prob.mean(0)-anchor_prob.mean(0))> self.epson:
+            if (ema_prob.mean(0) - anchor_prob.mean(0)) > adaptive_epson:
                 self.adapt = False
             else:
                 self.adapt = True
-            #print("fastcotta infor:",self.adapt, ema_prob.mean(0)-anchor_prob.mean(0))
+            print("fastcotta infor:",self.adapt, adaptive_epson, ema_prob.mean(0)-anchor_prob.mean(0))
         # anchor_prob = torch.nn.functional.softmax(self.model_anchor(x), dim=1).max(1)[0]
 
         # Augmentation-averaged Prediction

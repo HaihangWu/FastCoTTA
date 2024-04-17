@@ -17,8 +17,8 @@ do
 #  CUDA_VISIBLE_DEVICES=0 python imagenetc.py --cfg cfgs/imagenet/norm.yaml
 #  CUDA_VISIBLE_DEVICES=0 python imagenetc.py --cfg cfgs/imagenet/tent.yaml
 #  CUDA_VISIBLE_DEVICES=0 python  imagenetc.py --cfg cfgs/imagenet/ETA.yaml
-#   CUDA_VISIBLE_DEVICES=0 python  imagenetc.py --cfg cfgs/imagenet/fastcotta.yaml
 #   CUDA_VISIBLE_DEVICES=0 python imagenetc.py --cfg cfgs/imagenet/cotta.yaml
+   CUDA_VISIBLE_DEVICES=0 python  imagenetc.py --cfg cfgs/imagenet/fastcotta.yaml
    CUDA_VISIBLE_DEVICES=0 python imagenetc.py --cfg cfgs/imagenet/rdumb.yaml
 #  CUDA_VISIBLE_DEVICES=0 python imagenetc.py --cfg cfgs/imagenet/OSTTA.yaml
 done
