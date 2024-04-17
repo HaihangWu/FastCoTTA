@@ -57,7 +57,7 @@ class Rdumb(nn.Module):
 
     Once tented, a model adapts itself by updating on every forward.
     """
-    def __init__(self, model, optimizer, steps=1, episodic=False):
+    def __init__(self, model, optimizer, steps=1, episodic=False, mt_alpha=0.99, rst_m=0.1, ap=0.9):
         super().__init__()
         self.model = model
         self.optimizer = optimizer
@@ -67,7 +67,11 @@ class Rdumb(nn.Module):
 
         self.model_state, self.optimizer_state, self.model_ema, self.model_anchor = \
             copy_model_and_optimizer(self.model, self.optimizer)
-        self.transform = get_tta_transforms()    
+        self.transform = get_tta_transforms()
+        # self.mt = mt_alpha
+        # self.rst = rst_m
+        # self.ap = ap
+
 
     def forward(self, x, passed_batches):
         if self.episodic:
