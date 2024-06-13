@@ -87,7 +87,7 @@ def parse_args():
         help='job launcher')
     parser.add_argument(
         '--method',
-        choices=['Source', 'BN', 'TENT', 'AuxAdapt', 'DPT', 'ETA', 'CoTTA', 'Ours','RDumb', 'ETA_TENT'],
+        choices=['Source', 'BN', 'TENT', 'AuxAdapt', 'DPT', 'CoTTAETA', 'CoTTA', 'Ours','RDumb', 'VanillaETA'],
         default='none',
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
@@ -136,7 +136,7 @@ def main():
                 cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
                     0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
                 cfg.data.test.test_cases[i].pipeline[1].flip = True
-                if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method or 'ETA_TENT' in args.method:
+                if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method or 'VanillaETA' in args.method:
                     cfg.data.test.test_cases[i].pipeline[1].img_ratios = [1.0]
                     cfg.data.test.test_cases[i].pipeline[1].flip = False
                 elif 'AuxAdapt' in args.method or 'Ours' in args.method:
@@ -266,20 +266,22 @@ def main():
             pred_begin = time.time()
             if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
                 outputs, frame_passed = single_model_update(model, data_loader, args, efficient_test,frame_passed)
-            elif 'AuxAdapt'in args.method:
+            elif 'AuxAdapt' in args.method:
                 outputs=single_gpu_AuxAdapt(model,model_s,data_loader,efficient_test,frame_passed)
-            elif 'DPT'in args.method:
+            elif 'DPT' in args.method:
                 outputs, frame_passed, ldelta = DPT(model, data_loader, ldelta,
                                                     efficient_test, ema_model, anchor_model, frame_passed, i * 4 + j)
-            elif 'ETA'in args.method:
+            elif 'VanillaETA' in args.method:
+                outputs,frame_passed = ETA_TENT(model,data_loader,current_model_probs,efficient_test,anchor_model,frame_passed)
+
+            elif 'CoTTAETA' in args.method:
                 outputs,frame_passed = Efficient_adaptation(model, data_loader, current_model_probs,
                                           efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
-            elif 'ETA_TENT'in args.method:
-                outputs,frame_passed = ETA_TENT(model,data_loader,current_model_probs,efficient_test,anchor_model,frame_passed)
-            elif 'CoTTA'in args.method:
+
+            elif 'CoTTA' in args.method:
                 outputs,frame_passed = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
                                           efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
-            elif 'RDumb'in args.method:
+            elif 'RDumb' in args.method:
                 outputs,frame_passed = single_gpu_RDumb(model, data_loader, args.show, args.show_dir,
                                           efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
 
