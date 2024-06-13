@@ -61,7 +61,6 @@ dependencies:
     - jedi==0.18.0
     - kornia==0.5.11
     - matplotlib-inline==0.1.3
-    - pip install mmcv-full==1.2.7 -f https://download.openmmlab.com/mmcv/dist/cu101/torch1.7/index.html
     - opencv-python==4.5.1.48
     - packaging==21.0
     - parso==0.8.2
