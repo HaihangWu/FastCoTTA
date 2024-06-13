@@ -4,8 +4,8 @@ from .version import __version__, version_info
 
 # MMCV_MIN = '1.1.4'
 # MMCV_MAX = '1.3.0'
-MMCV_MIN = '1.2.7'
-MMCV_MAX = '2.2.0'
+MMCV_MIN = '1.3.13'
+MMCV_MAX = '1.8.0'
 
 
 def digit_version(version_str):
