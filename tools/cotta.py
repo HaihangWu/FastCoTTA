@@ -87,7 +87,7 @@ def parse_args():
         help='job launcher')
     parser.add_argument(
         '--method',
-        choices=['Source', 'BN', 'TENT', 'AuxAdapt', 'DPT', 'ETA', 'CoTTA', 'Ours','RDumb'],
+        choices=['Source', 'BN', 'TENT', 'AuxAdapt', 'DPT', 'ETA', 'CoTTA', 'Ours','RDumb', 'ETA_TENT'],
         default='none',
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
@@ -136,7 +136,7 @@ def main():
                 cfg.data.test.test_cases[i].pipeline[1].img_ratios = [
                     0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
                 cfg.data.test.test_cases[i].pipeline[1].flip = True
-                if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
+                if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method or 'ETA_TENT' in args.method:
                     cfg.data.test.test_cases[i].pipeline[1].img_ratios = [1.0]
                     cfg.data.test.test_cases[i].pipeline[1].flip = False
                 elif 'AuxAdapt' in args.method or 'Ours' in args.method:
