@@ -275,8 +275,7 @@ def main():
                 outputs,frame_passed = Efficient_adaptation(model, data_loader, current_model_probs,
                                           efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
             elif 'ETA_TENT'in args.method:
-                outputs,frame_passed = Efficient_adaptation(model, data_loader, current_model_probs,
-                                          efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
+                outputs,frame_passed = ETA_TENT(model,data_loader,current_model_probs,efficient_test,anchor_model,frame_passed)
             elif 'CoTTA'in args.method:
                 outputs,frame_passed = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
                                           efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
