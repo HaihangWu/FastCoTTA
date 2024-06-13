@@ -28,7 +28,7 @@
 # --gpus-per-task=1  # number of gpus per task
 
 # The maximum running time of the job in days-hours:mins:sec
-#SBATCH --time=00-10:00:00
+#SBATCH --time=01-00:00:00
 
 module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
@@ -48,11 +48,11 @@ echo "r$SLURM_NODEID Launching python script"
 #bash ./cifar10/dist_cotta.sh  | tee cifar10_ours_3.log
 #bash ./cifar100/dist_cotta.sh  | tee cifar10_ours_3.log
 
-bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py ETA_TENT 1 | tee Ours_segformer_acdc.log
-#bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.night.160k.py Ours 1 | tee Ours_segformer_night.log
+bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py ETA_TENT 1 | tee ETA_TENT_segformer_acdc.log
+bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.night.160k.py ETA_TENT 1 | tee ETA_TENT_segformer_night.log
 
-#bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py Ours 1 | tee Ours_segnext_acdc.log
-#bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.night.160k.py Ours 1 | tee Ours_segnext_night-2.log
+bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py ETA_TENT 1 | tee ETA_TENT_segnext_acdc.log
+bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.night.160k.py ETA_TENT 1 | tee ETA_TENT_segnext_night-2.log
 
 #bash ./tools/dist_train.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgf2000/ 1  | tee finetune_segformer4500.log
 #bash ./tools/dist_train.sh local_configs/ours/segnext.base.1024x1024.city.160k.py   work_dirs/DPTsgnext2000/ 1  | tee finetune_segnext4500.log
