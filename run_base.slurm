@@ -32,6 +32,7 @@
 
 module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
+conda deactivate
 conda activate Uniformerv2
 
 # The job command(s):
