@@ -603,9 +603,14 @@ def ETA_TENT(model,
                         0.9 * current_model_probs + (1 - 0.9) * probs_[0].view(probs_.shape[1], -1))
 
                 Adaptation = True if (cosine_similarities.mean(0) < redundancy_epson) else False
+                #print(Adaptation,entropy_pred,E0,cosine_similarities.mean(0),redundancy_epson)
+                #print(cosine_similarities)
+                #print(current_model_probs)
+
+            if entropy_pred < E0:
                 print(Adaptation,entropy_pred,E0,cosine_similarities.mean(0),redundancy_epson)
-                print(cosine_similarities)
-                print(current_model_probs)
+            else:
+                print(Adaptation,entropy_pred,E0)
 
             weight = torch.exp(E0 - entropy_pred)
             result, probs, preds = model(return_loss=False, **data)
