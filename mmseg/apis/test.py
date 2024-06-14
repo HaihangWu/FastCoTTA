@@ -589,8 +589,10 @@ def ETA_TENT(model,
         img_id = 0
         pred_begin=time.time()
         with torch.no_grad():
-            result_anchor, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],
-                                                  img_metas=[data['img_metas'][img_id].data[0]])  # **data)
+            # result_anchor, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],
+            #                                       img_metas=[data['img_metas'][img_id].data[0]])
+            result, probs_, preds_ = model(return_loss=False, img=[data['img'][img_id]],
+                                                  img_metas=[data['img_metas'][img_id].data[0]])
             entropy_pred = torch.mean(Categorical(probs=probs_[0].permute(1, 2, 0).view(-1, probs_.shape[1])).entropy())
             Adaptation = False
             if entropy_pred < E0:
@@ -608,7 +610,7 @@ def ETA_TENT(model,
                 #print(current_model_probs)
 
             weight = torch.exp(E0 - entropy_pred)
-            result, probs, preds = model(return_loss=False, **data)
+            # result, probs, preds = model(return_loss=False, **data)
 
 
             if entropy_pred < E0:
