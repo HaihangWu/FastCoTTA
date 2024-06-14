@@ -188,7 +188,7 @@ def main():
     dataset_name='acdc' if 'acdc' in args.config else ('night' if 'night' in args.config  else '')
     print(file_name+ '_' + model_name+ '_'+ dataset_name)
 
-    if 'TENT' in args.method:
+    if 'TENT' in args.method or 'VanillaETA' in args.method:
         for name, param in model.named_parameters():
             if ("norm" in name or "bn" in name or "ln" in name or "BatchNorm" in name):
                     param.requires_grad = True
