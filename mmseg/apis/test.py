@@ -581,7 +581,7 @@ def ETA_TENT(model,
         if param.requires_grad:
             param_list.append(param)
     E0=torch.tensor(0.1*math.log(19.0))
-    redundancy_epson=0.8
+    redundancy_epson=0.75
     optimizer = torch.optim.Adam(param_list, lr=0.00006/8, betas=(0.9, 0.999)) # for segformer,segnext
     pred_time=0
     for i, data in enumerate(data_loader):
