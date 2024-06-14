@@ -50,10 +50,10 @@ echo "r$SLURM_NODEID Launching python script"
 #bash ./cifar100/dist_cotta.sh  | tee cifar10_ours_3.log
 
 bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py VanillaETA 1 | tee ETA_TENT_segformer_acdc.log
-#bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.night.160k.py VanillaETA 1 | tee ETA_TENT_segformer_night.log
+bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.night.160k.py VanillaETA 1 | tee ETA_TENT_segformer_night.log
 
-#bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py VanillaETA 1 | tee ETA_TENT_segnext_acdc.log
-#bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.night.160k.py VanillaETA 1 | tee ETA_TENT_segnext_night-2.log
+bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.acdc.160k.py VanillaETA 1 | tee ETA_TENT_segnext_acdc.log
+bash ./tools/dist_cotta.sh local_configs/ours/segnext.base.1024x1024.night.160k.py VanillaETA 1 | tee ETA_TENT_segnext_night-2.log
 
 #bash ./tools/dist_train.sh local_configs/ours/segformer.b5.1024x1024.city.160k.py  work_dirs/DPTsgf2000/ 1  | tee finetune_segformer4500.log
 #bash ./tools/dist_train.sh local_configs/ours/segnext.base.1024x1024.city.160k.py   work_dirs/DPTsgnext2000/ 1  | tee finetune_segnext4500.log

@@ -592,28 +592,37 @@ def ETA_TENT(model,
             result_anchor, probs_, preds_ = anchor_model(return_loss=False, img=[data['img'][img_id]],
                                                   img_metas=[data['img_metas'][img_id].data[0]])  # **data)
             entropy_pred = torch.mean(Categorical(probs=probs_[0].permute(1, 2, 0).view(-1, probs_.shape[1])).entropy())
-            if current_model_probs is None:
-                current_model_probs = copy.deepcopy(probs_[0].view(probs_.shape[1], -1))
-                cosine_similarities = torch.tensor(1.0)
-            else:
-                cosine_similarities = F.cosine_similarity(current_model_probs, probs_[0].view(probs_.shape[1], -1), 0)
-                current_model_probs = copy.deepcopy(
-                    0.9 * current_model_probs + (1 - 0.9) * probs_[0].view(probs_.shape[1], -1))
+            Adaptation = False
+            if entropy_pred < E0:
+                if current_model_probs is None:
+                    current_model_probs = copy.deepcopy(probs_[0].view(probs_.shape[1], -1))
+                    cosine_similarities = torch.tensor(0.0)
+                else:
+                    cosine_similarities = torch.abs(F.cosine_similarity(current_model_probs, probs_[0].view(probs_.shape[1], -1), 0))
+                    current_model_probs = copy.deepcopy(
+                        0.9 * current_model_probs + (1 - 0.9) * probs_[0].view(probs_.shape[1], -1))
+
+                Adaptation = True if (cosine_similarities.mean(0) < redundancy_epson) else False
+                print(Adaptation,entropy_pred,E0,cosine_similarities.mean(0),redundancy_epson)
+                print(cosine_similarities)
+                print(current_model_probs)
+
             weight = torch.exp(E0 - entropy_pred)
             result, probs, preds = model(return_loss=False, **data)
+
         if isinstance(result, list):
-            if entropy_pred < E0 and cosine_similarities.mean(0) < redundancy_epson:
+            if Adaptation:
                 loss = model.forward(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(0))
             if efficient_test:
                 result = [np2tmp(_) for _ in result]
             results.extend(result)
         else:
-            if entropy_pred < E0 and cosine_similarities.mean(0) < redundancy_epson:
+            if Adaptation:
                 loss = model(return_loss=True, img=data['img'][img_id], img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=result)
             if efficient_test:
                 result = np2tmp(result)
             results.append(result)
-        if entropy_pred < E0 and cosine_similarities.mean(0) < redundancy_epson:
+        if Adaptation:
             torch.mean(weight * loss["decode.loss_seg"]).backward()
             optimizer.step()
             optimizer.zero_grad()
@@ -761,8 +770,7 @@ def single_gpu_AuxAdapt(model_l,
             # print(name)
         else:
             param.requires_grad = False
-    optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(
-    0.9, 0.999))  # for segformer; 0.00006/8 is not large enough to learn target domain quickly
+    optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer; 0.00006/8 is not large enough to learn target domain quickly
     # optimizer = torch.optim.SGD(param_list, lr=0.01/8 )  # for SETR;
     pred_time = 0
     for i, data in enumerate(data_loader):
