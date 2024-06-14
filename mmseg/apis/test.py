@@ -613,10 +613,10 @@ def ETA_TENT(model,
             # result, probs, preds = model(return_loss=False, **data)
 
 
-            if entropy_pred < E0:
-                print(Adaptation,entropy_pred,E0,cosine_similarities.mean(0),redundancy_epson,weight)
-            else:
-                print(Adaptation,entropy_pred,E0,weight)
+            # if entropy_pred < E0:
+            #     print(Adaptation,entropy_pred,E0,cosine_similarities.mean(0),redundancy_epson,weight)
+            # else:
+            #     print(Adaptation,entropy_pred,E0,weight)
 
         if isinstance(result, list):
             if Adaptation:
