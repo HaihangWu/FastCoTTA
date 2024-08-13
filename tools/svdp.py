@@ -15,6 +15,7 @@ from copy import deepcopy
 import time
 from collections import deque
 # import wandb
+import numpy as np
 import random
 
 def set_random_seed(seed=1, deterministic=False):
