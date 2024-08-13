@@ -14,6 +14,8 @@ from timm.models.vision_transformer import _cfg
 from mmseg.models.builder import BACKBONES
 from mmseg.utils import get_root_logger
 from mmcv.runner import load_checkpoint
+from .prompt import *
+from .lora import *
 import math
 import random
 import time
@@ -477,3 +479,25 @@ class mit_b5(MixVisionTransformer):
             prompt_config,patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
             qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=[3, 6, 40, 3], sr_ratios=[8, 4, 2, 1],
             drop_rate=0.0, drop_path_rate=0.1)
+
+
+@BACKBONES.register_module()
+class mit_b5_prompt(MixVisionTransformer):
+    def __init__(self, prompt_config=None, **kwargs):
+        super(mit_b5_prompt, self).__init__(
+            prompt_config, patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
+            qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=[3, 6, 40, 3], sr_ratios=[8, 4, 2, 1],
+            drop_rate=0.0, drop_path_rate=0.1)
+        print(f">>>>>>>>init mit_b5_sparse_prompt {kwargs['prompt_sparse_rate']}")
+
+        self.prompt = SparsePrompter_uncertainty(sparse_rate=kwargs['prompt_sparse_rate'])
+
+    def init_weights(self, pretrained=None):
+        if isinstance(pretrained, str):
+            logger = get_root_logger()
+            load_checkpoint(self, pretrained, map_location='cpu', strict=False, logger=logger)
+
+    def forward(self, x, img_metas, position=None):
+        x = self.prompt(x, img_metas, position)
+        x = self.forward_features(x)
+        return x
