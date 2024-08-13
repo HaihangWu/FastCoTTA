@@ -7,7 +7,8 @@ from mmseg.ops import resize
 from .. import builder
 from ..builder import SEGMENTORS
 from .base import BaseSegmentor
-
+import pdb
+import numpy as np
 
 @SEGMENTORS.register_module()
 class EncoderDecoder(BaseSegmentor):
@@ -75,17 +76,39 @@ class EncoderDecoder(BaseSegmentor):
             else:
                 self.auxiliary_head.init_weights()
 
-    def extract_feat(self, img):
+    # def extract_feat(self, img):
+    #     """Extract features from images."""
+    #     x = self.backbone(img)
+    #     if self.with_neck:
+    #         x = self.neck(x)
+    #     return x
+
+    def extract_feat(self, img, img_metas, position=None):
         """Extract features from images."""
-        x = self.backbone(img)
+        if position:
+            x = self.backbone(img, img_metas, position)
+        else:
+            x = self.backbone(img, img_metas)
         if self.with_neck:
             x = self.neck(x)
         return x
 
-    def encode_decode(self, img, img_metas):
+    # def encode_decode(self, img, img_metas):
+    #     """Encode images with backbone and decode into a semantic segmentation
+    #     map of the same size as input."""
+    #     x = self.extract_feat(img)
+    #     out = self._decode_head_forward_test(x, img_metas)
+    #     out = resize(
+    #         input=out,
+    #         size=img.shape[2:],
+    #         mode='bilinear',
+    #         align_corners=self.align_corners)
+    #     return out
+
+    def encode_decode(self, img, img_metas, position):
         """Encode images with backbone and decode into a semantic segmentation
         map of the same size as input."""
-        x = self.extract_feat(img)
+        x = self.extract_feat(img, img_metas, position)
         out = self._decode_head_forward_test(x, img_metas)
         out = resize(
             input=out,
@@ -93,6 +116,23 @@ class EncoderDecoder(BaseSegmentor):
             mode='bilinear',
             align_corners=self.align_corners)
         return out
+
+    def encode_decode_svdp(self, img, img_metas, position, drop_num):
+        """Encode images with backbone and decode into a semantic segmentation
+        map of the same size as input."""
+        x = self.extract_feat(img, img_metas, position)
+        All_output = []
+        for idx in range(drop_num):
+            out = self._decode_head_forward_test(x, img_metas)
+
+            out = resize(
+                input=out,
+                size=img_metas[0]['ori_shape'][:2],
+                mode='bilinear',
+                align_corners=self.align_corners,
+                warning=False)
+            All_output.append(out)
+        return All_output
 
     def _decode_head_forward_train(self, x, img_metas, gt_semantic_seg):
         """Run forward function and calculate loss for decode head in
@@ -151,7 +191,9 @@ class EncoderDecoder(BaseSegmentor):
             dict[str, Tensor]: a dictionary of loss components
         """
 
-        x = self.extract_feat(img)
+        #x = self.extract_feat(img)
+
+        x = self.extract_feat(img,img_metas)
 
         losses = dict()
 
@@ -191,7 +233,8 @@ class EncoderDecoder(BaseSegmentor):
                 y1 = max(y2 - h_crop, 0)
                 x1 = max(x2 - w_crop, 0)
                 crop_img = img[:, :, y1:y2, x1:x2]
-                crop_seg_logit = self.encode_decode(crop_img, img_meta)
+                #crop_seg_logit = self.encode_decode(crop_img, img_meta)
+                crop_seg_logit = self.encode_decode(crop_img, img_meta, (y1,y2,x1,x2))
                 preds += F.pad(crop_seg_logit,
                                (int(x1), int(preds.shape[3] - x2), int(y1),
                                 int(preds.shape[2] - y2)))
@@ -261,6 +304,32 @@ class EncoderDecoder(BaseSegmentor):
 
         return output
 
+    def inference_svdp(self, img, img_meta, rescale, drop_num):
+        """Inference with slide/whole style.
+
+        Args:
+            img (Tensor): The input image of shape (N, 3, H, W).
+            img_meta (dict): Image info dict where each dict has: 'img_shape',
+                'scale_factor', 'flip', and may also contain
+                'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
+                For details on the values of these keys see
+                `mmseg/datasets/pipelines/formatting.py:Collect`.
+            rescale (bool): Whether rescale back to original shape.
+
+        Returns:
+            Tensor: The output segmentation map.
+        """
+
+        assert self.test_cfg.mode in ['slide', 'whole']
+        ori_shape = img_meta[0]['ori_shape']
+        assert all(_['ori_shape'] == ori_shape for _ in img_meta)
+        preds_lst = self.encode_decode_svdp(img, img_meta, (0,img.shape[-2],0,img.shape[-1]), drop_num)
+
+        output_lst = [F.softmax(seg_logit, dim=1) for seg_logit in preds_lst]
+
+
+        return output_lst
+
     def simple_test(self, img, img_meta, rescale=True):
         """Simple test with single image."""
         # print("simple test")
@@ -275,6 +344,14 @@ class EncoderDecoder(BaseSegmentor):
         # unravel batch dim
         seg_pred = list(seg_pred)
         return seg_pred,seg_logit,preds
+
+    def simple_test_svdp(self, img, img_meta, dropout_num=10, rescale=True):
+        """Simple test with single image."""
+        seg_logit_lst = self.inference_svdp(img, img_meta, rescale, dropout_num)
+
+        uncs = torch.stack(seg_logit_lst)
+
+        return None, None, None, uncs.cpu().numpy()
 
     def aug_test(self, imgs, img_metas, rescale=True):
         """Test with augmentations.
@@ -304,3 +381,37 @@ class EncoderDecoder(BaseSegmentor):
         # unravel batch dim
         seg_pred = list(seg_pred)
         return seg_pred, probs, preds
+
+    def aug_test_svdp(self, imgs, img_metas, rescale=True):
+        """Test with augmentations.
+
+        Only rescale=True is supported.
+        """
+        # aug_test rescale all imgs back to ori_shape for now
+        assert rescale
+        # to save memory, we get augmented seg logit inplace
+        seg_logit = self.inference(imgs[0], img_metas[0], rescale)
+        #preds = [seg_logit.argmax(dim=1).cpu().numpy()]
+        prob, pred = seg_logit.max(dim=1)
+        preds = [pred.cpu().numpy()]
+        probs = [prob.cpu().numpy()]
+        uncs = [ torch.softmax(seg_logit, dim=1).cpu().numpy()]
+        for i in range(1, len(imgs)):
+            cur_seg_logit = self.inference(imgs[i], img_metas[i], rescale)
+            seg_logit += cur_seg_logit
+            #preds.append(cur_seg_logit.argmax(dim=1).cpu().numpy())
+            prob, pred = cur_seg_logit.max(dim=1)
+            # output_softmax = torch.softmax(cur_seg_logit, dim=1).cpu().numpy()
+            uncs.append(cur_seg_logit.cpu().numpy())
+            preds.append(pred.cpu().numpy())
+            probs.append(prob.cpu().numpy())
+        seg_logit /= len(imgs)
+        seg_pred = seg_logit.argmax(dim=1)
+        seg_pred = seg_pred.cpu().numpy()
+        # unravel batch dim
+        seg_pred = list(seg_pred)
+        #print("prob.mean", [(np.mean(probs[a]),np.median(probs[a]), np.max(probs[a])) for a in range(len(probs))])
+        uncs = np.stack(uncs)
+        # variance = np.var(uncs, axis=0)
+        # uncertainty = np.sum(variance, axis=1)
+        return seg_pred, probs, preds, uncs
