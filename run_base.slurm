@@ -6,11 +6,11 @@
 # --job-name="example.py"
 
 # Partition for the job:
-#SBATCH --partition deeplearn
-#SBATCH --qos gpgpudeeplearn
+# --partition deeplearn
+# --qos gpgpudeeplearn
 
-# --partition=feit-gpu-a100
-# --qos=feit
+#SBATCH --partition=feit-gpu-a100
+#SBATCH --qos=feit
 
 # -p gpu-a100
 
@@ -51,7 +51,7 @@ echo "r$SLURM_NODEID Launching python script"
 
 #bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py VanillaETA 1 | tee ETA_TENT_segformer_acdc_5.log
 
-bash ./tools/dist_svdp.sh local_configs/ours/SVDP_segformer.b5.1024x1024.acdc.160k.py SVDP 1 | tee SVDP_segformer_acdc_5.log
+bash ./tools/dist_svdp.sh local_configs/ours/SVDP_segformer.b5.1024x1024.acdc.160k.py SVDP 1 | tee SVDP_segformer_acdc_5_feit.log
 
 
 
