@@ -6,5 +6,5 @@ from .train import get_root_logger, set_random_seed, train_segmentor,init_random
 __all__ = [
     'get_root_logger', 'set_random_seed', 'train_segmentor', 'init_segmentor',
     'inference_segmentor',  'single_model_update','single_gpu_cotta',
-    'show_result_pyplot','init_random_seed','single_gpu_ours','single_gpu_AuxAdapt','multi_gpu_test','single_gpu_RDumb', 'single_gpu_svdp'
+    'show_result_pyplot','init_random_seed','single_gpu_ours','single_gpu_AuxAdapt','multi_gpu_test','single_gpu_RDumb','single_gpu_svdp'
 ]
