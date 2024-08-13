@@ -300,6 +300,7 @@ def single_gpu_svdp(args,
     optimizer = torch.optim.Adam([{"params": param_prompt_list, "lr": args.prompt_lr},
                                   {"params": param_model_list, "lr": args.model_lr}],
                                  lr=1e-5, betas=(0.9, 0.999))
+    pred_begin=time.time()
     for i, data in enumerate(data_loader):
         model.eval()
         ema_model.eval()
@@ -367,9 +368,12 @@ def single_gpu_svdp(args,
                     with torch.no_grad():
                         p.data = anchor[f"{nm}.{npp}"] * mask + p * (1.-mask)
 
-        batch_size = data['img'][0].size(0)
-        for _ in range(batch_size):
-            prog_bar.update()
+        # batch_size = data['img'][0].size(0)
+        # for _ in range(batch_size):
+        #     prog_bar.update()
+
+    pred_time = time.time() - pred_begin
+    print("average pred_time: %.3f seconds;" % (pred_time/(i+1)))
 
     return results
 
