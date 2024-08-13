@@ -223,14 +223,13 @@ def main():
     dataset_name='acdc' if 'acdc' in args.config else ('night' if 'night' in args.config  else '')
     print(file_name+ '_' + model_name+ '_'+ dataset_name)
 
-    #checkpoint = load_checkpoint(model, cfg.model.pretrained, map_location='cpu')
+    checkpoint = load_checkpoint(model, cfg.model.pretrained, map_location='cpu')
+    # pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
+    # model.load_state_dict(pretrained_dict['state_dict'])
     # model.CLASSES = checkpoint['meta']['CLASSES']
     # model.PALETTE = checkpoint['meta']['PALETTE']
-    print(cfg.model.pretrained)
-    pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
     #print(pretrained_dict.keys())
     #print("I'm printing the model",model.state_dict().keys())
-    model.load_state_dict(pretrained_dict['state_dict'])
     # if hasattr(model, 'text_encoder'):
     #     model.text_encoder.init_weights()
     model.CLASSES = datasets[0].CLASSES
