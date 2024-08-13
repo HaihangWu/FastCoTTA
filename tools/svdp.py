@@ -226,6 +226,7 @@ def main():
     #checkpoint = load_checkpoint(model, cfg.model.pretrained, map_location='cpu')
     # model.CLASSES = checkpoint['meta']['CLASSES']
     # model.PALETTE = checkpoint['meta']['PALETTE']
+    print(cfg.model.pretrained)
     pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
     #print(pretrained_dict.keys())
     #print("I'm printing the model",model.state_dict().keys())
