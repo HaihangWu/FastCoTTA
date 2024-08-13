@@ -314,7 +314,10 @@ def single_gpu_svdp(args,
             }
             _, _, _, unc_all = ema_model(return_loss=False, svdp = True, dropout_num=10, **data_one)
 
-            _, prob_anchor= anchor_model(return_loss=False, **data_one)
+            _, seg_logit_anchor, _= anchor_model(return_loss=False, **data_one)
+
+            prob_anchor, _ =seg_logit_anchor.max(dim = 1)
+            prob_anchor = prob_anchor.cpu().numpy()
 
             mask = (prob_anchor[0] > 0.69).astype(np.int64) # 0.74 was the 5% quantile for cityscapes, therefore we use 0.69 here
 
