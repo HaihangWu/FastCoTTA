@@ -7,14 +7,14 @@ from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from mmcv.runner import get_dist_info, init_dist, load_checkpoint
 from mmcv.utils import DictAction
 
-from mmseg.apis import single_model_update, single_gpu_cotta,Efficient_adaptation,ETA_TENT,DPT,single_gpu_ours,single_gpu_AuxAdapt, single_gpu_RDumb
+from mmseg.apis import single_model_update, single_gpu_cotta,Efficient_adaptation,ETA_TENT,DPT,single_gpu_ours,single_gpu_AuxAdapt, single_gpu_RDumb,single_gpu_svdp
 from mmseg.datasets import build_dataloader, build_dataset
 from mmseg.models import build_segmentor
 from IPython import embed
 from copy import deepcopy
 import time
 from collections import deque
-import wandb
+# import wandb
 import random
 
 def set_random_seed(seed=1, deterministic=False):
@@ -111,9 +111,9 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--ema_rate', type=float, default=0.999)
     parser.add_argument('--ema_rate_prompt', type=float, default=0.999)
-    parser.add_argument('--wandb_login', type=str)
-    parser.add_argument('--wandb_project', type=str)
-    parser.add_argument('--wandb_name', type=str, default="debug")
+    # parser.add_argument('--wandb_login', type=str)
+    # parser.add_argument('--wandb_project', type=str)
+    # parser.add_argument('--wandb_name', type=str, default="debug")
 
 
     parser.add_argument('--current_model_probs', default='empty', type=str,
@@ -128,14 +128,14 @@ def main():
     args = parse_args()
 
     set_random_seed(seed=args.seed)
-    wandb.init(
-        name=args.wandb_name,
-        project=args.wandb_project,
-        entity=args.wandb_login,
-        mode="online",
-        save_code=True,
-        config=args,
-    )
+    # wandb.init(
+    #     name=args.wandb_name,
+    #     project=args.wandb_project,
+    #     entity=args.wandb_login,
+    #     mode="online",
+    #     save_code=True,
+    #     config=args,
+    # )
     print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>init param>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
     print("model_lr", args.model_lr)
     print("prompt_lr", args.prompt_lr)
@@ -188,7 +188,7 @@ def main():
                 ]
                 cfg.data.test.test_cases[i].pipeline[1].flip = True
 
-    # cfg.model.pretrained = None
+    cfg.model.pretrained = None
     cfg.data.test.test_mode = True
 
     # init distributed env first, since logger depends on the dist info.
@@ -203,6 +203,7 @@ def main():
     #print(cfg)
     #datasets = [ build_dataset(cfg.data.test)]
     datasets = [ build_dataset(cfg.data.test.test_cases[i])for i in range(len(cfg.data.test.test_cases))]
+
     data_loaders = [build_dataloader(
         dataset,
         samples_per_gpu=1,
@@ -212,6 +213,7 @@ def main():
 
     # build the model and load checkpoint
     cfg.model.train_cfg = None
+    cfg.model.backbone.prompt_sparse_rate = args.prompt_sparse_rate
     #cfg.model.class_names=datasets[0].CLASSES
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
 
@@ -220,12 +222,6 @@ def main():
     dataset_name='acdc' if 'acdc' in args.config else ('night' if 'night' in args.config  else '')
     print(file_name+ '_' + model_name+ '_'+ dataset_name)
 
-    if 'TENT' in args.method or 'VanillaETA' in args.method:
-        for name, param in model.named_parameters():
-            if ("norm" in name or "bn" in name or "ln" in name or "BatchNorm" in name):
-                    param.requires_grad = True
-            else:
-                param.requires_grad = False
     #checkpoint = load_checkpoint(model, cfg.model.pretrained, map_location='cpu')
     # model.CLASSES = checkpoint['meta']['CLASSES']
     # model.PALETTE = checkpoint['meta']['PALETTE']
@@ -243,83 +239,29 @@ def main():
         efficient_test = args.eval_options.get('efficient_test', False)
 
     model = MMDataParallel(model, device_ids=[0])
-    if 'AuxAdapt' in args.method:
-        cfg_s.model.train_cfg = None
-        model_s = build_segmentor(cfg_s.model, test_cfg=cfg_s.get('test_cfg'))
-        pretrained_dict = torch.load(cfg_s.model.pretrained, map_location='cpu')
-        model_s.load_state_dict(pretrained_dict['state_dict'])
-        model_s.CLASSES = datasets[0].CLASSES
-        model_s.PALETTE = datasets[0].PALETTE
-        model_s = MMDataParallel(model_s, device_ids=[0])
-
     anchor = deepcopy(model.state_dict()) #?
     anchor_model = deepcopy(model) #?
     ema_model = create_ema_model(model) #?
-    for name, param in anchor_model.named_parameters():
-        if "DSP" in name or "DAP" in name:
-                param.data = torch.zeros_like(param)
-    print([param.data for name, param in anchor_model.named_parameters() if "DSP" in name or "DAP" in name])
+
     frame_passed=0
-    total_predict_time=0
-    domains_detections={}
-    # domains_detections["detection"]=True
-    # domains_detections["detection_prob"]=0.1
-    # domains_detections["adaptation_prob"] = {}
-    # domains_detections["cur_adaptation_prob"] = 1.0
-    # domains_detections["cur_dom"]="domain"+str(1)
-    # #domains_detections["shift"]=False
-    # domains_detections["storage"] = []
-    # domains_detections["adapted_frame"] = 0
-
-    # domains_detections["hp_k"] = 20
-    # domains_detections["hp_reso_select_k"] = 5
-    # domains_detections["hp_z_dm_shift"] = 3.0
-    # domains_detections["hp_z_adapt_ends"] = -0.5
-    # domains_detections["dm_shift"] = True
-    # domains_detections["dm_reso_select_processed_frames"] = -1
-    # domains_detections["dm_reso_select_conf_info"]=[[],[]]
-    domains_detections["adaptation"] = True
-    # domains_detections["pred_conf"] = [[],[]] #deque(maxlen=(2*domains_detections["hp_k"]))
-    # domains_detections["domain_conf"]=[]
-    #domains_detections["conf_gain"] = [0]
-    domains_detections["adat_ends"]=0.001
-    domains_detections["hp_k"] = 20
-    domains_detections["imge_id"] = 0
-    ldelta=0
-
+    # tuning on continual step
+    cnt = 0
+    num_itr = 3
+    All_mIoU = 0
     total_predict_time=0
     total_processed_frame=0
-    current_model_probs=None
     for i in range(10):
+        mean_mIoU = 0
         print("revisit times:",i)
         j=0
         for dataset, data_loader in zip(datasets, data_loaders):
             j=j+1
             pred_begin = time.time()
-            if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
-                outputs, frame_passed = single_model_update(model, data_loader, args, efficient_test,frame_passed)
-            elif 'AuxAdapt' in args.method:
-                outputs=single_gpu_AuxAdapt(model,model_s,data_loader,efficient_test,frame_passed)
-            elif 'DPT' in args.method:
-                outputs, frame_passed, ldelta = DPT(model, data_loader, ldelta,
-                                                    efficient_test, ema_model, anchor_model, frame_passed, i * 4 + j)
-            elif 'VanillaETA' in args.method:
-                outputs,frame_passed = ETA_TENT(model,data_loader,current_model_probs,efficient_test,anchor_model,frame_passed)
+            outputs = single_gpu_svdp(args, model, data_loader, args.show, args.show_dir,
+                                      efficient_test, anchor, ema_model, anchor_model, False, False)
 
-            elif 'CoTTAETA' in args.method:
-                outputs,frame_passed = Efficient_adaptation(model, data_loader, current_model_probs,
-                                          efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
-
-            elif 'CoTTA' in args.method:
-                outputs,frame_passed = single_gpu_cotta(model, data_loader, args.show, args.show_dir,
-                                          efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
-            elif 'RDumb' in args.method:
-                outputs,frame_passed = single_gpu_RDumb(model, data_loader, args.show, args.show_dir,
-                                          efficient_test,anchor, ema_model, anchor_model,frame_passed, i*4+j)
-
-            elif 'Ours' in args.method:
-                outputs,frame_passed,domains_detections = single_gpu_ours(model, data_loader, args.show, args.show_dir,
-                                          efficient_test,anchor, ema_model, anchor_model,frame_passed, domains_detections,i*4+j)
+            # outputs,frame_passed,domains_detections = single_gpu_ours(model, data_loader, args.show, args.show_dir,
+            #                               efficient_test,anchor, ema_model, anchor_model,frame_passed, domains_detections,i*4+j)
 
             total_predict_time = total_predict_time+time.time()-pred_begin
             total_processed_frame=total_processed_frame+len(data_loader)
@@ -333,8 +275,31 @@ def main():
                 if args.format_only:
                     dataset.format_results(outputs, **kwargs)
                 if args.eval:
-                    dataset.evaluate(outputs, args.eval, **kwargs)
+                    results = dataset.evaluate(outputs, args.eval, **kwargs)
+                    # mIoU = results['mIoU']
+                    # wandb.log(
+                    #     {
+                    #         "mIoU": mIoU,
+                    #     }
+                    # )
+                    # print('1')
+                    # mean_mIoU += mIoU
+    #
+    #     wandb.log(
+    #         {
+    #             "mean_mIoU": mean_mIoU / 4,
+    #         }
+    #     )
+    #     All_mIoU = All_mIoU + mean_mIoU / 4
+    # wandb.log(
+    #     {
+    #         "All_mIoU": All_mIoU / num_itr,
+    #     }
+    # )
+    # wandb.finish()
+
     print("total avg pred time:%.3f seconds; " % (total_predict_time / total_processed_frame))
+
 
 if __name__ == '__main__':
     main()
