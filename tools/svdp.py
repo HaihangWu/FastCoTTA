@@ -218,7 +218,7 @@ def main():
     #cfg.model.class_names=datasets[0].CLASSES
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
 
-    file_name=args.method
+    file_name='svdp'
     model_name='segformer' if 'segformer' in args.config else ('segnext' if 'segnext' in args.config else '')
     dataset_name='acdc' if 'acdc' in args.config else ('night' if 'night' in args.config  else '')
     print(file_name+ '_' + model_name+ '_'+ dataset_name)
