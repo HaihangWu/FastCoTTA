@@ -359,7 +359,7 @@ def single_gpu_svdp(args,
         # Domain Prompt Updating
         prompt_rate = args.ema_rate - np.average(uncertainty) * args.scale
 
-        ema_model = update_ema_variables_svdp(ema_model = ema_model, model = model, alpha_model=args.ema_rate, alpha_prompt = prompt_rate)
+        ema_model = update_ema_variables_svdp(ema_model = ema_model, model = model, alpha_teacher=args.ema_rate, alpha_prompt = prompt_rate)
         for nm, m in model.named_modules():
             for npp, p in m.named_parameters():
                 if npp in ['weight', 'bias'] and p.requires_grad:
