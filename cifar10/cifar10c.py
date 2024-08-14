@@ -57,7 +57,7 @@ def evaluate(description):
         logger.info("test-time adaptation: ETA")
         model = setup_ETA(base_model)
     if cfg.MODEL.ADAPTATION == "SAR":
-        logger.info("test-time adaptation: ETA")
+        logger.info("test-time adaptation: SAR")
         model = setup_SAR(base_model)
     # evaluate on each severity and type of corruption in turn
     prev_ct = "x0"
@@ -208,9 +208,13 @@ def setup_SAR(model):
     """
     model = SAR.configure_model(model)
     params, param_names = SAR.collect_params(model)
-
-    base_optimizer = setup_optimizer(params)
-    optimizer = SAM(params, base_optimizer)
+    if cfg.OPTIM.METHOD == 'Adam':
+        base_optimizer = optim.Adam
+        optimizer = SAM(params, base_optimizer,lr=cfg.OPTIM.LR,betas=(cfg.OPTIM.BETA, 0.999),weight_decay=cfg.OPTIM.WD)
+    if cfg.OPTIM.METHOD == 'SGD':
+        base_optimizer = optim.SGD
+        optimizer = SAM(params, base_optimizer, lr=cfg.OPTIM.LR, momentum=cfg.OPTIM.MOMENTUM,dampening=cfg.OPTIM.DAMPENING,
+                        weight_decay=cfg.OPTIM.WD,nesterov=cfg.OPTIM.NESTEROV)
 
     SAR_model = SAR.SAR(model, optimizer)
 
