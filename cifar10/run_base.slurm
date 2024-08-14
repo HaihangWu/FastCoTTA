@@ -28,7 +28,7 @@
 # --gpus-per-task=1  # number of gpus per task
 
 # The maximum running time of the job in days-hours:mins:sec
-#SBATCH --time=02-10:00:00
+#SBATCH --time=00-10:00:00
 
 module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
