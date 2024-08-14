@@ -8,5 +8,5 @@
 #CUDA_VISIBLE_DEVICES=0 python cifar100c.py --cfg cfgs/cifar100/cotta.yaml
 
 
-CUDA_VISIBLE_DEVICES=0 python cifar10c.py --cfg cfgs/cifar100/sar.yaml
-CUDA_VISIBLE_DEVICES=0 python cifar10c.py --cfg cfgs/cifar100/fastcotta.yaml
+CUDA_VISIBLE_DEVICES=0 python cifar100c.py --cfg cfgs/cifar100/sar.yaml
+CUDA_VISIBLE_DEVICES=0 python cifar100c.py --cfg cfgs/cifar100/fastcotta.yaml
