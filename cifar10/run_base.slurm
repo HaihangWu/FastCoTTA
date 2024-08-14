@@ -33,7 +33,7 @@
 module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
 conda deactivate
-conda activate fastcotta
+conda activate Uniformerv2
 
 # The job command(s):
 export MASTER_PORT=$(expr 10000 + $(echo -n $SLURM_JOBID | tail -c 4))
