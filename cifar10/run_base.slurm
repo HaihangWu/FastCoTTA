@@ -45,15 +45,8 @@ export MASTER_ADDR=$master_addr
 echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
-#bash ./imagenet/dist_cotta.sh  | tee imagenet_ours_3.log
-#bash ./cifar10/dist_cotta.sh  | tee cifar10_ours_3.log
-#bash ./cifar100/dist_cotta.sh  | tee cifar10_ours_3.log
 
-#bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py VanillaETA 1 | tee ETA_TENT_segformer_acdc_5.log
-
-#bash ./tools/dist_svdp.sh local_configs/ours/SVDP_segformer.b5.1024x1024.acdc.160k.py SVDP 1 | tee SVDP_segformer_acdc_5_feit_2ndline.log
-
-bash ./cifar10/run_cifar10.sh | tee sar_cifar10.log
+bash ./run_cifar10.sh | tee sar_cifar10.log
 
 
 
