@@ -46,7 +46,7 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
 
-bash ./run_cifar10.sh | tee sar_cifar10.log
+bash ./run_cifar10.sh
 
 
 
