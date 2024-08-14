@@ -47,8 +47,8 @@ class SAR(nn.Module):
 
         for _ in range(self.steps):
             outputs, ema, reset_flag = forward_and_adapt_sar(x, self.model, self.optimizer, self.margin_e0, self.reset_constant_em, self.ema)
-            if reset_flag:
-                self.reset()
+            # if reset_flag:
+            #     self.reset()
             self.ema = ema  # update moving average value of loss
 
         return outputs
