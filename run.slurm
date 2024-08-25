@@ -60,5 +60,3 @@ bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.p
 
 #bash ./tools/dist_cotta.sh local_configs/Language/Lsegformer.b5.1024x1024.night.160k.py  1 | tee LSegb5-night-cotta-train.log
 #bash ./tools/dist_cotta.sh local_configs/Language/Lsetr_vit-large_pup_8x1_768x768_80k_night.py  1 | tee Lsetr-night-cotta-train.log
-
-#bash ./tools/dist_language_test.sh local_configs/Language/Lsegformer.b0.1024x1024.acdc.160k.py   1 | tee LSegb0-acdc-BN.log
