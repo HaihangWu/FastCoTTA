@@ -30,9 +30,14 @@
 # The maximum running time of the job in days-hours:mins:sec
 #SBATCH --time=00-20:00:0
 
+# module load Anaconda3/2022.10
+# eval "$(conda shell.bash hook)"
+# conda activate Uniformerv2
+
 module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
-conda activate Uniformerv2
+conda deactivate
+conda activate fastcotta
 
 # The job command(s):
 export MASTER_PORT=$(expr 10000 + $(echo -n $SLURM_JOBID | tail -c 4))
