@@ -227,88 +227,76 @@ def main():
     total_predict_time=0
     total_processed_frame=0
     original_depth=[3, 6, 40, 3]
-    for dataset, data_loader in zip(datasets, data_loaders):
-        # j=j+1
-        pred_begin = time.time()
-
-
-        #######################################Create pruned model######################################
-        prune_start = time.time()
-        prune_loader=data_loader[:10]
-        feature_maps_origin = []
-        for i, data in enumerate(prune_loader):
-            with torch.no_grad():
-                result_ori, probs, preds = model(return_loss=False, **data)
-                result = [preds[0][0].astype(np.int64)]
-                if isinstance(result, list):
-                    result = [np2tmp(_) for _ in result]
-                    feature_maps_origin.extend(result)
-                else:
-                    result = np2tmp(result)
-                    feature_maps_origin.append(result)
-
-        for block_index, pruned_block in enumerate(prunable_blocks):
-            # build the model and load checkpoint
-            cfg.model.backbone.depths = [original_depth[0] - 1 if block_index < 3 else original_depth[0], original_depth[1] - 1 if 3 <= block_index < 9 else original_depth[1],
-             original_depth[2] - 1 if 9 <= block_index < 49 else original_depth[2], original_depth[3] - 1 if 49 <= block_index < 52 else original_depth[3]]
-            pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
-            pruned_model, pruned_lat = build_student(pruned_model_temp, [pruned_block],  state_dict_path=cfg.model.pretrained, cuda=True)
-
-            loss = 0
-            feature_maps_prune = []
-            for i, data in enumerate(prune_loader):
-                with torch.no_grad():
-                    result_ori, probs, preds = pruned_model(return_loss=False, **data)
-                    result = [preds[0][0].astype(np.int64)]
-                    if isinstance(result, list):
-                        result = [np2tmp(_) for _ in result]
-                        feature_maps_prune.extend(result)
-                    else:
-                        result = np2tmp(result)
-                        feature_maps_prune.append(result)
-                loss = loss+criterion(feature_maps_prune, feature_maps_origin).data.item()
-            blocks_importance.append(loss * Model_capacity_gap[block_index] / latency_time_saving[block_index])
-
-        paired_lists = zip(blocks_importance, prunable_blocks)
-        sorted_lists = sorted(paired_lists, key=lambda x: x[0])
-        sorted_blocks_importance, sorted_prunable_blocks = zip(*sorted_lists)
-        pruned_block = sorted_prunable_blocks[:args.num_rm_blocks]
-        print(f'pruning time: {(time.time() - prune_start):.6f}/block importance: {blocks_importance}')
-
-        cfg.model.backbone.depths =
-        pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
-        pruned_model, pruned_lat = build_student(pruned_model_temp, pruned_block, state_dict_path=cfg.model.pretrained,
-                                                 cuda=True)
-
-        lat_reduction = (origin_lat - pruned_lat) / origin_lat * 100
-        print(f'=> latency reduction: {lat_reduction:.2f}%')
-        #################################################################################################
-
-
-        # if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
-        #     outputs, frame_passed = single_model_update(model, data_loader, args, efficient_test,frame_passed)
-        #
-        # elif 'VanillaETA' in args.method:
-        #     outputs,frame_passed = ETA_TENT(model,data_loader,current_model_probs,efficient_test,anchor_model,frame_passed)
-        #
-        # elif 'Ours' in args.method:
-        #     outputs,frame_passed,domains_detections = single_gpu_ours(model, data_loader, args.show, args.show_dir,
-        #                               efficient_test,anchor, ema_model, anchor_model,frame_passed, domains_detections,i*4+j)
-
-        total_predict_time = total_predict_time+time.time()-pred_begin
-        total_processed_frame=total_processed_frame+len(data_loader)
-
-        rank, _ = get_dist_info()
-        if rank == 0:
-            if args.out:
-                print(f'\nwriting results to {args.out}')
-                mmcv.dump(outputs, args.out)
-            kwargs = {} if args.eval_options is None else args.eval_options
-            if args.format_only:
-                dataset.format_results(outputs, **kwargs)
-            if args.eval:
-                    dataset.evaluate(outputs, args.eval, **kwargs)
-    print("total avg pred time:%.3f seconds; " % (total_predict_time / total_processed_frame))
+    # for dataset, data_loader in zip(datasets, data_loaders):
+    #     # j=j+1
+    #     pred_begin = time.time()
+    #
+    #
+    #     #######################################Create pruned model######################################
+    #     prune_start = time.time()
+    #     prune_loader=data_loader[:10]
+    #     feature_maps_origin = []
+    #     for i, data in enumerate(prune_loader):
+    #         with torch.no_grad():
+    #             result_ori, probs, preds = model(return_loss=False, **data)
+    #             result = [preds[0][0].astype(np.int64)]
+    #             if isinstance(result, list):
+    #                 result = [np2tmp(_) for _ in result]
+    #                 feature_maps_origin.extend(result)
+    #             else:
+    #                 result = np2tmp(result)
+    #                 feature_maps_origin.append(result)
+    #
+    #     for block_index, pruned_block in enumerate(prunable_blocks):
+    #         # build the model and load checkpoint
+    #         cfg.model.backbone.depths = [original_depth[0] - 1 if block_index < 3 else original_depth[0], original_depth[1] - 1 if 3 <= block_index < 9 else original_depth[1],
+    #          original_depth[2] - 1 if 9 <= block_index < 49 else original_depth[2], original_depth[3] - 1 if 49 <= block_index < 52 else original_depth[3]]
+    #         pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
+    #         pruned_model, pruned_lat = build_student(pruned_model_temp, [pruned_block],  state_dict_path=cfg.model.pretrained, cuda=True)
+    #
+    #         loss = 0
+    #         feature_maps_prune = []
+    #         for i, data in enumerate(prune_loader):
+    #             with torch.no_grad():
+    #                 result_ori, probs, preds = pruned_model(return_loss=False, **data)
+    #                 result = [preds[0][0].astype(np.int64)]
+    #                 if isinstance(result, list):
+    #                     result = [np2tmp(_) for _ in result]
+    #                     feature_maps_prune.extend(result)
+    #                 else:
+    #                     result = np2tmp(result)
+    #                     feature_maps_prune.append(result)
+    #             loss = loss+criterion(feature_maps_prune, feature_maps_origin).data.item()
+    #         blocks_importance.append(loss * Model_capacity_gap[block_index] / latency_time_saving[block_index])
+    #
+    #     paired_lists = zip(blocks_importance, prunable_blocks)
+    #     sorted_lists = sorted(paired_lists, key=lambda x: x[0])
+    #     sorted_blocks_importance, sorted_prunable_blocks = zip(*sorted_lists)
+    #     pruned_block = sorted_prunable_blocks[:args.num_rm_blocks]
+    #     print(f'pruning time: {(time.time() - prune_start):.6f}/block importance: {blocks_importance}')
+    #
+    #     cfg.model.backbone.depths =
+    #     pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
+    #     pruned_model, pruned_lat = build_student(pruned_model_temp, pruned_block, state_dict_path=cfg.model.pretrained,
+    #                                              cuda=True)
+    #
+    #     lat_reduction = (origin_lat - pruned_lat) / origin_lat * 100
+    #     print(f'=> latency reduction: {lat_reduction:.2f}%')
+    #
+    #     total_predict_time = total_predict_time+time.time()-pred_begin
+    #     total_processed_frame=total_processed_frame+len(data_loader)
+    #
+    #     rank, _ = get_dist_info()
+    #     if rank == 0:
+    #         if args.out:
+    #             print(f'\nwriting results to {args.out}')
+    #             mmcv.dump(outputs, args.out)
+    #         kwargs = {} if args.eval_options is None else args.eval_options
+    #         if args.format_only:
+    #             dataset.format_results(outputs, **kwargs)
+    #         if args.eval:
+    #                 dataset.evaluate(outputs, args.eval, **kwargs)
+    # print("total avg pred time:%.3f seconds; " % (total_predict_time / total_processed_frame))
 
 if __name__ == '__main__':
     main()
@@ -379,3 +367,17 @@ if __name__ == '__main__':
 # elif 'AuxAdapt' in args.method or 'Ours' in args.method:
 #     cfg.data.test.test_cases[i].pipeline[1].img_ratios = [1.0, 2.0]9
 #     cfg.data.test.test_cases[i].pipeline[1].flip = False
+
+
+#################################################################################################
+
+
+# if 'Source' in args.method or 'BN' in args.method or 'TENT' in args.method:
+#     outputs, frame_passed = single_model_update(model, data_loader, args, efficient_test,frame_passed)
+#
+# elif 'VanillaETA' in args.method:
+#     outputs,frame_passed = ETA_TENT(model,data_loader,current_model_probs,efficient_test,anchor_model,frame_passed)
+#
+# elif 'Ours' in args.method:
+#     outputs,frame_passed,domains_detections = single_gpu_ours(model, data_loader, args.show, args.show_dir,
+#                               efficient_test,anchor, ema_model, anchor_model,frame_passed, domains_detections,i*4+j)
