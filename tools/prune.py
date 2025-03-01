@@ -282,12 +282,12 @@ def main():
         for dataset, data_loader in zip(datasets, data_loaders):
             if i == 0:
                 img_id = 0
-                model.eval()
+                pruned_model.eval()
                 pred_begin = time.time()
                 for j, data in enumerate(data_loader):
                     with torch.no_grad():
                         # result_ori, probs, preds = model(return_loss=False, **data)
-                        result, probs_, preds_ = model(return_loss=False, img=[data['img'][img_id]],
+                        result, probs_, preds_ = pruned_model(return_loss=False, img=[data['img'][img_id]],
                                                        img_metas=[data['img_metas'][img_id].data[0]])
                 pruned_lat = time.time() - pred_begin
             i = i + 1
