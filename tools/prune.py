@@ -34,7 +34,14 @@ def load_rm_block_state_dict(model, raw_state_dict, rm_blocks):
             if block not in rm_blocks:
                 key_items[2] = str(int(key_items[2]) - len([ rm_block_index for rm_block_index in rm_block_info[stage_index] if block_index>rm_block_index]))
                 target_key = '.'.join(key_items)
-                assert target_key in state_dict
+                try:
+                    assert target_key in state_dict
+                except AssertionError:
+                    print(f"Key '{target_key}' not found in state_dict.")
+                    print(f"raw keys: {raw_key}")
+                    print(f"block: {block}")
+                    print(f"Available keys: {rm_blocks}")
+                    raise
                 state_dict[target_key] = raw_state_dict[raw_key]
 
             # if block in rm_blocks:
