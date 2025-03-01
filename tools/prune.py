@@ -48,13 +48,6 @@ def load_rm_block_state_dict(model, raw_state_dict, rm_blocks):
                     print(f"Available keys: {list(state_dict.keys())}")
                     raise
                 state_dict[target_key] = raw_state_dict[raw_key]
-
-            # if block in rm_blocks:
-            #     if block not in has_count[stage_index]:
-            #         has_count[stage_index].add(block)
-            #         rm_count[stage_index] += 1
-            # else:
-
         else:
             assert raw_key in state_dict
             state_dict[raw_key] = raw_state_dict[raw_key]
@@ -295,7 +288,6 @@ def main():
         feature_maps_origin = []
         for i, data in enumerate(prune_loader):
             with torch.no_grad():
-                print(f"print at {i} times")
                 result_ori, probs, preds = model(return_loss=False, **data)
                 # result = [preds[0][0].astype(np.int64)]
                 # if isinstance(result, list):
@@ -313,8 +305,11 @@ def main():
             print(f"backbone is  {cfg.model.backbone.depths}")
             pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
             pruned_model = build_student(pruned_model_temp, [pruned_block],  state_dict_path=cfg.model.pretrained, cuda=True)
-            pruned_model.eval()
+            pruned_model.CLASSES = datasets[0].CLASSES
+            pruned_model.PALETTE = datasets[0].PALETTE
+            pruned_model = MMDataParallel(pruned_model, device_ids=[0])
 
+            pruned_model.eval()
             loss = 0
             feature_maps_prune = 0
             for i, data in enumerate(prune_loader):
