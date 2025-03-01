@@ -286,26 +286,27 @@ def main():
             else:
                 break
         #######################################Create pruned model######################################
+        model.eval()
         prune_start = time.time()
-
         feature_maps_origin = []
         for i, data in enumerate(prune_loader):
-            model.eval()
             with torch.no_grad():
+                print(f"print at {i} times")
                 result_ori, probs, preds = model(return_loss=False, **data)
-                result = [preds[0][0].astype(np.int64)]
-                if isinstance(result, list):
-                    result = [np2tmp(_) for _ in result]
-                    feature_maps_origin.extend(result)
-                else:
-                    result = np2tmp(result)
-                    feature_maps_origin.append(result)
+                # result = [preds[0][0].astype(np.int64)]
+                # if isinstance(result, list):
+                #     result = [np2tmp(_) for _ in result]
+                #     feature_maps_origin.extend(result)
+                # else:
+                #     result = np2tmp(result)
+                #     feature_maps_origin.append(result)
 
         for _, pruned_block in enumerate(prunable_blocks):
             # build the model and load checkpoint
             stage_index, block_index = map(int, re.findall(r'\d+', pruned_block))
             cfg.model.backbone.depths = [original_depth[i] - 1 if stage_index == i else original_depth[i] for i in
                                          range(4)]
+            print(f"backbone is  {cfg.model.backbone.depths}")
             pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
             pruned_model = build_student(pruned_model_temp, [pruned_block],  state_dict_path=cfg.model.pretrained, cuda=True)
             pruned_model.eval()
