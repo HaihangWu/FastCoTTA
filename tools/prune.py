@@ -249,8 +249,7 @@ def main():
             pred_begin = time.time()
             for j, data in enumerate(data_loader):
                 with torch.no_grad():
-                    #result_ori, probs, preds = model(return_loss=False, **data)
-                    result, probs_, preds_ = model(return_loss=False, img=[data['img'][img_id]],img_metas=[data['img_metas'][img_id].data[0]])
+                    result_ori, probs, preds = model(return_loss=False, **data)
             origin_lat = time.time() - pred_begin
         i=i+1
 
@@ -286,9 +285,7 @@ def main():
                 pred_begin = time.time()
                 for j, data in enumerate(data_loader):
                     with torch.no_grad():
-                        # result_ori, probs, preds = model(return_loss=False, **data)
-                        result, probs_, preds_ = pruned_model(return_loss=False, img=[data['img'][img_id]],
-                                                       img_metas=[data['img_metas'][img_id].data[0]])
+                        result_ori, probs, preds = model(return_loss=False, **data)
                 pruned_lat = time.time() - pred_begin
             i = i + 1
 
