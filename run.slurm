@@ -30,9 +30,6 @@
 # The maximum running time of the job in days-hours:mins:sec
 #SBATCH --time=00-20:00:0
 
-# module load Anaconda3/2022.10
-# eval "$(conda shell.bash hook)"
-# conda activate Uniformerv2
 
 module load Anaconda3/2022.10
 eval "$(conda shell.bash hook)"
