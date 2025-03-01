@@ -268,15 +268,18 @@ def main():
 
     total_predict_time=0
     total_processed_frame=0
-
+    #prune_loader = list(itertools.islice(data_loader, 10))
     for dataset, data_loader in zip(datasets, data_loaders):
         # j=j+1
-        pred_begin = time.time()
-
-
+        prune_loader = []
+        for i, data in enumerate(prune_loader):
+            if i<=9:
+                prune_loader.append(data)
+            else:
+                break
         #######################################Create pruned model######################################
         prune_start = time.time()
-        prune_loader = list(itertools.islice(data_loader, 10))
+
         feature_maps_origin = []
         for i, data in enumerate(prune_loader):
             model.eval()
@@ -329,7 +332,7 @@ def main():
         pruned_model = build_student(pruned_model_temp, pruned_block, state_dict_path=cfg.model.pretrained,cuda=True)
 
 
-        total_predict_time = total_predict_time+time.time()-pred_begin
+        total_predict_time = total_predict_time+time.time()-prune_start
         total_processed_frame=total_processed_frame+len(data_loader)
 
         rank, _ = get_dist_info()
