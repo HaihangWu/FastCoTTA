@@ -65,11 +65,11 @@ def load_rm_block_state_dict(model, raw_state_dict, rm_blocks):
 def build_student(pruned_model_temp, pruned_block, state_dict_path='', cuda=True):
 
     pretrained_dict = torch.load(state_dict_path,map_location='cpu')
-    pruned_model=load_rm_block_state_dict(pruned_model_temp,pretrained_dict['state_dict'],pruned_block)
+    load_rm_block_state_dict(pruned_model_temp,pretrained_dict['state_dict'],pruned_block)
 
     if cuda:
-        pruned_model.cuda()
-    return pruned_model
+        pruned_model_temp.cuda()
+    return pruned_model_temp
 
     # pruned_MACs, pruned_Params = compute_MACs_params(pruned_model, summary_data)
     # MACs_str = f'MACs={pruned_MACs:.3f}G'
