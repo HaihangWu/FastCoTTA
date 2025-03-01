@@ -76,39 +76,27 @@ class EncoderDecoder(BaseSegmentor):
             else:
                 self.auxiliary_head.init_weights()
 
-    # def extract_feat(self, img):
-    #     """Extract features from images."""
-    #     x = self.backbone(img)
-    #     if self.with_neck:
-    #         x = self.neck(x)
-    #     return x
-
-    def extract_feat(self, img, img_metas, position=None):
+    def extract_feat(self, img):
         """Extract features from images."""
-        if position:
-            x = self.backbone(img, img_metas, position)
-        else:
-            x = self.backbone(img, img_metas)
+        x = self.backbone(img)
         if self.with_neck:
             x = self.neck(x)
         return x
 
-    # def encode_decode(self, img, img_metas):
-    #     """Encode images with backbone and decode into a semantic segmentation
-    #     map of the same size as input."""
-    #     x = self.extract_feat(img)
-    #     out = self._decode_head_forward_test(x, img_metas)
-    #     out = resize(
-    #         input=out,
-    #         size=img.shape[2:],
-    #         mode='bilinear',
-    #         align_corners=self.align_corners)
-    #     return out
+    # def extract_feat(self, img, img_metas, position=None):
+    #     """Extract features from images."""
+    #     if position:
+    #         x = self.backbone(img, img_metas, position)
+    #     else:
+    #         x = self.backbone(img, img_metas)
+    #     if self.with_neck:
+    #         x = self.neck(x)
+    #     return x
 
-    def encode_decode(self, img, img_metas, position):
+    def encode_decode(self, img, img_metas):
         """Encode images with backbone and decode into a semantic segmentation
         map of the same size as input."""
-        x = self.extract_feat(img, img_metas, position)
+        x = self.extract_feat(img)
         out = self._decode_head_forward_test(x, img_metas)
         out = resize(
             input=out,
@@ -116,6 +104,18 @@ class EncoderDecoder(BaseSegmentor):
             mode='bilinear',
             align_corners=self.align_corners)
         return out
+
+    # def encode_decode(self, img, img_metas, position):
+    #     """Encode images with backbone and decode into a semantic segmentation
+    #     map of the same size as input."""
+    #     x = self.extract_feat(img, img_metas, position)
+    #     out = self._decode_head_forward_test(x, img_metas)
+    #     out = resize(
+    #         input=out,
+    #         size=img.shape[2:],
+    #         mode='bilinear',
+    #         align_corners=self.align_corners)
+    #     return out
 
     def encode_decode_svdp(self, img, img_metas, position, drop_num):
         """Encode images with backbone and decode into a semantic segmentation
@@ -233,8 +233,8 @@ class EncoderDecoder(BaseSegmentor):
                 y1 = max(y2 - h_crop, 0)
                 x1 = max(x2 - w_crop, 0)
                 crop_img = img[:, :, y1:y2, x1:x2]
-                #crop_seg_logit = self.encode_decode(crop_img, img_meta)
-                crop_seg_logit = self.encode_decode(crop_img, img_meta, (y1,y2,x1,x2))
+                crop_seg_logit = self.encode_decode(crop_img, img_meta)
+                #crop_seg_logit = self.encode_decode(crop_img, img_meta, (y1,y2,x1,x2))
                 preds += F.pad(crop_seg_logit,
                                (int(x1), int(preds.shape[3] - x2), int(y1),
                                 int(preds.shape[2] - y2)))

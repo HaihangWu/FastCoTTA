@@ -49,7 +49,7 @@ echo "r$SLURM_NODEID Launching python script"
 #bash ./cifar10/dist_cotta.sh  | tee cifar10_ours_3.log
 #bash ./cifar100/dist_cotta.sh  | tee cifar10_ours_3.log
 
-bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py CoTTA 1 | tee CoTTA.log
+bash ./tools/dist_cotta.sh local_configs/ours/segformer.b5.1024x1024.acdc.160k.py Source 1 | tee Source.log
 
 #bash ./tools/dist_svdp.sh local_configs/ours/SVDP_segformer.b5.1024x1024.acdc.160k.py SVDP 1 | tee SVDP_segformer_acdc_5_feit_2ndline.log
 
