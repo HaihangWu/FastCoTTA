@@ -37,10 +37,11 @@ def load_rm_block_state_dict(model, raw_state_dict, rm_blocks):
                 try:
                     assert target_key in state_dict
                 except AssertionError:
-                    print(f"Key '{target_key}' not found in state_dict.")
+                    print(f"target Key '{target_key}' not found in state_dict.")
                     print(f"raw keys: {raw_key}")
                     print(f"block: {block}")
-                    print(f"Available keys: {rm_blocks}")
+                    print(f"removed blocks: {rm_blocks}")
+                    print(f"Available keys: {list(state_dict.keys())}")
                     raise
                 state_dict[target_key] = raw_state_dict[raw_key]
 
