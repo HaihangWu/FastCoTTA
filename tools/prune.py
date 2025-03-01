@@ -220,6 +220,7 @@ def main():
     #cfg.model.class_names=datasets[0].CLASSES
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
     original_num_params = sum(p.numel() for p in model.parameters())
+    print("original model size",original_num_params)
 
 
     pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
@@ -274,7 +275,8 @@ def main():
         pruned_model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
         #pruned_model = build_student(pruned_model_temp, [pruned_block], state_dict_path=cfg.model.pretrained, cuda=True)
         pruned_num_params = sum(p.numel() for p in pruned_model.parameters())
-        Model_capacity_gap.append((original_num_params-pruned_num_params)/original_num_params)
+        Model_capacity_gap.append(round((original_num_params-pruned_num_params)/original_num_params, 6))
+        print("pruned model size", pruned_num_params)
 
         i = 0
         pruned_lat = 0
