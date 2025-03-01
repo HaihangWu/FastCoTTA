@@ -22,7 +22,7 @@ from collections import deque
 def load_rm_block_state_dict(model, raw_state_dict, rm_blocks):
     rm_block_info = [[] for _ in range(4)]
     for stage_index, block_index in (map(int, re.findall(r'\d+', rm_block)) for rm_block in rm_blocks):
-        rm_block_info[stage_index].append(block_index)
+        rm_block_info[stage_index-1].append(block_index)
     # has_count = [set(),set(),set(),set()]
     state_dict = model.state_dict()
     for raw_key in raw_state_dict.keys():
@@ -32,7 +32,11 @@ def load_rm_block_state_dict(model, raw_state_dict, rm_blocks):
             block = f'backbone.{key_items[1]}.{key_items[2]}'
             stage_index, block_index = map(int, re.findall(r'\d+', block))
             if block not in rm_blocks:
-                key_items[2] = str(int(key_items[2]) - len([ rm_block_index for rm_block_index in rm_block_info[stage_index] if block_index>rm_block_index]))
+                try:
+                    key_items[2] = str(int(key_items[2]) - len([ rm_block_index for rm_block_index in rm_block_info[stage_index-1] if block_index>rm_block_index]))
+                except:
+                    print(f"rm_block_info: {rm_block_info}")
+                    raise
                 target_key = '.'.join(key_items)
                 try:
                     assert target_key in state_dict
