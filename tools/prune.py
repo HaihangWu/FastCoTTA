@@ -250,7 +250,7 @@ def main():
 
     original_depth=[3, 6, 40, 3]
     prunable_blocks = [
-        'backbone.block' + str(stage_index) + '.' + str(block_index)
+        'backbone.block' + str(stage_index+1) + '.' + str(block_index)
         for stage_index, block_num in enumerate(original_depth)
         for block_index in range(block_num)
     ]
@@ -301,7 +301,7 @@ def main():
                     result = np2tmp(result)
                     feature_maps_origin.append(result)
 
-        for block_index, pruned_block in enumerate(prunable_blocks):
+        for _, pruned_block in enumerate(prunable_blocks):
             # build the model and load checkpoint
             stage_index, block_index = map(int, re.findall(r'\d+', pruned_block))
             cfg.model.backbone.depths = [original_depth[i] - 1 if stage_index == i else original_depth[i] for i in
