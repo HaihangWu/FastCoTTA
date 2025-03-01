@@ -15,6 +15,7 @@ from IPython import embed
 from copy import deepcopy
 import time
 import numpy as np
+import itertools
 from collections import deque
 
 
@@ -275,7 +276,7 @@ def main():
 
         #######################################Create pruned model######################################
         prune_start = time.time()
-        prune_loader=data_loader[:10]
+        prune_loader = list(itertools.islice(data_loader, 10))
         feature_maps_origin = []
         for i, data in enumerate(prune_loader):
             model.eval()
