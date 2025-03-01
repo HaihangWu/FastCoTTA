@@ -280,7 +280,7 @@ def main():
     for dataset, data_loader in zip(datasets, data_loaders):
         # j=j+1
         prune_loader = []
-        for i, data in enumerate(prune_loader):
+        for i, data in enumerate(data_loader):
             if i<=9:
                 prune_loader.append(data)
             else:
@@ -304,7 +304,7 @@ def main():
         for _, pruned_block in enumerate(prunable_blocks):
             # build the model and load checkpoint
             stage_index, block_index = map(int, re.findall(r'\d+', pruned_block))
-            cfg.model.backbone.depths = [original_depth[i] - 1 if stage_index == i else original_depth[i] for i in
+            cfg.model.backbone.depths = [original_depth[i] - 1 if stage_index == (i+1) else original_depth[i] for i in
                                          range(4)]
             print(f"backbone is  {cfg.model.backbone.depths}")
             pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
