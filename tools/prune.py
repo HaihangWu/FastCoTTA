@@ -219,8 +219,6 @@ def main():
     cfg.model.train_cfg = None
     #cfg.model.class_names=datasets[0].CLASSES
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
-    original_num_params = sum(p.numel() for p in model.parameters())
-    print("original model size",original_num_params)
 
 
     pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
@@ -241,144 +239,109 @@ def main():
     anchor = deepcopy(model.state_dict()) #?
     anchor_model = deepcopy(model) #?
 
-    i=0
-    origin_lat=0
-    for dataset, data_loader in zip(datasets, data_loaders):
-        if i==0:
-            img_id = 0
-            model.eval()
-            pred_begin = time.time()
-            for j, data in enumerate(data_loader):
-                with torch.no_grad():
-                    result_ori, probs, preds = model(return_loss=False, **data)
-            origin_lat = time.time() - pred_begin
-        i=i+1
-
-
     original_depth=[3, 6, 40, 3]
     prunable_blocks = [
         'backbone.block' + str(stage_index) + '.' + str(block_index)
         for stage_index, block_num in enumerate(original_depth)
         for block_index in range(block_num)
     ]
-    Model_capacity_gap = []
-    latency_time_saving = []
+    Model_capacity_gap = [0.003722, 0.003722, 0.003722, 0.005507, 0.005507, 0.005507, 0.005507, 0.005507, 0.005507, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.019576, 0.0375, 0.0375, 0.0375]
+    latency_time_saving = [0.046348852953935774, 0.050502471499634424, 0.05278923771590252, 0.04937613845638028, 0.04981888329087601, 0.053071250413722446, 0.053502999773219505, 0.05119337429476534, 0.05089374052241965, 0.052822884813216044, 0.04987236943406696, 0.052571498996401, 0.05045624331376019, 0.04757914750543912, 0.052487065074222385, 0.05300092656461079, 0.05150613656987767, 0.05222111615189408, 0.05119668709452888, 0.04901352373582334, 0.05336000196918103, 0.05026996203474842, 0.05133247413213046, 0.051115150692371374, 0.05336049275433119, 0.04857203417873089, 0.04901248553646724, 0.05244725484800403, 0.050154202806543556, 0.052196378692691066, 0.049332637903359795, 0.0488552738394262, 0.053004711273172564, 0.05067214158894864, 0.04962498540386087, 0.05165800625932279, 0.05306855109539659, 0.05088147089366577, 0.05128675560775832, 0.05263298871280986, 0.04935119335730605, 0.05017020051480342, 0.051467742070053994, 0.048086477778060084, 0.051799701595078164, 0.05131384317277649, 0.04527412785685564, 0.05140151438931094, 0.05034186205924615, 0.04686560252616932, 0.05127006891265304, 0.04869782618798604]
+    # latency_time_saving = [
+    #     0.049880187, 0.049880187, 0.049880187, 0.051309398, 0.051309398, 0.051309398,
+    #     0.051309398, 0.051309398, 0.051309398, 0.050869306, 0.050869306, 0.050869306,
+    #     0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306,
+    #     0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306,
+    #     0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306,
+    #     0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306,
+    #     0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306,
+    #     0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306,
+    #     0.050869306, 0.050869306, 0.048944499, 0.048944499, 0.048944499]
 
 
 
+    blocks_importance=[]
+    criterion = torch.nn.MSELoss(reduction='mean').cuda()
+    t_features=None
 
-    for block_index, pruned_block in enumerate(prunable_blocks):
-        # build the model and load checkpoint
-        stage_index, block_index = map(int, re.findall(r'\d+', pruned_block))
-        cfg.model.backbone.depths = [original_depth[i] - 1 if stage_index == i else original_depth[i] for i in
-                                     range(4)]
-        pruned_model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
-        #pruned_model = build_student(pruned_model_temp, [pruned_block], state_dict_path=cfg.model.pretrained, cuda=True)
-        pruned_num_params = sum(p.numel() for p in pruned_model.parameters())
-        Model_capacity_gap.append(round((original_num_params-pruned_num_params)/original_num_params, 6))
-        print("pruned model size", pruned_num_params)
 
-        i = 0
-        pruned_lat = 0
-        for dataset, data_loader in zip(datasets, data_loaders):
-            if i == 0:
-                img_id = 0
-                pruned_model.eval()
-                pred_begin = time.time()
-                for j, data in enumerate(data_loader):
-                    with torch.no_grad():
-                        result_ori, probs, preds = model(return_loss=False, **data)
-                pruned_lat = time.time() - pred_begin
-            i = i + 1
+    total_predict_time=0
+    total_processed_frame=0
 
-        lat_reduction = (origin_lat - pruned_lat) / origin_lat
-        latency_time_saving.append(lat_reduction)
-    print("I'm printing prunable_blocks",prunable_blocks)
-    print("I'm printing model capacity gap",Model_capacity_gap)
-    print("I'm printing latency time saving",latency_time_saving)
+    for dataset, data_loader in zip(datasets, data_loaders):
+        # j=j+1
+        pred_begin = time.time()
 
-    # blocks_importance=[]
-    # criterion = torch.nn.MSELoss(reduction='mean').cuda()
-    # t_features=None
-    #
-    #
-    #
-    # total_predict_time=0
-    # total_processed_frame=0
-    #
-    # for dataset, data_loader in zip(datasets, data_loaders):
-    #     # j=j+1
-    #     pred_begin = time.time()
-    #
-    #
-    #     #######################################Create pruned model######################################
-    #     prune_start = time.time()
-    #     prune_loader=data_loader[:10]
-    #     feature_maps_origin = []
-    #     for i, data in enumerate(prune_loader):
-    #         with torch.no_grad():
-    #             result_ori, probs, preds = model(return_loss=False, **data)
-    #             result = [preds[0][0].astype(np.int64)]
-    #             if isinstance(result, list):
-    #                 result = [np2tmp(_) for _ in result]
-    #                 feature_maps_origin.extend(result)
-    #             else:
-    #                 result = np2tmp(result)
-    #                 feature_maps_origin.append(result)
-    #
-    #     for block_index, pruned_block in enumerate(prunable_blocks):
-    #         # build the model and load checkpoint
-    #         stage_index, block_index = map(int, re.findall(r'\d+', pruned_block))
-    #         cfg.model.backbone.depths = [original_depth[i] - 1 if stage_index == i else original_depth[i] for i in
-    #                                      range(4)]
-    #         pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
-    #         pruned_model = build_student(pruned_model_temp, [pruned_block],  state_dict_path=cfg.model.pretrained, cuda=True)
-    #         pruned_num_params = sum(p.numel() for p in pruned_model.parameters())
-    #
-    #         loss = 0
-    #         feature_maps_prune = []
-    #         for i, data in enumerate(prune_loader):
-    #             with torch.no_grad():
-    #                 result_ori, probs, preds = pruned_model(return_loss=False, **data)
-    #                 result = [preds[0][0].astype(np.int64)]
-    #                 if isinstance(result, list):
-    #                     result = [np2tmp(_) for _ in result]
-    #                     feature_maps_prune.extend(result)
-    #                 else:
-    #                     result = np2tmp(result)
-    #                     feature_maps_prune.append(result)
-    #             loss = loss+criterion(feature_maps_prune, feature_maps_origin).data.item()
-    #         blocks_importance.append(loss * Model_capacity_gap[block_index] / latency_time_saving[block_index])
-    #
-    #     paired_lists = zip(blocks_importance, prunable_blocks)
-    #     sorted_lists = sorted(paired_lists, key=lambda x: x[0])
-    #     sorted_blocks_importance, sorted_prunable_blocks = zip(*sorted_lists)
-    #     pruned_block = sorted_prunable_blocks[:args.num_rm_blocks]
-    #     print(f'pruning time: {(time.time() - prune_start):.6f}/block importance: {blocks_importance}')
-    #
-    #     pruned_block_info = [[] for _ in range(4)]
-    #     for stage_index, block_index in (map(int, re.findall(r'\d+', rm_block)) for rm_block in pruned_block):
-    #         pruned_block_info[stage_index].append(block_index)
-    #     cfg.model.backbone.depths = [original_depth[i] - len(pruned_block_info[i]) for i in range(4)]
-    #
-    #     pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
-    #     pruned_model = build_student(pruned_model_temp, pruned_block, state_dict_path=cfg.model.pretrained,cuda=True)
-    #
-    #
-    #     total_predict_time = total_predict_time+time.time()-pred_begin
-    #     total_processed_frame=total_processed_frame+len(data_loader)
-    #
-    #     rank, _ = get_dist_info()
-    #     if rank == 0:
-    #         if args.out:
-    #             print(f'\nwriting results to {args.out}')
-    #             mmcv.dump(outputs, args.out)
-    #         kwargs = {} if args.eval_options is None else args.eval_options
-    #         if args.format_only:
-    #             dataset.format_results(outputs, **kwargs)
-    #         if args.eval:
-    #                 dataset.evaluate(outputs, args.eval, **kwargs)
-    # print("total avg pred time:%.3f seconds; " % (total_predict_time / total_processed_frame))
+
+        #######################################Create pruned model######################################
+        prune_start = time.time()
+        prune_loader=data_loader[:10]
+        feature_maps_origin = []
+        for i, data in enumerate(prune_loader):
+            model.eval()
+            with torch.no_grad():
+                result_ori, probs, preds = model(return_loss=False, **data)
+                result = [preds[0][0].astype(np.int64)]
+                if isinstance(result, list):
+                    result = [np2tmp(_) for _ in result]
+                    feature_maps_origin.extend(result)
+                else:
+                    result = np2tmp(result)
+                    feature_maps_origin.append(result)
+
+        for block_index, pruned_block in enumerate(prunable_blocks):
+            # build the model and load checkpoint
+            stage_index, block_index = map(int, re.findall(r'\d+', pruned_block))
+            cfg.model.backbone.depths = [original_depth[i] - 1 if stage_index == i else original_depth[i] for i in
+                                         range(4)]
+            pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
+            pruned_model = build_student(pruned_model_temp, [pruned_block],  state_dict_path=cfg.model.pretrained, cuda=True)
+            pruned_model.eval()
+
+            loss = 0
+            feature_maps_prune = 0
+            for i, data in enumerate(prune_loader):
+                with torch.no_grad():
+                    result_ori, probs, preds = pruned_model(return_loss=False, **data)
+                    result = [preds[0][0].astype(np.int64)]
+                    # if isinstance(result, list):
+                    #     result = [np2tmp(_) for _ in result]
+                    #     feature_maps_prune.extend(result)
+                    # else:
+                    #     result = np2tmp(result)
+                    #     feature_maps_prune.append(result)
+                loss = loss+criterion(feature_maps_prune, feature_maps_origin[i]).data.item()
+            blocks_importance.append(loss * Model_capacity_gap[block_index] / latency_time_saving[block_index])
+
+        paired_lists = zip(blocks_importance, prunable_blocks)
+        sorted_lists = sorted(paired_lists, key=lambda x: x[0])
+        sorted_blocks_importance, sorted_prunable_blocks = zip(*sorted_lists)
+        pruned_block = sorted_prunable_blocks[:args.num_rm_blocks]
+        print(f'pruning time: {(time.time() - prune_start):.6f}/block importance: {blocks_importance}')
+
+        pruned_block_info = [[] for _ in range(4)]
+        for stage_index, block_index in (map(int, re.findall(r'\d+', rm_block)) for rm_block in pruned_block):
+            pruned_block_info[stage_index].append(block_index)
+        cfg.model.backbone.depths = [original_depth[i] - len(pruned_block_info[i]) for i in range(4)]
+
+        pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
+        pruned_model = build_student(pruned_model_temp, pruned_block, state_dict_path=cfg.model.pretrained,cuda=True)
+
+
+        total_predict_time = total_predict_time+time.time()-pred_begin
+        total_processed_frame=total_processed_frame+len(data_loader)
+
+        rank, _ = get_dist_info()
+        if rank == 0:
+            if args.out:
+                print(f'\nwriting results to {args.out}')
+                mmcv.dump(outputs, args.out)
+            kwargs = {} if args.eval_options is None else args.eval_options
+            if args.format_only:
+                dataset.format_results(outputs, **kwargs)
+            if args.eval:
+                    dataset.evaluate(outputs, args.eval, **kwargs)
+    print("total avg pred time:%.3f seconds; " % (total_predict_time / total_processed_frame))
 
 if __name__ == '__main__':
     main()
