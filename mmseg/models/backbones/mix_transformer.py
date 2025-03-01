@@ -474,19 +474,19 @@ class mit_b4(MixVisionTransformer):
 
 @BACKBONES.register_module()
 class mit_b5(MixVisionTransformer):
-    def __init__(self,prompt_config=None, depths=[3, 6, 40, 3], **kwargs):
+    def __init__(self,prompt_config=None, **kwargs):
         super(mit_b5, self).__init__(
             prompt_config,patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
-            qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=depths, sr_ratios=[8, 4, 2, 1],
+            qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=[3, 6, 40, 3], sr_ratios=[8, 4, 2, 1],
             drop_rate=0.0, drop_path_rate=0.1)
 
 
 @BACKBONES.register_module()
 class mit_b5_prompt(MixVisionTransformer):
-    def __init__(self, prompt_config=None, **kwargs):
+    def __init__(self, prompt_config=None, depths=[3, 6, 40, 3], **kwargs):
         super(mit_b5_prompt, self).__init__(
             prompt_config, patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[4, 4, 4, 4],
-            qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=[3, 6, 40, 3], sr_ratios=[8, 4, 2, 1],
+            qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=depths, sr_ratios=[8, 4, 2, 1],
             drop_rate=0.0, drop_path_rate=0.1)
         print(f">>>>>>>>init mit_b5_sparse_prompt {kwargs['prompt_sparse_rate']}")
 
