@@ -224,7 +224,7 @@ def main():
 
     pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
     #print(pretrained_dict.keys())
-    print("I'm printing the model",model.state_dict().keys())
+    #print("I'm printing the model",model.state_dict().keys())
     model.load_state_dict(pretrained_dict['state_dict'])
     # if hasattr(model, 'text_encoder'):
     #     model.text_encoder.init_weights()
@@ -240,7 +240,18 @@ def main():
     anchor = deepcopy(model.state_dict()) #?
     anchor_model = deepcopy(model) #?
 
-    origin_lat=eval_speed(model)
+    i=0
+    origin_lat=0
+    for dataset, data_loader in zip(datasets, data_loaders):
+        if i==0:
+            pred_begin = time.time()
+            for j, data in enumerate(data_loader):
+                with torch.no_grad():
+                    result_ori, probs, preds = model(return_loss=False, **data)
+            origin_lat = time.time() - pred_begin
+        i=i+1
+
+
     original_depth=[3, 6, 40, 3]
     prunable_blocks = [
         'backbone.block' + str(stage_index) + '.' + str(block_index)
@@ -249,17 +260,30 @@ def main():
     ]
     Model_capacity_gap = []
     latency_time_saving = []
+
+
+
+
     for block_index, pruned_block in enumerate(prunable_blocks):
         # build the model and load checkpoint
         stage_index, block_index = map(int, re.findall(r'\d+', pruned_block))
         cfg.model.backbone.depths = [original_depth[i] - 1 if stage_index == i else original_depth[i] for i in
                                      range(4)]
-        pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
-        pruned_model = build_student(pruned_model_temp, [pruned_block], state_dict_path=cfg.model.pretrained, cuda=True)
+        pruned_model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
+        #pruned_model = build_student(pruned_model_temp, [pruned_block], state_dict_path=cfg.model.pretrained, cuda=True)
         pruned_num_params = sum(p.numel() for p in pruned_model.parameters())
         Model_capacity_gap.append((original_num_params-pruned_num_params)/original_num_params)
 
-        pruned_lat=eval_speed(pruned_model)
+        i = 0
+        pruned_lat = 0
+        for dataset, data_loader in zip(datasets, data_loaders):
+            if i == 0:
+                pred_begin = time.time()
+                for j, data in enumerate(data_loader):
+                    with torch.no_grad():
+                        result_ori, probs, preds = model(return_loss=False, **data)
+                pruned_lat = time.time() - pred_begin
+            i = i + 1
 
         lat_reduction = (origin_lat - pruned_lat) / origin_lat
         latency_time_saving.append(lat_reduction)
