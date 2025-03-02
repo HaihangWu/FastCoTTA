@@ -48,7 +48,7 @@ echo "r$SLURM_NODEID Launching python script"
 
 
 
-bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.acdc.160k.py 4 1 | tee prune-4.log
+bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.acdc.160k.py 5 1 | tee prune-5.log
 
 
 #bash ./tools/dist_cotta.sh configs/setr/setr_vit-large_pup_8x1_768x768_80k_acdc.py setr_pup_vit-large_8x1_768x768_80k_cityscapes.pth 1 v2 | tee T1-SETR-SimCOTTA-1-largelr.log
