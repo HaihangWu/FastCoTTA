@@ -17,7 +17,26 @@ import time
 import numpy as np
 import itertools
 from collections import deque
+import tempfile
 
+def np2tmp(array, temp_file_name=None):
+    """Save ndarray to local numpy file.
+
+    Args:
+        array (ndarray): Ndarray to save.
+        temp_file_name (str): Numpy file name. If 'temp_file_name=None', this
+            function will generate a file name with tempfile.NamedTemporaryFile
+            to save ndarray. Default: None.
+
+    Returns:
+        str: The numpy file name.
+    """
+
+    if temp_file_name is None:
+        temp_file_name = tempfile.NamedTemporaryFile(
+            suffix='.npy', delete=False).name
+    np.save(temp_file_name, array)
+    return temp_file_name
 
 def load_rm_block_state_dict(model, raw_state_dict, rm_blocks):
     rm_block_info = [[] for _ in range(4)]
@@ -345,6 +364,8 @@ def main():
                 param.requires_grad = False
         optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer
         t_features=[]
+
+        finetune_start=time.time()
         for finetune_iter in range(10):
             total_loss = 0
             for i, data in enumerate(finetune_loader):
@@ -361,7 +382,28 @@ def main():
                 total_loss = total_loss+ loss.item()
             print(f"total_loss{total_loss}")
 
+        print(f'finetuning time: {(time.time() - finetune_start):.6f}')
         total_predict_time = total_predict_time+time.time()-prune_start
+        #######################################test the pruned model######################################
+        pred_time = 0
+        outputs = []
+        pruned_model.eval()  # ？
+        pred_begin = time.time()
+        for i, data in enumerate(data_loader):
+            with torch.no_grad():
+                result, probs, preds = model(return_loss=False, **data)
+                img_id = 0
+                if isinstance(result, list):
+                    if efficient_test:
+                        result = [np2tmp(_) for _ in result]
+                    outputs.extend(result)
+                else:
+                    if efficient_test:
+                        result = np2tmp(result)
+                    outputs.append(result)
+        pred_time += time.time() - pred_begin
+        print(f"pred_time: {pred_time}")
+
 
         rank, _ = get_dist_info()
         if rank == 0:
@@ -373,7 +415,7 @@ def main():
                 dataset.format_results(outputs, **kwargs)
             if args.eval:
                     dataset.evaluate(outputs, args.eval, **kwargs)
-    print("total avg pred time:%.3f seconds; " % (total_predict_time / total_processed_frame))
+    #print("total avg pred time:%.3f seconds; " % (total_predict_time / total_processed_frame))
 
 if __name__ == '__main__':
     main()
