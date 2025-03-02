@@ -321,7 +321,7 @@ def main():
         sorted_blocks_importance, sorted_prunable_blocks = zip(*sorted_lists)
         pruned_block = sorted_prunable_blocks[:args.num_rm_blocks]
         # print(f"sorted_prunable_blocks:{sorted_prunable_blocks}")
-        print(f'pruning time: {(time.time() - prune_start):.6f}/block importance: {blocks_importance}')
+        print(f'pruning time: {(time.time() - prune_start):.6f}') #/block importance: {blocks_importance}
 
         pruned_block_info = [[] for _ in range(4)]
         for stage_index, block_index in (map(int, re.findall(r'\d+', rm_block)) for rm_block in pruned_block):
@@ -350,15 +350,14 @@ def main():
             for i, data in enumerate(finetune_loader):
                 if finetune_iter == 0:
                     _, t_feature, _ = model(return_loss=False, **data)
-                    t_features.append(t_feature)
+                    t_features.append(t_feature.detach())
                 else:
                     t_feature = t_features[i]
-
+                optimizer.zero_grad()
                 _, s_feature, _ = pruned_model(return_loss=False, **data)
                 loss=torch.mean(torch.square(t_feature - s_feature))
                 loss.backward()
                 optimizer.step()
-                optimizer.zero_grad()
                 total_loss = total_loss+ loss.item()
             print(f"total_loss{total_loss}")
 
