@@ -289,14 +289,9 @@ def main():
         for i, data in enumerate(prune_loader):
             with torch.no_grad():
                 result_ori, probs, preds = model(return_loss=False, **data)
+                feature_maps_origin.append(probs)
+                print(type(probs))
                 print(probs.shape)
-                # result = [preds[0][0].astype(np.int64)]
-                # if isinstance(result, list):
-                #     result = [np2tmp(_) for _ in result]
-                #     feature_maps_origin.extend(result)
-                # else:
-                #     result = np2tmp(result)
-                #     feature_maps_origin.append(result)
 
         for _, pruned_block in enumerate(prunable_blocks):
             # build the model and load checkpoint
@@ -316,13 +311,6 @@ def main():
             for i, data in enumerate(prune_loader):
                 with torch.no_grad():
                     result_ori, probs, preds = pruned_model(return_loss=False, **data)
-                    result = [preds[0][0].astype(np.int64)]
-                    # if isinstance(result, list):
-                    #     result = [np2tmp(_) for _ in result]
-                    #     feature_maps_prune.extend(result)
-                    # else:
-                    #     result = np2tmp(result)
-                    #     feature_maps_prune.append(result)
                 loss = loss+criterion(feature_maps_prune, feature_maps_origin[i]).data.item()
             blocks_importance.append(loss * Model_capacity_gap[block_index] / latency_time_saving[block_index])
 
