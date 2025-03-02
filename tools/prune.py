@@ -290,8 +290,8 @@ def main():
             with torch.no_grad():
                 result_ori, probs, preds = model(return_loss=False, **data)
                 feature_maps_origin.append(probs)
-                print(type(probs))
-                print(probs.shape)
+                # print(type(probs))
+                # print(probs.shape)
 
         for _, pruned_block in enumerate(prunable_blocks):
             # build the model and load checkpoint
@@ -307,11 +307,11 @@ def main():
 
             pruned_model.eval()
             loss = 0
-            feature_maps_prune = 0
             for i, data in enumerate(prune_loader):
                 with torch.no_grad():
                     result_ori, probs, preds = pruned_model(return_loss=False, **data)
-                loss = loss+criterion(feature_maps_prune, feature_maps_origin[i]).data.item()
+                loss = loss+criterion(probs, feature_maps_origin[i]).data.item()
+                print("loss at the {i}th time:{loss}")
             blocks_importance.append(loss * Model_capacity_gap[block_index] / latency_time_saving[block_index])
 
         paired_lists = zip(blocks_importance, prunable_blocks)
