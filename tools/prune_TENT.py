@@ -87,7 +87,8 @@ def build_student(pruned_model_temp, pruned_block, state_dict_path='', cuda=True
 def parse_args():
     parser = argparse.ArgumentParser(
         description='mmseg test (and eval) a model')
-    parser.add_argument('config', help='test config file path')
+    parser.add_argument('config', help='train config file path')
+    parser.add_argument('config_test', help='test config file path')
     # parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument(
         '--aug-test', action='store_true', help='Use Flip and Multi scale aug')
@@ -162,11 +163,13 @@ def main():
         raise ValueError('The output file must be a pkl file.')
 
     cfg = mmcv.Config.fromfile(args.config)
+    cfg_test=mmcv.Config.fromfile(args.config_test)
     # if 'AuxAdapt' in args.method:
     #     config_s= args.config.replace("base", "tiny") if 'segnext' in args.config else args.config.replace("b5", "b0")
     #     cfg_s = mmcv.Config.fromfile(config_s)
     if args.options is not None:
         cfg.merge_from_dict(args.options)
+        cfg_test.merge_from_dict(args.options)
         # if 'AuxAdapt' in args.method:
         #     cfg_s.merge_from_dict(args.options)
     # set cudnn_benchmark
@@ -193,8 +196,15 @@ def main():
                 ]
                 cfg.data.test.test_cases[i].pipeline[1].flip = True
 
+        for i in range(len(cfg_test.data.test.test_cases)):
+            if cfg_test.data.test.test_cases[i].type in ['CityscapesDataset', 'ACDCDataset','KITTIDataset','NightCityDataset']:
+                # hard code index
+                cfg_test.data.test.test_cases[i].pipeline[1].img_ratios = [1.0]
+                cfg_test.data.test.test_cases[i].pipeline[1].flip = False
+
     # cfg.model.pretrained = None
     cfg.data.test.test_mode = True
+    cfg_test.data.test.test_mode = True
 
     # init distributed env first, since logger depends on the dist info.
     if args.launcher == 'none':
@@ -215,8 +225,17 @@ def main():
         dist=distributed,
         shuffle=False) for dataset in datasets]
 
+    datasets_test = [ build_dataset(cfg_test.data.test.test_cases[i])for i in range(len(cfg_test.data.test.test_cases))]
+    data_loaders_test = [build_dataloader(
+        dataset,
+        samples_per_gpu=1,
+        workers_per_gpu=cfg_test.data.workers_per_gpu,
+        dist=distributed,
+        shuffle=False) for dataset in datasets_test]
+
     # build the model and load checkpoint
     cfg.model.train_cfg = None
+    cfg_test.model.train_cfg = None
     #cfg.model.class_names=datasets[0].CLASSES
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
     original_model_size = sum(p.numel() for p in model.parameters())
@@ -315,85 +334,84 @@ def main():
         # print(f"sorted_prunable_blocks:{sorted_prunable_blocks}")
         indices = [prunable_blocks.index(block) for block in pruned_block]
         total_latency_saving = sum(latency_time_saving[i] for i in indices)*100
-        print(f"pruned blocks{pruned_block}")
         print(f'pruning time: {(time.time() - prune_start):.6f}') #/block importance: {blocks_importance}
 
-        # pruned_block_info = [[] for _ in range(4)]
-        # for stage_index, block_index in (map(int, re.findall(r'\d+', rm_block)) for rm_block in pruned_block):
-        #     pruned_block_info[stage_index-1].append(block_index)
-        # cfg.model.backbone.depths = [original_depth[i] - len(pruned_block_info[i]) for i in range(4)]
-        #
-        # pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
-        # pruned_model = build_student(pruned_model_temp, pruned_block, state_dict_path=cfg.model.pretrained,cuda=True)
-        # print(f"")
-        # pruned_model.CLASSES = datasets[0].CLASSES
-        # pruned_model.PALETTE = datasets[0].PALETTE
-        # pruned_model = MMDataParallel(pruned_model, device_ids=[0])
-        # pruned_model_size = sum(p.numel() for p in pruned_model.parameters())
-        #
-        # print(f"Original Model Size: {original_model_size} parameters； pruned model size: {pruned_model_size}; latency time saving: {total_latency_saving}%; backbone is  {cfg.model.backbone.depths}")
-        # #######################################finetune the pruned model######################################
-        # pruned_model.eval() #？
-        # param_list = []
-        # for name, param in pruned_model.named_parameters():
-        #     if param.requires_grad:
-        #         param_list.append(param)
-        #         # print(name)
-        #     else:
-        #         param.requires_grad = False
-        # optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer
-        # t_features=[]
-        #
-        # finetune_start=time.time()
-        # for finetune_iter in range(10):
-        #     total_loss = 0
-        #     for i, data in enumerate(finetune_loader):
-        #         if finetune_iter == 0:
-        #             _, t_feature, _ = model(return_loss=False, **data)
-        #             t_features.append(t_feature.detach())
-        #         else:
-        #             t_feature = t_features[i]
-        #         optimizer.zero_grad()
-        #         _, s_feature, _ = pruned_model(return_loss=False, **data)
-        #         loss=torch.mean(torch.square(t_feature - s_feature))
-        #         loss.backward()
-        #         optimizer.step()
-        #         total_loss = total_loss+ loss.item()
-        #     print(f"total_loss{total_loss}")
-        #
-        # print(f'finetuning time: {(time.time() - finetune_start):.6f}')
-        # total_predict_time = total_predict_time+time.time()-prune_start
-        # #######################################test the pruned model######################################
-        # pred_time = 0
-        # outputs = []
-        # pruned_model.eval()  # ？
-        # pred_begin = time.time()
-        # for i, data in enumerate(data_loader):
-        #     with torch.no_grad():
-        #         result, probs, preds = pruned_model(return_loss=False, **data)
-        #         img_id = 0
-        #         if isinstance(result, list):
-        #             if efficient_test:
-        #                 result = [np2tmp(_) for _ in result]
-        #             outputs.extend(result)
-        #         else:
-        #             if efficient_test:
-        #                 result = np2tmp(result)
-        #             outputs.append(result)
-        # pred_time += time.time() - pred_begin
-        # print(f"pred_time: {pred_time}")
-        #
-        #
-        # rank, _ = get_dist_info()
-        # if rank == 0:
-        #     if args.out:
-        #         print(f'\nwriting results to {args.out}')
-        #         mmcv.dump(outputs, args.out)
-        #     kwargs = {} if args.eval_options is None else args.eval_options
-        #     if args.format_only:
-        #         dataset.format_results(outputs, **kwargs)
-        #     if args.eval:
-        #             dataset.evaluate(outputs, args.eval, **kwargs)
+        pruned_block_info = [[] for _ in range(4)]
+        for stage_index, block_index in (map(int, re.findall(r'\d+', rm_block)) for rm_block in pruned_block):
+            pruned_block_info[stage_index-1].append(block_index)
+        cfg.model.backbone.depths = [original_depth[i] - len(pruned_block_info[i]) for i in range(4)]
+
+        pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
+        pruned_model = build_student(pruned_model_temp, pruned_block, state_dict_path=cfg.model.pretrained,cuda=True)
+        pruned_model.CLASSES = datasets[0].CLASSES
+        pruned_model.PALETTE = datasets[0].PALETTE
+        pruned_model = MMDataParallel(pruned_model, device_ids=[0])
+        pruned_model_size = sum(p.numel() for p in pruned_model.parameters())
+
+        print(f"Original Model Size: {original_model_size} parameters； pruned model size: {pruned_model_size}; latency time saving: {total_latency_saving}%; backbone is  {cfg.model.backbone.depths}")
+        #######################################finetune the pruned model######################################
+        pruned_model.eval() #？
+        param_list = []
+        for name, param in pruned_model.named_parameters():
+            if param.requires_grad:
+                param_list.append(param)
+                # print(name)
+            else:
+                param.requires_grad = False
+        optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer
+        t_features=[]
+
+        finetune_start=time.time()
+        for finetune_iter in range(10):
+            total_loss = 0
+            for i, data in enumerate(finetune_loader):
+                if finetune_iter == 0:
+                    _, t_feature, _ = model(return_loss=False, **data)
+                    t_features.append(t_feature.detach())
+                else:
+                    t_feature = t_features[i]
+                optimizer.zero_grad()
+                _, s_feature, _ = pruned_model(return_loss=False, **data)
+                loss=torch.mean(torch.square(t_feature - s_feature))
+                loss.backward()
+                optimizer.step()
+                total_loss = total_loss+ loss.item()
+            print(f"total_loss{total_loss}")
+
+        print(f'finetuning time: {(time.time() - finetune_start):.6f}')
+        total_predict_time = total_predict_time+time.time()-prune_start
+
+        #######################################test the pruned model######################################
+    for dataset, data_loader in zip(datasets_test, data_loaders_test):
+        pred_time = 0
+        outputs = []
+        pruned_model.eval()  # ？
+        pred_begin = time.time()
+        for i, data in enumerate(data_loader):
+            with torch.no_grad():
+                result, probs, preds = pruned_model(return_loss=False, **data)
+                img_id = 0
+                if isinstance(result, list):
+                    if efficient_test:
+                        result = [np2tmp(_) for _ in result]
+                    outputs.extend(result)
+                else:
+                    if efficient_test:
+                        result = np2tmp(result)
+                    outputs.append(result)
+        pred_time += time.time() - pred_begin
+        print(f"pred_time: {pred_time}")
+
+        rank, _ = get_dist_info()
+        if rank == 0:
+            if args.out:
+                print(f'\nwriting results to {args.out}')
+                mmcv.dump(outputs, args.out)
+            kwargs = {} if args.eval_options is None else args.eval_options
+            if args.format_only:
+                dataset.format_results(outputs, **kwargs)
+            if args.eval:
+                    dataset.evaluate(outputs, args.eval, **kwargs)
 
 if __name__ == '__main__':
     main()

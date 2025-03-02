@@ -46,7 +46,7 @@ export MASTER_ADDR=$master_addr
 echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
-bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.city.160k.py 10 1 | tee train_time_PF_TENT_10_blocks.log
+bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.city.160k.py local_configs/ours/prune_segformer.b5.1024x1024.acdc.160k.py 3 1 | tee train_time_PF_TENT_10_blocks.log
 
 #bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.acdc.160k.py 3 1 | tee train_time_PF_TENT_3_blocks.log
 
