@@ -311,7 +311,7 @@ def main():
                 with torch.no_grad():
                     result_ori, probs, preds = pruned_model(return_loss=False, **data)
                 loss = loss+criterion(probs, feature_maps_origin[i]).data.item()
-                print("loss at the {i}th time:{loss}")
+                print(f"loss at the {i}th time:{loss}")
             blocks_importance.append(loss * Model_capacity_gap[block_index] / latency_time_saving[block_index])
 
         paired_lists = zip(blocks_importance, prunable_blocks)
