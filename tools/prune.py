@@ -292,10 +292,19 @@ def main():
     t_features=None
 
 
-    total_predict_time=0
-    total_processed_frame=0
+
     model.eval()
-    #prune_loader = list(itertools.islice(data_loader, 10))
+    #######################################test the original model######################################
+    dataset_time_full=[]
+    for dataset, data_loader in zip(datasets, data_loaders):
+        pred_begin_full = time.time()
+        for i, data in enumerate(data_loader):
+            with torch.no_grad():
+                result, probs, preds = model(return_loss=False, **data)
+        pred_time_full = time.time() - pred_begin_full
+        dataset_time_full.append(pred_time_full)
+
+    #####################################################################################################
     for dataset, data_loader in zip(datasets, data_loaders):
         prune_loader = []
         finetune_loader = []
@@ -390,7 +399,7 @@ def main():
             print(f"total_loss{total_loss}")
 
         print(f'finetuning time: {(time.time() - finetune_start):.6f}')
-        total_predict_time = total_predict_time+time.time()-prune_start
+
         #######################################test the pruned model######################################
         pred_time = 0
         outputs = []
@@ -422,7 +431,7 @@ def main():
                 dataset.format_results(outputs, **kwargs)
             if args.eval:
                     dataset.evaluate(outputs, args.eval, **kwargs)
-    #print("total avg pred time:%.3f seconds; " % (total_predict_time / total_processed_frame))
+
 
 if __name__ == '__main__':
     main()

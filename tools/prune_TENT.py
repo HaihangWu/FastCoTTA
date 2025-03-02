@@ -278,15 +278,10 @@ def main():
     criterion = torch.nn.MSELoss(reduction='mean').cuda()
 
 
-    total_predict_time=0
     model.eval()
     #######################################test the original model######################################
     dataset_time_full=[]
     for dataset, data_loader in zip(datasets_test, data_loaders_test):
-        param_list = []
-        for name, param in model.named_parameters():
-            if param.requires_grad:
-                param_list.append(param)
         pred_begin_full = time.time()
         for i, data in enumerate(data_loader):
             with torch.no_grad():
@@ -294,7 +289,6 @@ def main():
         pred_time_full = time.time() - pred_begin_full
         dataset_time_full.append(pred_time_full)
     #####################################################################################################
-
     for dataset, data_loader in zip(datasets, data_loaders):
         prune_loader = []
         finetune_loader = []
@@ -388,7 +382,6 @@ def main():
             print(f"total_loss{total_loss}")
 
         print(f'finetuning time: {(time.time() - finetune_start):.6f}')
-        total_predict_time = total_predict_time+time.time()-prune_start
 
         #######################################test the pruned model######################################
     pruned_model.eval()  # ？
