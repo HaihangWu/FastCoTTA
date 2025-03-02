@@ -321,7 +321,6 @@ def main():
                 # print(type(probs))
                 # print(probs.shape)
 
-        blocks_importance=[]
         for _, pruned_block in enumerate(prunable_blocks):
             # build the model and load checkpoint
             stage_index, block_index = map(int, re.findall(r'\d+', pruned_block))
