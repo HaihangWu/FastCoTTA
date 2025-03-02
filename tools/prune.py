@@ -305,6 +305,7 @@ def main():
         dataset_time_full.append(pred_time_full)
 
     #####################################################################################################
+    dataset_index = 0
     for dataset, data_loader in zip(datasets, data_loaders):
         prune_loader = []
         finetune_loader = []
@@ -418,8 +419,8 @@ def main():
                         result = np2tmp(result)
                     outputs.append(result)
         pred_time += time.time() - pred_begin
-        print(f"pred_time: {pred_time}")
-
+        print(f"pred time for pruned model: {pred_time}; pred time for full model: {dataset_time_full[dataset_index]}; latency saving: {(dataset_time_full[dataset_index]-pred_time)/dataset_time_full[dataset_index]*100}%")
+        dataset_index = dataset_index+1
 
         rank, _ = get_dist_info()
         if rank == 0:
