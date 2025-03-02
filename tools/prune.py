@@ -245,7 +245,7 @@ def main():
     cfg.model.train_cfg = None
     #cfg.model.class_names=datasets[0].CLASSES
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
-
+    original_model_size = sum(p.numel() for p in model.parameters())
 
     pretrained_dict = torch.load(cfg.model.pretrained,map_location='cpu')
     #print(pretrained_dict.keys())
@@ -340,6 +340,8 @@ def main():
         sorted_blocks_importance, sorted_prunable_blocks = zip(*sorted_lists)
         pruned_block = sorted_prunable_blocks[:args.num_rm_blocks]
         # print(f"sorted_prunable_blocks:{sorted_prunable_blocks}")
+        indices = [prunable_blocks.index(block) for block in pruned_block]
+        total_latency_saving = sum(latency_time_saving[i] for i in indices)*100
         print(f'pruning time: {(time.time() - prune_start):.6f}') #/block importance: {blocks_importance}
 
         pruned_block_info = [[] for _ in range(4)]
@@ -349,10 +351,13 @@ def main():
 
         pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
         pruned_model = build_student(pruned_model_temp, pruned_block, state_dict_path=cfg.model.pretrained,cuda=True)
-        # print(f"backbone is  {cfg.model.backbone.depths}")
+        print(f"")
         pruned_model.CLASSES = datasets[0].CLASSES
         pruned_model.PALETTE = datasets[0].PALETTE
         pruned_model = MMDataParallel(pruned_model, device_ids=[0])
+        pruned_model_size = sum(p.numel() for p in pruned_model.parameters())
+
+        print(f"Original Model Size: {original_model_size} parameters； pruned model size: {pruned_model_size}; latency time saving: {total_latency_saving}%; backbone is  {cfg.model.backbone.depths}")
         #######################################finetune the pruned model######################################
         pruned_model.eval() #？
         param_list = []
