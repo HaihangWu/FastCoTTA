@@ -298,7 +298,6 @@ def main():
             stage_index, block_index = map(int, re.findall(r'\d+', pruned_block))
             cfg.model.backbone.depths = [original_depth[i] - 1 if stage_index == (i+1) else original_depth[i] for i in
                                          range(4)]
-            print(f"backbone is  {cfg.model.backbone.depths}")
             pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
             pruned_model = build_student(pruned_model_temp, [pruned_block],  state_dict_path=cfg.model.pretrained, cuda=True)
             pruned_model.CLASSES = datasets[0].CLASSES
@@ -311,22 +310,28 @@ def main():
                 with torch.no_grad():
                     result_ori, probs, preds = pruned_model(return_loss=False, **data)
                 loss = loss+criterion(probs, feature_maps_origin[i]).data.item()
-                print(f"loss at the {i}th time:{loss}")
+                #print(f"loss at the {i}th time:{loss}")
             blocks_importance.append(loss * Model_capacity_gap[block_index] / latency_time_saving[block_index])
 
         paired_lists = zip(blocks_importance, prunable_blocks)
         sorted_lists = sorted(paired_lists, key=lambda x: x[0])
         sorted_blocks_importance, sorted_prunable_blocks = zip(*sorted_lists)
         pruned_block = sorted_prunable_blocks[:args.num_rm_blocks]
+        print(f"sorted_prunable_blocks:{sorted_prunable_blocks}")
         print(f'pruning time: {(time.time() - prune_start):.6f}/block importance: {blocks_importance}')
 
         pruned_block_info = [[] for _ in range(4)]
         for stage_index, block_index in (map(int, re.findall(r'\d+', rm_block)) for rm_block in pruned_block):
-            pruned_block_info[stage_index].append(block_index)
+            pruned_block_info[stage_index-1].append(block_index)
         cfg.model.backbone.depths = [original_depth[i] - len(pruned_block_info[i]) for i in range(4)]
 
         pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
         pruned_model = build_student(pruned_model_temp, pruned_block, state_dict_path=cfg.model.pretrained,cuda=True)
+        print(f"backbone is  {cfg.model.backbone.depths}")
+        pruned_model.CLASSES = datasets[0].CLASSES
+        pruned_model.PALETTE = datasets[0].PALETTE
+        pruned_model = MMDataParallel(pruned_model, device_ids=[0])
+        pruned_model.train()
 
 
         total_predict_time = total_predict_time+time.time()-prune_start
