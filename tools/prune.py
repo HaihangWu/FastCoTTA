@@ -274,17 +274,19 @@ def main():
 
     total_predict_time=0
     total_processed_frame=0
+    model.eval()
     #prune_loader = list(itertools.islice(data_loader, 10))
     for dataset, data_loader in zip(datasets, data_loaders):
-        # j=j+1
         prune_loader = []
+        finetune_loader = []
         for i, data in enumerate(data_loader):
             if i<=9:
                 prune_loader.append(data)
+            if i<=99:
+                finetune_loader.append(data)
             else:
                 break
         #######################################Create pruned model######################################
-        model.eval()
         prune_start = time.time()
         feature_maps_origin = []
         for i, data in enumerate(prune_loader):
@@ -318,7 +320,7 @@ def main():
         sorted_lists = sorted(paired_lists, key=lambda x: x[0])
         sorted_blocks_importance, sorted_prunable_blocks = zip(*sorted_lists)
         pruned_block = sorted_prunable_blocks[:args.num_rm_blocks]
-        print(f"sorted_prunable_blocks:{sorted_prunable_blocks}")
+        # print(f"sorted_prunable_blocks:{sorted_prunable_blocks}")
         print(f'pruning time: {(time.time() - prune_start):.6f}/block importance: {blocks_importance}')
 
         pruned_block_info = [[] for _ in range(4)]
@@ -328,15 +330,39 @@ def main():
 
         pruned_model_temp = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
         pruned_model = build_student(pruned_model_temp, pruned_block, state_dict_path=cfg.model.pretrained,cuda=True)
-        print(f"backbone is  {cfg.model.backbone.depths}")
+        # print(f"backbone is  {cfg.model.backbone.depths}")
         pruned_model.CLASSES = datasets[0].CLASSES
         pruned_model.PALETTE = datasets[0].PALETTE
         pruned_model = MMDataParallel(pruned_model, device_ids=[0])
-        pruned_model.train()
+        #######################################finetune the pruned model######################################
+        pruned_model.eval() #？
+        param_list = []
+        for name, param in pruned_model.named_parameters():
+            if param.requires_grad:
+                param_list.append(param)
+                # print(name)
+            else:
+                param.requires_grad = False
+        optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer
+        t_features=[]
+        for finetune_iter in range(10):
+            total_loss = 0
+            for i, data in enumerate(finetune_loader):
+                if finetune_iter == 0:
+                    _, t_feature, _ = model(return_loss=False, **data)
+                    t_features.append(t_feature)
+                else:
+                    t_feature = t_features[i]
 
+                _, s_feature, _ = pruned_model(return_loss=False, **data)
+                loss=torch.mean(torch.square(t_feature - s_feature))
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
+                total_loss = total_loss+ loss.item()
+            print(f"total_loss{total_loss}")
 
         total_predict_time = total_predict_time+time.time()-prune_start
-        total_processed_frame=total_processed_frame+len(data_loader)
 
         rank, _ = get_dist_info()
         if rank == 0:
