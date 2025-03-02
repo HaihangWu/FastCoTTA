@@ -427,7 +427,7 @@ def main():
 
 
         pred_time = time.time() - pred_begin
-        print(f"pred time for pruned model: {pred_time}; pred time for full model: {dataset_time_full[dataset_index]}; latency saving: {(dataset_time_full[dataset_index]-pred_time)/dataset_time_full[dataset_index]}")
+        print(f"pred time for pruned model: {pred_time}; pred time for full model: {dataset_time_full[dataset_index]}; latency saving: {(dataset_time_full[dataset_index]-pred_time)/dataset_time_full[dataset_index]*100}%")
         dataset_index = dataset_index+1
 
         rank, _ = get_dist_info()
