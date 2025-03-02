@@ -293,7 +293,7 @@ def main():
                 result, probs, preds = model(return_loss=False, **data)
         pred_time_full = time.time() - pred_begin_full
         dataset_time_full.append(pred_time_full)
-    #######################################test the original model######################################
+    #####################################################################################################
 
     for dataset, data_loader in zip(datasets, data_loaders):
         prune_loader = []
