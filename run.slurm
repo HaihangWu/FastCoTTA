@@ -16,7 +16,7 @@
 
 # Request different amount of resources for different nodes
 # --constraint=[dlg1|dlg2|dlg3|dlg4]
-#SBATCH --constraint=[dlg5|dlg6]
+# --constraint=[dlg5|dlg6]
 #SBATCH --nodes=1                # node count
 #SBATCH --ntasks-per-node=1      # total number of tasks per node
 #SBATCH --gres=gpu:1             # number of gpus per node
@@ -46,7 +46,7 @@ export MASTER_ADDR=$master_addr
 echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
-bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.city.160k.py local_configs/ours/prune_segformer.b5.1024x1024.acdc.160k.py 3 1 | tee train_time_PF_TENT_3_blocks.log
+bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.city.160k.py local_configs/ours/prune_segformer.b5.1024x1024.acdc.160k.py 2 1 | tee train_time_PF_TENT_2_blocks.log
 
 #bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.acdc.160k.py 3 1 | tee train_time_PF_TENT_3_blocks.log
 
