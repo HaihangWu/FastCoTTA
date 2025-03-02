@@ -275,17 +275,26 @@ def main():
     #     0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306, 0.050869306,
     #     0.050869306, 0.050869306, 0.048944499, 0.048944499, 0.048944499]
 
-
-
-    blocks_importance=[]
     criterion = torch.nn.MSELoss(reduction='mean').cuda()
-    t_features=None
 
 
     total_predict_time=0
-    total_processed_frame=0
     model.eval()
-    #prune_loader = list(itertools.islice(data_loader, 10))
+    #######################################test the original model######################################
+    dataset_time_full=[]
+    for dataset, data_loader in zip(datasets_test, data_loaders_test):
+        param_list = []
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                param_list.append(param)
+        pred_begin_full = time.time()
+        for i, data in enumerate(data_loader):
+            with torch.no_grad():
+                result, probs, preds = model(return_loss=False, **data)
+        pred_time_full = time.time() - pred_begin_full
+        dataset_time_full.append(pred_time_full)
+    #######################################test the original model######################################
+
     for dataset, data_loader in zip(datasets, data_loaders):
         prune_loader = []
         finetune_loader = []
@@ -382,25 +391,44 @@ def main():
         total_predict_time = total_predict_time+time.time()-prune_start
 
         #######################################test the pruned model######################################
+    pruned_model.eval()  # ？
+    dataset_index=0
     for dataset, data_loader in zip(datasets_test, data_loaders_test):
-        pred_time = 0
         outputs = []
-        pruned_model.eval()  # ？
+        param_list = []
+        for name, param in pruned_model.named_parameters():
+            if param.requires_grad:
+                param_list.append(param)
+        optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer,segnext
         pred_begin = time.time()
         for i, data in enumerate(data_loader):
             with torch.no_grad():
                 result, probs, preds = pruned_model(return_loss=False, **data)
+
                 img_id = 0
                 if isinstance(result, list):
+                    loss = pruned_model.forward(return_loss=True, img=data['img'][img_id],
+                                             img_metas=data['img_metas'][img_id].data[0],
+                                             gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(
+                                                 0))
                     if efficient_test:
                         result = [np2tmp(_) for _ in result]
                     outputs.extend(result)
                 else:
+                    loss = pruned_model(return_loss=True, img=data['img'][img_id],
+                                     img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=result)
                     if efficient_test:
                         result = np2tmp(result)
                     outputs.append(result)
-        pred_time += time.time() - pred_begin
-        print(f"pred_time: {pred_time}")
+
+                torch.mean(loss["decode.loss_seg"]).backward()
+                optimizer.step()
+                optimizer.zero_grad()
+
+
+        pred_time = time.time() - pred_begin
+        print(f"pred time for pruned model: {pred_time}; pred time for full model: {dataset_time_full[dataset_index]}; latency saving: {(dataset_time_full[dataset_index]-pred_time)/dataset_time_full[dataset_index]}")
+        dataset_index = dataset_index+1
 
         rank, _ = get_dist_info()
         if rank == 0:
