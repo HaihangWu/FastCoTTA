@@ -396,7 +396,7 @@ def main():
         pred_begin = time.time()
         for i, data in enumerate(data_loader):
             with torch.no_grad():
-                result, probs, preds = model(return_loss=False, **data)
+                result, probs, preds = pruned_model(return_loss=False, **data)
                 img_id = 0
                 if isinstance(result, list):
                     if efficient_test:
