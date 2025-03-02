@@ -60,8 +60,8 @@ def build_student(pruned_model_temp, pruned_block, state_dict_path='', cuda=True
     pretrained_dict = torch.load(state_dict_path,map_location='cpu')
     load_rm_block_state_dict(pruned_model_temp,pretrained_dict['state_dict'],pruned_block)
 
-    if cuda:
-        pruned_model_temp.cuda()
+    # if cuda:
+    #     pruned_model_temp.cuda()
     return pruned_model_temp
 
     # pruned_MACs, pruned_Params = compute_MACs_params(pruned_model, summary_data)
@@ -69,27 +69,27 @@ def build_student(pruned_model_temp, pruned_block, state_dict_path='', cuda=True
     # Params_str = f'Params={pruned_Params:.3f}M'
     # print(f'=> pruned_model: {latency_str}, {MACs_str}, {Params_str}')
 
-def eval_speed(model,test_time=500):
-    print('=> testing latency. Please wait.')
-    if not next(model.parameters()).is_cuda:
-        model = model.cuda()
-    data = torch.randn(1, 3, 1920//2, 1080//2)
-    data = data.cuda()
-    with torch.no_grad():
-        output = model(data)
-
-    test_begin=time.time()
-    with torch.no_grad():
-        with torch.cuda.amp.autocast():
-            for i in range(test_time):
-                output = model(data)
-    total_time = time.time() - test_begin
-    each_time = total_time / test_time
-
-    latency = each_time * 1000
-    latency_str = f'Lat={latency:.3f}ms'
-    print(f'=> pruned_model: {latency_str}')
-    return latency
+# def eval_speed(model,test_time=500):
+#     print('=> testing latency. Please wait.')
+#     if not next(model.parameters()).is_cuda:
+#         model = model.cuda()
+#     data = torch.randn(1, 3, 1920//2, 1080//2)
+#     data = data.cuda()
+#     with torch.no_grad():
+#         output = model(data)
+#
+#     test_begin=time.time()
+#     with torch.no_grad():
+#         with torch.cuda.amp.autocast():
+#             for i in range(test_time):
+#                 output = model(data)
+#     total_time = time.time() - test_begin
+#     each_time = total_time / test_time
+#
+#     latency = each_time * 1000
+#     latency_str = f'Lat={latency:.3f}ms'
+#     print(f'=> pruned_model: {latency_str}')
+#     return latency
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -289,6 +289,7 @@ def main():
         for i, data in enumerate(prune_loader):
             with torch.no_grad():
                 result_ori, probs, preds = model(return_loss=False, **data)
+                print(probs)
                 # result = [preds[0][0].astype(np.int64)]
                 # if isinstance(result, list):
                 #     result = [np2tmp(_) for _ in result]
