@@ -289,7 +289,7 @@ def main():
         for i, data in enumerate(prune_loader):
             with torch.no_grad():
                 result_ori, probs, preds = model(return_loss=False, **data)
-                print(probs)
+                print(probs.shape)
                 # result = [preds[0][0].astype(np.int64)]
                 # if isinstance(result, list):
                 #     result = [np2tmp(_) for _ in result]
