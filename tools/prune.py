@@ -140,6 +140,7 @@ def parse_args():
         choices=['Source', 'BN', 'TENT', 'AuxAdapt', 'DPT', 'CoTTAETA', 'CoTTA', 'Ours','RDumb', 'VanillaETA'],
         default='none',
         help='job launcher')
+    parser.add_argument('--num_rm_blocks', type=int, default=0)
     parser.add_argument('--local_rank', type=int, default=0)
     parser.add_argument('--current_model_probs', default='empty', type=str,
                         help='EATA baseline')
