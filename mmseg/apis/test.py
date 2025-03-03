@@ -783,7 +783,8 @@ def ETA_TENT(model,
         if i==399:
             for _ in range(batch_size):
                 prog_bar.update()
-    print("pred_time: %.3f seconds; confidence: %.3f " % (pred_time/(i+1),np.mean(pred_conf)))
+    # print("pred_time: %.3f seconds; confidence: %.3f " % (pred_time/(i+1),np.mean(pred_conf)))
+    print("pruned model pred_time: %.3f seconds" % (pred_time))
     return results,frame_passed
 
 

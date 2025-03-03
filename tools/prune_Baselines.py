@@ -254,6 +254,7 @@ def main():
         efficient_test = args.eval_options.get('efficient_test', False)
 
     model = MMDataParallel(model, device_ids=[0])
+    anchor_model = deepcopy(model) #?
 
     original_depth=[3, 6, 40, 3]
     prunable_blocks = [
@@ -402,8 +403,9 @@ def main():
         args.method="Source"
         _, _ = single_model_update(model, data_loader, args, efficient_test, frame_passed)
 
-        args.method = "TENT"
-        outputs, frame_passed = single_model_update(pruned_model, data_loader, args, efficient_test, frame_passed)
+        args.method = "VanillaETA"
+        current_model_probs = None
+        outputs, frame_passed = ETA_TENT(pruned_model,data_loader,current_model_probs,efficient_test,anchor_model,frame_passed)
 
         # pruned_model.eval()  # ？
         # outputs = []
