@@ -295,17 +295,17 @@ def main():
 
     model.eval()
     #######################################test the original model######################################
-    dataset_time_full=[]
-    for dataset, data_loader in zip(datasets, data_loaders):
-        pred_begin_full = time.time()
-        for i, data in enumerate(data_loader):
-            with torch.no_grad():
-                result, probs, preds = model(return_loss=False, **data)
-        pred_time_full = time.time() - pred_begin_full
-        dataset_time_full.append(pred_time_full)
+    # dataset_time_full=[]
+    # for dataset, data_loader in zip(datasets, data_loaders):
+    #     pred_begin_full = time.time()
+    #     for i, data in enumerate(data_loader):
+    #         with torch.no_grad():
+    #             result, probs, preds = model(return_loss=False, **data)
+    #     pred_time_full = time.time() - pred_begin_full
+    #     dataset_time_full.append(pred_time_full)
 
     #####################################################################################################
-    dataset_index = 0
+    # dataset_index = 0
     for dataset, data_loader in zip(datasets, data_loaders):
         prune_loader = []
         finetune_loader = []
@@ -403,13 +403,19 @@ def main():
 
         #######################################test the pruned model######################################
         pred_time = 0
+        pred_time_full = 0
         outputs = []
         pruned_model.eval()  # ？
-        pred_begin = time.time()
+        data_load_begin = time.time()
         for i, data in enumerate(data_loader):
             with torch.no_grad():
+                data_load_time =time.time() - data_load_begin
+                pred_begin=time.time()
                 result, probs, preds = pruned_model(return_loss=False, **data)
-                img_id = 0
+                pred_time += time.time() - pred_begin + data_load_time
+                pred_begin_full = time.time()
+                result_full, probs_full, preds_full = model(return_loss=False, **data)
+                pred_time_full += time.time() - pred_begin_full + data_load_time
                 if isinstance(result, list):
                     if efficient_test:
                         result = [np2tmp(_) for _ in result]
@@ -418,9 +424,10 @@ def main():
                     if efficient_test:
                         result = np2tmp(result)
                     outputs.append(result)
-        pred_time += time.time() - pred_begin
-        print(f"pred time for pruned model: {pred_time}; pred time for full model: {dataset_time_full[dataset_index]}; latency saving: {(dataset_time_full[dataset_index]-pred_time)/dataset_time_full[dataset_index]*100}%")
-        dataset_index = dataset_index+1
+                data_load_begin = time.time()
+
+        print(f"pred time for pruned model: {pred_time}; pred time for full model: {pred_time_full}; latency saving: {(pred_time_full-pred_time)/pred_time_full*100}%")
+        # dataset_index = dataset_index+1
 
         rank, _ = get_dist_info()
         if rank == 0:
