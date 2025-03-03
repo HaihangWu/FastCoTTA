@@ -429,7 +429,7 @@ def main():
                     outputs.append(result)
 
                 loss_value = loss["decode.loss_seg"]
-                print(loss_value.requires_grad, loss_value.grad_fn)
+                print(loss, loss_value.requires_grad, loss_value.grad_fn)
                 torch.mean(loss["decode.loss_seg"]).backward()
                 optimizer.step()
                 optimizer.zero_grad()
