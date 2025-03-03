@@ -993,7 +993,6 @@ def single_model_update(model,
 
     if "Source" in args.method or 'TENT' in args.method:
         model.eval()
-        print(args.method,efficient_test)
     if 'BN' in args.method:
         model.train()
 
@@ -1006,9 +1005,9 @@ def single_model_update(model,
         if param.requires_grad:
             param_list.append(param)
     optimizer = torch.optim.Adam(param_list, lr=0.00006/8, betas=(0.9, 0.999)) # for segformer,segnext
-    pred_time=0
     out_dir='/data/gpfs/projects/punim0512/Haihangw-Projects/FastCoTTA/'
     show=False
+    pred_time=0
     for i, data in enumerate(data_loader):
         frame_passed=frame_passed+1
         pred_begin=time.time()
@@ -1073,5 +1072,9 @@ def single_model_update(model,
         if i==399:
             for _ in range(batch_size):
                 prog_bar.update()
-    print("pred_time: %.3f seconds; confidence: %.3f " % (pred_time/(i+1),np.mean(pred_conf)))
+    #print("pred_time: %.3f seconds; confidence: %.3f " % (pred_time/(i+1),np.mean(pred_conf)))
+    if "TENT" in args.method:
+        print("pruned model pred time: %.3f seconds;" % (pred_time))
+    else:
+        print("unpruned model pred time: %.3f seconds;" % (pred_time))
     return results,frame_passed

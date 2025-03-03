@@ -393,7 +393,10 @@ def main():
             param.requires_grad = False
 
     for dataset, data_loader in zip(datasets_test, data_loaders_test):
+        args.method = "TENT"
         outputs, frame_passed = single_model_update(pruned_model, data_loader, args, efficient_test, frame_passed)
+        args.method="Source"
+        _, _ = single_model_update(model, data_loader, args, efficient_test, frame_passed)
         # pruned_model.eval()  # ？
         # outputs = []
         # param_list = []
