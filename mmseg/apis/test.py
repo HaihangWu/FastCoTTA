@@ -993,6 +993,7 @@ def single_model_update(model,
 
     if "Source" in args.method or 'TENT' in args.method:
         model.eval()
+        print(args.method,efficient_test)
     if 'BN' in args.method:
         model.train()
 

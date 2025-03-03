@@ -387,7 +387,7 @@ def main():
         #######################################test the pruned model######################################
     pruned_model.eval()  # ？
     frame_passed=0
-    for name, param in pruned_model.named_parameters():
+    for name, param in model.named_parameters():
         if ("norm" in name or "bn" in name or "ln" in name or "BatchNorm" in name):
             param.requires_grad = True
         else:
