@@ -46,9 +46,9 @@ export MASTER_ADDR=$master_addr
 echo "MASTER_ADDR="$MASTER_ADDR
 echo "r$SLURM_NODEID Launching python script"
 
-#bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.city.160k.py local_configs/ours/prune_segformer.b5.1024x1024.acdc.160k.py 1 1 | tee train_time_PF_TENT_1_blocks.log
+bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.city.160k.py local_configs/ours/prune_segformer.b5.1024x1024.acdc.160k.py 1 1 | tee train_time_PF_TENT_1_blocks.log
 
-bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.acdc.160k.py 7 1 | tee test_time_PF_7_blocks.log
+#bash ./tools/dist_prune.sh local_configs/ours/prune_segformer.b5.1024x1024.acdc.160k.py 7 1 | tee test_time_PF_7_blocks.log
 
 
 #bash ./tools/dist_cotta.sh configs/setr/setr_vit-large_pup_8x1_768x768_80k_acdc.py setr_pup_vit-large_8x1_768x768_80k_cityscapes.pth 1 v2 | tee T1-SETR-SimCOTTA-1-largelr.log

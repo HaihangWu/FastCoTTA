@@ -322,13 +322,13 @@ def main():
             pruned_model = MMDataParallel(pruned_model, device_ids=[0])
 
             pruned_model.eval()
-            loss = 0
+            loss_prune = 0
             for i, data in enumerate(prune_loader):
                 with torch.no_grad():
                     result_ori, probs, preds = pruned_model(return_loss=False, **data)
-                loss = loss+criterion(probs, feature_maps_origin[i]).data.item()
+                loss_prune = loss_prune+criterion(probs, feature_maps_origin[i]).data.item()
                 #print(f"loss at the {i}th time:{loss}")
-            blocks_importance.append(loss * Model_capacity_gap[block_index] / latency_time_saving[block_index])
+            blocks_importance.append(loss_prune * Model_capacity_gap[block_index] / latency_time_saving[block_index])
 
         paired_lists = zip(blocks_importance, prunable_blocks)
         sorted_lists = sorted(paired_lists, key=lambda x: x[0])
@@ -375,10 +375,10 @@ def main():
                     t_feature = t_features[i]
                 optimizer.zero_grad()
                 _, s_feature, _ = pruned_model(return_loss=False, **data)
-                loss=torch.mean(torch.square(t_feature - s_feature))
-                loss.backward()
+                loss_finetne=torch.mean(torch.square(t_feature - s_feature))
+                loss_finetne.backward()
                 optimizer.step()
-                total_loss = total_loss+ loss.item()
+                total_loss = total_loss+ loss_finetne.item()
             print(f"total_loss{total_loss}")
 
         print(f'finetuning time: {(time.time() - finetune_start):.6f}')
@@ -393,8 +393,10 @@ def main():
         for name, param in pruned_model.named_parameters():
             if param.requires_grad:
                 param_list.append(param)
+            else:
+                param.requires_grad = False
+                print(f"Parameter {name} does not require grad")
         optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer,segnext
-        pred_begin = time.time()
 
         pred_time = 0
         pred_time_full = 0
@@ -426,6 +428,8 @@ def main():
                         result = np2tmp(result)
                     outputs.append(result)
 
+                loss_value = loss["decode.loss_seg"]
+                print(loss_value.requires_grad, loss_value.grad_fn)
                 torch.mean(loss["decode.loss_seg"]).backward()
                 optimizer.step()
                 optimizer.zero_grad()
