@@ -389,13 +389,13 @@ def main():
     dataset_index=0
     for dataset, data_loader in zip(datasets_test, data_loaders_test):
         outputs = []
-        param_list = []
-        for name, param in pruned_model.named_parameters():
-            if param.requires_grad:
-                param_list.append(param)
-            else:
-                param.requires_grad = False
-                print(f"Parameter {name} does not require grad")
+        # param_list = []
+        # for name, param in pruned_model.named_parameters():
+        #     if param.requires_grad:
+        #         param_list.append(param)
+        #     else:
+        #         param.requires_grad = False
+        #         print(f"Parameter {name} does not require grad")
         optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer,segnext
 
         pred_time = 0
