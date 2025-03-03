@@ -361,6 +361,7 @@ def main():
                 # print(name)
             else:
                 param.requires_grad = False
+                print(f"Parameter {name} does not require grad")
         optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer
         t_features=[]
 
@@ -384,12 +385,18 @@ def main():
         print(f'finetuning time: {(time.time() - finetune_start):.6f}')
 
         #######################################test the pruned model######################################
-    model.eval()  # ？
+    pruned_model.eval()  # ？
     dataset_index=0
+    for name, param in pruned_model.named_parameters():
+        if ("norm" in name or "bn" in name or "ln" in name or "BatchNorm" in name):
+            param.requires_grad = True
+        else:
+            param.requires_grad = False
+
     for dataset, data_loader in zip(datasets_test, data_loaders_test):
         outputs = []
         param_list = []
-        for name, param in model.named_parameters():
+        for name, param in pruned_model.named_parameters():
             if param.requires_grad:
                 param_list.append(param)
             else:
@@ -409,11 +416,11 @@ def main():
                 pred_time_full += time.time() - pred_begin_full + data_load_time
 
                 pred_begin = time.time()
-                result, probs, preds = model(return_loss=False, **data)
+                result, probs, preds = pruned_model(return_loss=False, **data)
 
                 img_id = 0
                 if isinstance(result, list):
-                    loss = model.forward(return_loss=True, img=data['img'][img_id],
+                    loss = pruned_model.forward(return_loss=True, img=data['img'][img_id],
                                              img_metas=data['img_metas'][img_id].data[0],
                                              gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(
                                                  0))
@@ -421,7 +428,7 @@ def main():
                         result = [np2tmp(_) for _ in result]
                     outputs.extend(result)
                 else:
-                    loss = model(return_loss=True, img=data['img'][img_id],
+                    loss = pruned_model(return_loss=True, img=data['img'][img_id],
                                      img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=result)
                     if efficient_test:
                         result = np2tmp(result)
