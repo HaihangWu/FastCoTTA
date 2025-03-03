@@ -132,7 +132,7 @@ def parse_args():
     parser.add_argument(
         '--method',
         choices=['Source', 'BN', 'TENT', 'AuxAdapt', 'DPT', 'CoTTAETA', 'CoTTA', 'Ours','RDumb', 'VanillaETA'],
-        default='none',
+        default='TENT',
         help='job launcher')
     parser.add_argument('--num_rm_blocks', type=int, default=0)
     parser.add_argument('--local_rank', type=int, default=0)
@@ -386,6 +386,7 @@ def main():
 
         #######################################test the pruned model######################################
     pruned_model.eval()  # ？
+    frame_passed=0
     for name, param in pruned_model.named_parameters():
         if ("norm" in name or "bn" in name or "ln" in name or "BatchNorm" in name):
             param.requires_grad = True
@@ -393,55 +394,56 @@ def main():
             param.requires_grad = False
 
     for dataset, data_loader in zip(datasets_test, data_loaders_test):
-        outputs = []
-        param_list = []
-        for name, param in pruned_model.named_parameters():
-            if param.requires_grad:
-                param_list.append(param)
-            else:
-                param.requires_grad = False
-        optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer,segnext
-
-        pred_time = 0
-        pred_time_full = 0
-        data_load_begin = time.time()
-        for i, data in enumerate(data_loader):
-            with torch.no_grad():
-                data_load_time =time.time() - data_load_begin
-
-                pred_begin_full = time.time()
-                result_full, probs_full, preds_full = model(return_loss=False, **data)
-                pred_time_full += time.time() - pred_begin_full + data_load_time
-
-                pred_begin = time.time()
-                result, probs, preds = pruned_model(return_loss=False, **data)
-
-                img_id = 0
-                if isinstance(result, list):
-                    loss = pruned_model.forward(return_loss=True, img=data['img'][img_id],
-                                             img_metas=data['img_metas'][img_id].data[0],
-                                             gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(
-                                                 0))
-                    if efficient_test:
-                        result = [np2tmp(_) for _ in result]
-                    outputs.extend(result)
-                else:
-                    loss = pruned_model(return_loss=True, img=data['img'][img_id],
-                                     img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=result)
-                    if efficient_test:
-                        result = np2tmp(result)
-                    outputs.append(result)
-
-                loss_value = loss["decode.loss_seg"]
-                print(loss, loss_value.requires_grad, loss_value.grad_fn)
-                torch.mean(loss["decode.loss_seg"]).backward()
-                optimizer.step()
-                optimizer.zero_grad()
-
-                pred_time += time.time() - pred_begin + data_load_time
-                data_load_begin = time.time()
-
-        print(f"pred time for pruned model: {pred_time}; pred time for full model: {pred_time_full}; latency saving: {(pred_time_full-pred_time)/pred_time_full*100}%")
+        outputs, frame_passed = single_model_update(model, data_loader, args, efficient_test, frame_passed)
+        # outputs = []
+        # param_list = []
+        # for name, param in pruned_model.named_parameters():
+        #     if param.requires_grad:
+        #         param_list.append(param)
+        #     else:
+        #         param.requires_grad = False
+        # optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer,segnext
+        #
+        # pred_time = 0
+        # pred_time_full = 0
+        # data_load_begin = time.time()
+        # for i, data in enumerate(data_loader):
+        #     with torch.no_grad():
+        #         data_load_time =time.time() - data_load_begin
+        #
+        #         pred_begin_full = time.time()
+        #         result_full, probs_full, preds_full = model(return_loss=False, **data)
+        #         pred_time_full += time.time() - pred_begin_full + data_load_time
+        #
+        #         pred_begin = time.time()
+        #         result, probs, preds = pruned_model(return_loss=False, **data)
+        #
+        #         img_id = 0
+        #         if isinstance(result, list):
+        #             loss = pruned_model.forward(return_loss=True, img=data['img'][img_id],
+        #                                      img_metas=data['img_metas'][img_id].data[0],
+        #                                      gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(
+        #                                          0))
+        #             if efficient_test:
+        #                 result = [np2tmp(_) for _ in result]
+        #             outputs.extend(result)
+        #         else:
+        #             loss = pruned_model(return_loss=True, img=data['img'][img_id],
+        #                              img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=result)
+        #             if efficient_test:
+        #                 result = np2tmp(result)
+        #             outputs.append(result)
+        #
+        #         loss_value = loss["decode.loss_seg"]
+        #         print(loss, loss_value.requires_grad, loss_value.grad_fn)
+        #         torch.mean(loss["decode.loss_seg"]).backward()
+        #         optimizer.step()
+        #         optimizer.zero_grad()
+        #
+        #         pred_time += time.time() - pred_begin + data_load_time
+        #         data_load_begin = time.time()
+        #
+        # print(f"pred time for pruned model: {pred_time}; pred time for full model: {pred_time_full}; latency saving: {(pred_time_full-pred_time)/pred_time_full*100}%")
 
         rank, _ = get_dist_info()
         if rank == 0:
