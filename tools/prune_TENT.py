@@ -353,44 +353,43 @@ def main():
 
         print(f"Original Model Size: {original_model_size} parameters； pruned model size: {pruned_model_size}; latency time saving: {total_latency_saving}%; backbone is  {cfg.model.backbone.depths}")
         #######################################finetune the pruned model######################################
-        # pruned_model.eval() #？
-        # param_list = []
-        # for name, param in pruned_model.named_parameters():
-        #     if param.requires_grad:
-        #         param_list.append(param)
-        #         # print(name)
-        #     else:
-        #         param.requires_grad = False
-        # optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer
-        # t_features=[]
-        #
-        # finetune_start=time.time()
-        # for finetune_iter in range(10):
-        #     total_loss = 0
-        #     for i, data in enumerate(finetune_loader):
-        #         if finetune_iter == 0:
-        #             _, t_feature, _ = model(return_loss=False, **data)
-        #             t_features.append(t_feature.detach())
-        #         else:
-        #             t_feature = t_features[i]
-        #         optimizer.zero_grad()
-        #         _, s_feature, _ = pruned_model(return_loss=False, **data)
-        #         loss_finetne=torch.mean(torch.square(t_feature - s_feature))
-        #         loss_finetne.backward()
-        #         optimizer.step()
-        #         total_loss = total_loss+ loss_finetne.item()
-        #     print(f"total_loss{total_loss}")
-        #
-        # print(f'finetuning time: {(time.time() - finetune_start):.6f}')
+        pruned_model.eval() #？
+        param_list = []
+        for name, param in pruned_model.named_parameters():
+            if param.requires_grad:
+                param_list.append(param)
+                # print(name)
+            else:
+                param.requires_grad = False
+        optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer
+        t_features=[]
+
+        finetune_start=time.time()
+        for finetune_iter in range(10):
+            total_loss = 0
+            for i, data in enumerate(finetune_loader):
+                if finetune_iter == 0:
+                    _, t_feature, _ = model(return_loss=False, **data)
+                    t_features.append(t_feature.detach())
+                else:
+                    t_feature = t_features[i]
+                optimizer.zero_grad()
+                _, s_feature, _ = pruned_model(return_loss=False, **data)
+                loss_finetne=torch.mean(torch.square(t_feature - s_feature))
+                loss_finetne.backward()
+                optimizer.step()
+                total_loss = total_loss+ loss_finetne.item()
+            print(f"total_loss{total_loss}")
+
+        print(f'finetuning time: {(time.time() - finetune_start):.6f}')
 
         #######################################test the pruned model######################################
-    pruned_model.eval()  # ？
-    model.eval()
+    model.eval()  # ？
     dataset_index=0
     for dataset, data_loader in zip(datasets_test, data_loaders_test):
         outputs = []
         param_list = []
-        for name, param in pruned_model.named_parameters():
+        for name, param in model.named_parameters():
             if param.requires_grad:
                 param_list.append(param)
             else:
@@ -410,11 +409,11 @@ def main():
                 pred_time_full += time.time() - pred_begin_full + data_load_time
 
                 pred_begin = time.time()
-                result, probs, preds = pruned_model(return_loss=False, **data)
+                result, probs, preds = model(return_loss=False, **data)
 
                 img_id = 0
                 if isinstance(result, list):
-                    loss = pruned_model.forward(return_loss=True, img=data['img'][img_id],
+                    loss = model.forward(return_loss=True, img=data['img'][img_id],
                                              img_metas=data['img_metas'][img_id].data[0],
                                              gt_semantic_seg=torch.from_numpy(result[0]).cuda().unsqueeze(0).unsqueeze(
                                                  0))
@@ -422,7 +421,7 @@ def main():
                         result = [np2tmp(_) for _ in result]
                     outputs.extend(result)
                 else:
-                    loss = pruned_model(return_loss=True, img=data['img'][img_id],
+                    loss = model(return_loss=True, img=data['img'][img_id],
                                      img_metas=data['img_metas'][img_id].data[0], gt_semantic_seg=result)
                     if efficient_test:
                         result = np2tmp(result)
