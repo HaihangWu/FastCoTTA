@@ -280,14 +280,14 @@ def main():
 
     model.eval()
     #######################################test the original model######################################
-    dataset_time_full=[]
-    for dataset, data_loader in zip(datasets_test, data_loaders_test):
-        pred_begin_full = time.time()
-        for i, data in enumerate(data_loader):
-            with torch.no_grad():
-                result, probs, preds = model(return_loss=False, **data)
-        pred_time_full = time.time() - pred_begin_full
-        dataset_time_full.append(pred_time_full)
+    # dataset_time_full=[]
+    # for dataset, data_loader in zip(datasets_test, data_loaders_test):
+    #     pred_begin_full = time.time()
+    #     for i, data in enumerate(data_loader):
+    #         with torch.no_grad():
+    #             result, probs, preds = model(return_loss=False, **data)
+    #     pred_time_full = time.time() - pred_begin_full
+    #     dataset_time_full.append(pred_time_full)
     #####################################################################################################
     for dataset, data_loader in zip(datasets, data_loaders):
         prune_loader = []
@@ -385,6 +385,7 @@ def main():
 
         #######################################test the pruned model######################################
     pruned_model.eval()  # ？
+    model.eval()
     dataset_index=0
     for dataset, data_loader in zip(datasets_test, data_loaders_test):
         outputs = []
@@ -394,8 +395,19 @@ def main():
                 param_list.append(param)
         optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer,segnext
         pred_begin = time.time()
+
+        pred_time = 0
+        pred_time_full = 0
+        data_load_begin = time.time()
         for i, data in enumerate(data_loader):
             with torch.no_grad():
+                data_load_time =time.time() - data_load_begin
+
+                pred_begin_full = time.time()
+                result_full, probs_full, preds_full = model(return_loss=False, **data)
+                pred_time_full += time.time() - pred_begin_full + data_load_time
+
+                pred_begin = time.time()
                 result, probs, preds = pruned_model(return_loss=False, **data)
 
                 img_id = 0
@@ -418,9 +430,10 @@ def main():
                 optimizer.step()
                 optimizer.zero_grad()
 
+                pred_time += time.time() - pred_begin + data_load_time
+                data_load_begin = time.time()
 
-        pred_time = time.time() - pred_begin
-        print(f"pred time for pruned model: {pred_time}; pred time for full model: {dataset_time_full[dataset_index]}; latency saving: {(dataset_time_full[dataset_index]-pred_time)/dataset_time_full[dataset_index]*100}%")
+        print(f"pred time for pruned model: {pred_time}; pred time for full model: {pred_time_full}; latency saving: {(pred_time_full-pred_time)/pred_time_full*100}%")
         dataset_index = dataset_index+1
 
         rank, _ = get_dist_info()
