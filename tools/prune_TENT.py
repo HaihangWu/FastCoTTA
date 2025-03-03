@@ -386,7 +386,6 @@ def main():
 
         #######################################test the pruned model######################################
     pruned_model.eval()  # ？
-    dataset_index=0
     for name, param in pruned_model.named_parameters():
         if ("norm" in name or "bn" in name or "ln" in name or "BatchNorm" in name):
             param.requires_grad = True
@@ -401,7 +400,6 @@ def main():
                 param_list.append(param)
             else:
                 param.requires_grad = False
-                print(f"Parameter {name} does not require grad")
         optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer,segnext
 
         pred_time = 0
@@ -444,7 +442,6 @@ def main():
                 data_load_begin = time.time()
 
         print(f"pred time for pruned model: {pred_time}; pred time for full model: {pred_time_full}; latency saving: {(pred_time_full-pred_time)/pred_time_full*100}%")
-        dataset_index = dataset_index+1
 
         rank, _ = get_dist_info()
         if rank == 0:
