@@ -385,16 +385,16 @@ def main():
         print(f'finetuning time: {(time.time() - finetune_start):.6f}')
 
         #######################################test the pruned model######################################
-    pruned_model.eval()  # ？
     frame_passed=0
-    for name, param in model.named_parameters():
+    for name, param in pruned_model.named_parameters():
         if ("norm" in name or "bn" in name or "ln" in name or "BatchNorm" in name):
             param.requires_grad = True
         else:
             param.requires_grad = False
 
     for dataset, data_loader in zip(datasets_test, data_loaders_test):
-        outputs, frame_passed = single_model_update(model, data_loader, args, efficient_test, frame_passed)
+        outputs, frame_passed = single_model_update(pruned_model, data_loader, args, efficient_test, frame_passed)
+        # pruned_model.eval()  # ？
         # outputs = []
         # param_list = []
         # for name, param in pruned_model.named_parameters():
