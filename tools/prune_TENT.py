@@ -392,6 +392,12 @@ def main():
         else:
             param.requires_grad = False
 
+    for name, param in model.named_parameters():
+        if ("norm" in name or "bn" in name or "ln" in name or "BatchNorm" in name):
+            param.requires_grad = True
+        else:
+            param.requires_grad = False
+
     for dataset, data_loader in zip(datasets_test, data_loaders_test):
         args.method = "TENT"
         outputs, frame_passed = single_model_update(pruned_model, data_loader, args, efficient_test, frame_passed)
