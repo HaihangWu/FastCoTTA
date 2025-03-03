@@ -353,35 +353,35 @@ def main():
 
         print(f"Original Model Size: {original_model_size} parameters； pruned model size: {pruned_model_size}; latency time saving: {total_latency_saving}%; backbone is  {cfg.model.backbone.depths}")
         #######################################finetune the pruned model######################################
-        pruned_model.eval() #？
-        param_list = []
-        for name, param in pruned_model.named_parameters():
-            if param.requires_grad:
-                param_list.append(param)
-                # print(name)
-            else:
-                param.requires_grad = False
-        optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer
-        t_features=[]
-
-        finetune_start=time.time()
-        for finetune_iter in range(10):
-            total_loss = 0
-            for i, data in enumerate(finetune_loader):
-                if finetune_iter == 0:
-                    _, t_feature, _ = model(return_loss=False, **data)
-                    t_features.append(t_feature.detach())
-                else:
-                    t_feature = t_features[i]
-                optimizer.zero_grad()
-                _, s_feature, _ = pruned_model(return_loss=False, **data)
-                loss_finetne=torch.mean(torch.square(t_feature - s_feature))
-                loss_finetne.backward()
-                optimizer.step()
-                total_loss = total_loss+ loss_finetne.item()
-            print(f"total_loss{total_loss}")
-
-        print(f'finetuning time: {(time.time() - finetune_start):.6f}')
+        # pruned_model.eval() #？
+        # param_list = []
+        # for name, param in pruned_model.named_parameters():
+        #     if param.requires_grad:
+        #         param_list.append(param)
+        #         # print(name)
+        #     else:
+        #         param.requires_grad = False
+        # optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer
+        # t_features=[]
+        #
+        # finetune_start=time.time()
+        # for finetune_iter in range(10):
+        #     total_loss = 0
+        #     for i, data in enumerate(finetune_loader):
+        #         if finetune_iter == 0:
+        #             _, t_feature, _ = model(return_loss=False, **data)
+        #             t_features.append(t_feature.detach())
+        #         else:
+        #             t_feature = t_features[i]
+        #         optimizer.zero_grad()
+        #         _, s_feature, _ = pruned_model(return_loss=False, **data)
+        #         loss_finetne=torch.mean(torch.square(t_feature - s_feature))
+        #         loss_finetne.backward()
+        #         optimizer.step()
+        #         total_loss = total_loss+ loss_finetne.item()
+        #     print(f"total_loss{total_loss}")
+        #
+        # print(f'finetuning time: {(time.time() - finetune_start):.6f}')
 
         #######################################test the pruned model######################################
     pruned_model.eval()  # ？
@@ -389,13 +389,13 @@ def main():
     dataset_index=0
     for dataset, data_loader in zip(datasets_test, data_loaders_test):
         outputs = []
-        # param_list = []
-        # for name, param in pruned_model.named_parameters():
-        #     if param.requires_grad:
-        #         param_list.append(param)
-        #     else:
-        #         param.requires_grad = False
-        #         print(f"Parameter {name} does not require grad")
+        param_list = []
+        for name, param in pruned_model.named_parameters():
+            if param.requires_grad:
+                param_list.append(param)
+            else:
+                param.requires_grad = False
+                print(f"Parameter {name} does not require grad")
         optimizer = torch.optim.Adam(param_list, lr=0.00006 / 8, betas=(0.9, 0.999))  # for segformer,segnext
 
         pred_time = 0
